@@ -97,7 +97,7 @@ html[lang="ar"] .hero h2{font-family:"IBM Plex Sans Arabic",sans-serif;font-weig
 .field{margin-bottom:14px}
 .field>label,.lbl{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px}
 .hint{font-size:12px;color:var(--muted);margin-top:4px}
-select,input[type=text],input[type=number]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 10px;outline:none}
+select,input[type=text],input[type=number]{font-variant-numeric:lining-nums;width:100%;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 10px;outline:none}
 select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .seg{display:flex;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
 .seg button{flex:1 1 auto;border:0;background:none;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--ink2);white-space:nowrap}
@@ -316,8 +316,8 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
               </div>
             </div>
             <div class="row2" id="customLimits" style="display:none">
-              <div class="field"><label data-i18n="f_lo">الحد الأدنى</label><input lang="en" dir="ltr" type="number" id="limLo" value="0.80" step="0.01"></div>
-              <div class="field"><label data-i18n="f_hi">الحد الأعلى</label><input lang="en" dir="ltr" type="number" id="limHi" value="1.25" step="0.01"></div>
+              <div class="field"><label data-i18n="f_lo">الحد الأدنى</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="limLo" value="0.80" step="0.01"></div>
+              <div class="field"><label data-i18n="f_hi">الحد الأعلى</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="limHi" value="1.25" step="0.01"></div>
             </div>
           </div>
         </div>
@@ -392,8 +392,8 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
               </div>
             </div>
             <div class="row2">
-              <div class="field"><label for="pCV"><span data-i18n="f_cv">CV داخل الفرد</span> (%)</label><input lang="en" dir="ltr" type="number" id="pCV" value="30" min="1" max="200" step="1"><div class="hint" id="cvHint"></div></div>
-              <div class="field"><label for="pGMR" data-i18n="f_gmr">GMR المتوقع</label><input lang="en" dir="ltr" type="number" id="pGMR" value="0.95" min="0.5" max="2" step="0.01"></div>
+              <div class="field"><label for="pCV"><span data-i18n="f_cv">CV داخل الفرد</span> (%)</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="pCV" value="30" min="1" max="200" step="1"><div class="hint" id="cvHint"></div></div>
+              <div class="field"><label for="pGMR" data-i18n="f_gmr">GMR المتوقع</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="pGMR" value="0.95" min="0.5" max="2" step="0.01"></div>
             </div>
             <div class="field">
               <label for="pLimits" data-i18n="f_limits">حدود القبول</label>
@@ -406,8 +406,8 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <button data-v="power" data-i18n="p_mode_p">القوة لعدد محدد</button>
               </div>
             </div>
-            <div class="field" id="pTargetF"><label for="pTarget"><span data-i18n="f_target">القوة المستهدفة</span> (%)</label><input lang="en" dir="ltr" type="number" id="pTarget" value="80" min="50" max="99" step="1"></div>
-            <div class="field" id="pNF" style="display:none"><label for="pN" data-i18n="f_n">العدد الإجمالي N</label><input lang="en" dir="ltr" type="number" id="pN" value="24" min="4" step="1"><div class="hint" data-i18n="n_hint">يجب أن يكون متوازنًا: مضاعفات 3 للجزئي و2 لغيره.</div></div>
+            <div class="field" id="pTargetF"><label for="pTarget"><span data-i18n="f_target">القوة المستهدفة</span> (%)</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="pTarget" value="80" min="50" max="99" step="1"></div>
+            <div class="field" id="pNF" style="display:none"><label for="pN" data-i18n="f_n">العدد الإجمالي N</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="pN" value="24" min="4" step="1"><div class="hint" data-i18n="n_hint">يجب أن يكون متوازنًا: مضاعفات 3 للجزئي و2 لغيره.</div></div>
             <button class="btn btn-primary" id="pRun" disabled><span class="spin"></span><span data-i18n="p_run">احسب</span></button>
           </div>
         </div>
@@ -897,6 +897,10 @@ function powerChart(pts,n,p,target){
   return g+`</svg>`;
 }
 
+/* Latin digits in numeric fields: convert Arabic-Indic / Persian digits and separators as the user types */
+document.addEventListener('input',e=>{const el=e.target;if(!el.classList||!el.classList.contains('numin'))return;
+  const v=el.value.replace(/[٠-٩]/g,d=>d.charCodeAt(0)-0x660).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-0x6F0).replace(/[٫,]/g,'.').replace(/[^0-9.]/g,'');
+  if(v!==el.value)el.value=v;});
 /* init */
 $('#colSubject').onchange=()=>S.csv&&renderPreview();
 syncForm();syncPN();applyLang();boot();

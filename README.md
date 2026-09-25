@@ -50,6 +50,13 @@ All screenshots use simulated data from `engine/example_partial.csv`, `test_data
 - **Output:** verdict with exit code (0 pass · 1 not met · 2 invalid/unsupported), CI chart, scaled-criteria cards, JSON / CSV download.
 - Arabic (RTL) and English UI, light and dark themes; engine messages are translated with the English original preserved.
 
+## Regulatory frameworks
+
+The UI offers two frameworks:
+
+- **ICH M13A · EMA · FDA** (default) — the basis of the original [K-Dense `pkpd-modeling` skill](https://github.com/K-Dense-AI/scientific-agent-skills/tree/main/skills/pkpd-modeling) (`references/bioequivalence.md`): average BE on log data with the 90% CI inside 80.00–125.00% per the harmonised **ICH M13A** guideline (Step 4 July 2024, effective 25 January 2025), plus the two regional scaled criteria for highly variable drugs, which ICH has not yet harmonised (planned for M13C): **EMA ABEL** (EMA bioequivalence guideline, k = 0.760, capped at CVwR 50%) and **FDA RSABE** (Hyslop bound, θ = ln(1.25)/0.25, as in the FDA progesterone product-specific guidance). Sample sizes reproduce the published PowerTOST table.
+- **SFDA / GCC** — see below.
+
 ## SFDA / GCC profile
 
 Selecting **SFDA / GCC** in the UI (CLI: `--profile sfda`) applies the GCC bioequivalence guideline **DS-G-010 V3.1** (adopted by the SFDA), section by section:

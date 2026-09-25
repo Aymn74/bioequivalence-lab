@@ -295,9 +295,10 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
             <div class="field">
               <span class="lbl" data-i18n="f_profile">الإطار التنظيمي</span>
               <div class="seg" id="profileSeg">
-                <button data-v="none" aria-pressed="true" data-i18n="pr_none">عام</button>
+                <button data-v="none" aria-pressed="true" data-i18n="pr_none">ICH M13A · EMA · FDA</button>
                 <button data-v="sfda" data-i18n="pr_sfda">SFDA / الخليجي</button>
               </div>
+              <div class="profile-note on" id="profileNoteIch" data-i18n="pr_note_ich">ABE وفق ICH M13A (الدليل المنسّق دوليًا، ساري منذ يناير 2025) كما في المستودع الأصلي K-Dense، مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA. المعايير المتدرجة لم تُنسَّق دوليًا بعد (ICH M13C).</div>
               <div class="profile-note" id="profileNote" data-i18n="pr_note">يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة &gt; 5% من Cmax.</div>
             </div>
             <div class="field">
@@ -404,7 +405,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
             <div class="field">
               <span class="lbl" data-i18n="f_design">تصميم الدراسة</span>
               <div class="seg" id="pProfileSeg" style="margin-bottom:12px">
-                <button data-v="none" aria-pressed="true" data-i18n="pr_none">عام</button>
+                <button data-v="none" aria-pressed="true" data-i18n="pr_none">ICH M13A · EMA · FDA</button>
                 <button data-v="sfda" data-i18n="pr_sfda">SFDA / الخليجي</button>
               </div>
               <div class="seg" id="pDesignSeg">
@@ -500,7 +501,8 @@ ar:{
  p_note:"تكامل عددي لقوة TOST بحدود ثابتة؛ تصميم متوازن كامل، بيانات لوغاريتمية طبيعية، تباين متساوٍ لـ T/R، بلا تفاعل فرد×معالجة. لا يشمل هامش الانسحاب ولا قوة ABEL/RSABE.",
  foot:"المحرك: bioequivalence.py (النسخة المصححة) عبر Pyodide · جميع الحسابات محلية في متصفحك",
  loaded:"تم تحميل الملف",
- f_profile:"الإطار التنظيمي",pr_none:"عام",pr_sfda:"SFDA / الخليجي",
+ f_profile:"الإطار التنظيمي",pr_none:"ICH M13A · EMA · FDA",
+ pr_note_ich:"ABE وفق ICH M13A (الدليل المنسّق دوليًا، ساري منذ يناير 2025) كما في المستودع الأصلي K-Dense، مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA. المعايير المتدرجة لم تُنسَّق دوليًا بعد (ICH M13C).",pr_sfda:"SFDA / الخليجي",
  pr_note:"يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة > 5% من Cmax.",
  f_cilevel:"مستوى فترة الثقة",cl_90:"90% (قياسي)",cl_94:"94.12% (تصميم على مرحلتين، محدد مسبقًا)",
  opt:"(اختياري)",opt_cmax:"(لفحص ما قبل الجرعة)",c_endo:"مادة داخلية المنشأ (تجاوز قاعدة ما قبل الجرعة)",
@@ -543,7 +545,8 @@ en:{
  p_note:"Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. No dropout allowance; no ABEL/RSABE power.",
  foot:"Engine: bioequivalence.py (corrected) via Pyodide · all computation runs locally in your browser",
  loaded:"File loaded",
- f_profile:"Regulatory framework",pr_none:"General",pr_sfda:"SFDA / GCC",
+ f_profile:"Regulatory framework",pr_none:"ICH M13A · EMA · FDA",
+ pr_note_ich:"Average BE per ICH M13A (the harmonised guideline, in effect since January 2025), as in the original K-Dense repository, with two regional options for highly variable drugs: ABEL from the EMA guideline and RSABE from the FDA. Scaled criteria are not yet harmonised (ICH M13C).",pr_sfda:"SFDA / GCC",
  pr_note:"Applies the GCC bioequivalence guideline DS-G-010 V3.1: fixed-effects ANOVA, limits rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 subjects, and exclusion of pre-dose concentrations > 5% of Cmax.",
  f_cilevel:"Confidence level",cl_90:"90% (standard)",cl_94:"94.12% (two-stage, pre-specified)",
  opt:"(optional)",opt_cmax:"(for pre-dose check)",c_endo:"Endogenous substance (skip pre-dose rule)",
@@ -668,7 +671,7 @@ $('#limits').onchange=syncForm;
 
 function syncForm(){
   const sf=S.profile==='sfda';
-  $('#profileNote').classList.toggle('on',sf);
+  $('#profileNote').classList.toggle('on',sf); $('#profileNoteIch').classList.toggle('on',!sf);
   if(sf&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
   if(sf&&(S.scaling==='rsabe'||S.scaling==='both')){S.scaling=S.scaling==='both'?'abel':'none';setSeg('#scalingSeg',S.scaling);}
   if(sf){$('#emaRound').checked=true;$('#welch').checked=false;}

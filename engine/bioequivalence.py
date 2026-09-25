@@ -11,11 +11,12 @@ from decimal import Decimal, ROUND_HALF_UP
 import numpy as np
 from scipy.integrate import quad
 from scipy.linalg import qr as pivoted_qr
-from scipy.stats import chi2, norm, t
+from scipy.stats import chi2, f as f_dist, norm, t
 from _common import InputError, Report, read_table, require_columns, add_format_argument, main_wrapper
 
 DESIGNS = {'2x2': ('TR', 'RT'), 'partial': ('TRR', 'RTR', 'RRT'), 'full': ('TRTR', 'RTRT')}
 THETA_FDA = (math.log(1.25)/0.25)**2
+SFDA_MIN_SUBJECTS = 18
 
 @dataclass
 class AverageBE:
@@ -24,12 +25,15 @@ class AverageBE:
     df: float
     n_subjects: int
     method: str
+    ci_level: float = 90.0
     @property
     def gmr(self): return math.exp(self.estimate)
     @property
-    def ci_low(self): return math.exp(self.estimate-t.ppf(.95,self.df)*self.se)
+    def _q(self): return t.ppf(1-(1-self.ci_level/100)/2,self.df)
     @property
-    def ci_high(self): return math.exp(self.estimate+t.ppf(.95,self.df)*self.se)
+    def ci_low(self): return math.exp(self.estimate-self._q*self.se)
+    @property
+    def ci_high(self): return math.exp(self.estimate+self._q*self.se)
 
 @dataclass
 class ReferenceVariability:
@@ -69,6 +73,7 @@ def validate(records, design):
     for sid,g in groups.items():
         seq = g[0]['sequence']
         if any(r['sequence']!=seq for r in g): raise InputError(f'{sid}: inconsistent sequence')
+        if len({r.get('stage','') for r in g})!=1: raise InputError(f'{sid}: inconsistent stage')
         if len(g)!=len(seq): raise InputError(f'{sid}: incomplete or duplicate records')
         try: periods = [int(str(r['period'])) for r in g]
         except (ValueError,KeyError): raise InputError(f'{sid}: integer period required')
@@ -94,12 +99,22 @@ def contrast_analysis(records, design='2x2'):
 # Compatibility name, with stricter validation and corrected m-squared denominator.
 crossover_2x2 = contrast_analysis
 
+def period_key(r):
+    """Period effect key; in a two-stage study periods are nested within stage."""
+    return (str(r.get('stage','')), int(r['period']))
+
 def fixed_fit(records, treatment=True):
     """OLS subject + period (+ treatment); sequence is absorbed by subject effects.
+    With a stage column, periods are fitted within stage and the stage main
+    effect is absorbed by the (stage-nested) subject effects.
     Reduced QR avoids forming the inverse of X'X. Complete designs only.
     """
-    subjects=sorted({r['subject'] for r in records}); periods=sorted({int(r['period']) for r in records})
-    x=np.array([[1.]+[float(r['subject']==s) for s in subjects[1:]]+[float(int(r['period'])==p) for p in periods[1:]]+([float(r['treatment']=='T')] if treatment else []) for r in records])
+    subjects=sorted({r['subject'] for r in records}); keys=sorted({period_key(r) for r in records})
+    # One reference period per stage: the stage main effect lies in the subject space.
+    first={}
+    for s,p in keys: first.setdefault(s,p)
+    periods=[k for k in keys if k[1]!=first[k[0]]]
+    x=np.array([[1.]+[float(r['subject']==s) for s in subjects[1:]]+[float(period_key(r)==p) for p in periods]+([float(r['treatment']=='T')] if treatment else []) for r in records])
     y=np.array([r['logvalue'] for r in records])
     rank=np.linalg.matrix_rank(x)
     if rank!=x.shape[1]:
@@ -115,10 +130,67 @@ def fixed_fit(records, treatment=True):
     z=np.linalg.solve(r.T,np.eye(len(beta))[:,-1])
     return float(beta[-1]), math.sqrt(mse*float(z@z)), df, mse
 
-def ema_analysis(records, design):
+def ema_analysis(records, design, ci_level=90.0):
     _,groups=validate(records,design)
     e,se,df,_=fixed_fit(records)
-    return AverageBE(e,se,df,len(groups),'fixed subject + period + treatment; common residual variance (EMA Method A structure)')
+    return AverageBE(e,se,df,len(groups),'fixed subject + period + treatment; common residual variance (EMA Method A structure)',ci_level)
+
+def _rss(cols, y):
+    x=np.column_stack(cols); beta,_,rank,_=np.linalg.lstsq(x,y,rcond=None)
+    return float(np.sum((y-x@beta)**2)), int(rank)
+
+def _dummies(keys, values):
+    return [np.array([float(v==k) for v in values]) for k in keys[1:]]
+
+def anova_table(records, design):
+    """Fixed-effects ANOVA of log values: sequence, subject(sequence), period, formulation.
+
+    Sequence and subject(sequence) partition the between-subject sum of squares
+    (sequence is tested against subject(sequence)); period and formulation are
+    adjusted for all other terms and tested against the residual. For complete
+    crossover designs the formulation line equals the Type I, II and III sums of
+    squares. Periods are nested within stage when a stage column exists.
+    """
+    design,groups=validate(records,design)
+    y=np.array([r['logvalue'] for r in records]); n=len(y); one=np.ones(n)
+    frm=np.array([float(r['treatment']=='T') for r in records])
+    rows=[]
+    def row(source,ss,df,err=None):
+        rows.append(dict(source=source,df=int(df),ss=float(ss),ms=float(ss/df) if df else float('nan'),f=None,p=None,_err=err))
+    if design=='parallel':
+        rss_full,rk=_rss([one,frm],y); rss0,_=_rss([one],y)
+        row('formulation',rss0-rss_full,1,'residual'); row('residual',rss_full,n-rk)
+    else:
+        seqs=sorted({r['sequence'] for r in records}); subs=sorted({r['subject'] for r in records}); pers=sorted({period_key(r) for r in records})
+        S=_dummies(seqs,[r['sequence'] for r in records]); U=_dummies(subs,[r['subject'] for r in records]); P=_dummies(pers,[period_key(r) for r in records])
+        full,rk_full=_rss([one,*U,*P,frm],y)
+        no_f,rk_nf=_rss([one,*U,*P],y); no_p,rk_np=_rss([one,*U,frm],y)
+        base,rk_b=_rss([one,*P,frm],y); with_seq,rk_s=_rss([one,*S,*P,frm],y)
+        staged=any(r.get('stage') for r in records)
+        row('sequence',base-with_seq,rk_s-rk_b,'subject(sequence)')
+        row('subject(sequence)',with_seq-full,rk_full-rk_s,'residual')
+        row('period(stage)' if staged else 'period',no_p-full,rk_full-rk_np,'residual')
+        row('formulation',no_f-full,rk_full-rk_nf,'residual')
+        row('residual',full,n-rk_full)
+    ms={r['source']:r['ms'] for r in rows}; dfs={r['source']:r['df'] for r in rows}
+    for r in rows:
+        e=r.pop('_err')
+        if e and r['df']>0 and ms[e]>0:
+            r['f']=r['ms']/ms[e]; r['p']=float(f_dist.sf(r['f'],r['df'],dfs[e]))
+    rows.append(dict(source='total (corrected)',df=n-1,ss=float(np.sum((y-y.mean())**2)),ms=None,f=None,p=None))
+    return rows
+
+def predose_screen(records, design):
+    """GCC/SFDA BE guideline: exclude a subject-period whose pre-dose concentration
+    exceeds 5% of that period's Cmax. Returns (kept_records, excluded_rows)."""
+    flagged=[r for r in records if r.get('predose') is not None and r['predose']>0.05*r['cmax_ref']]
+    if not flagged: return records,[]
+    info=[dict(subject=r['subject'],period=r['period'],predose=r['predose'],cmax=r['cmax_ref'],ratio_pct=100*r['predose']/r['cmax_ref']) for r in flagged]
+    if design not in ('2x2','parallel'):
+        raise InputError('pre-dose > 5% of Cmax in '+', '.join(f"{i['subject']} period {i['period']}" for i in info)+
+                         ': the guideline excludes only that period, which leaves an incomplete replicate design; incomplete designs are not supported')
+    drop={r['subject'] for r in flagged}
+    return [r for r in records if r['subject'] not in drop],info
 
 def reference_variability(records, method='contrast', design='replicate'):
     design,groups=validate(records,design)
@@ -197,13 +269,13 @@ def check_limits(limits):
     if lo>=hi: raise InputError('lower limit must be below upper limit')
     return lo,hi
 
-def sample_size(cv,gmr,target,design='2x2',limits=(.8,1.25),analysis='contrast'):
+def sample_size(cv,gmr,target,design='2x2',limits=(.8,1.25),analysis='contrast',min_n=0):
     if not math.isfinite(target) or not 0<target<1: raise InputError('target power must be between 0 and 1')
     if design=='replicate': raise InputError('specify partial or full for power')
     lo,hi=check_limits(limits)
     if not lo<gmr<hi: raise InputError('sample-size solver requires a GMR strictly inside the limits')
     m=3 if design=='partial' else 2
-    for n in range(2*m,5001,m):
+    for n in range(max(2*m,-(-min_n//m)*m),5001,m):
         p=tost_power(n,cv,gmr,design,limits,analysis)
         if p>=target:return n,p
     raise InputError('target power not reached by N=5000')
@@ -218,13 +290,26 @@ def load_records(args):
         tr=row[args.treatment_column].upper()
         tr={'TEST':'T','REF':'R','REFERENCE':'R'}.get(tr,tr)
         val=positive(row[args.value_column],'value')
-        out.append(dict(subject=row[args.subject_column].strip(),treatment=tr,value=val,logvalue=math.log(val),sequence=row.get('sequence','').upper(),period=row.get('period','')))
+        rec=dict(subject=row[args.subject_column].strip(),treatment=tr,value=val,logvalue=math.log(val),sequence=row.get('sequence','').upper(),period=row.get('period',''))
+        if row.get('stage','')!='': rec['stage']=row['stage'].strip()
+        if getattr(args,'predose_check',False) and row.get(args.predose_column,'')!='':
+            try: pre=float(row[args.predose_column])
+            except ValueError: raise InputError('pre-dose concentration must be a number')
+            if not math.isfinite(pre) or pre<0: raise InputError('pre-dose concentration must be a finite non-negative number')
+            ref=val if args.cmax_column in ('',args.value_column) else positive(row.get(args.cmax_column),'cmax (pre-dose check)')
+            rec['predose']=pre; rec['cmax_ref']=ref
+        out.append(rec)
     return out
 
 def build_parser():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('-i','--input'); p.add_argument('--design',choices=(*DESIGNS,'replicate','parallel'),default='2x2')
-    p.add_argument('--analysis',choices=('contrast','ema'),default='contrast')
+    p.add_argument('--analysis',choices=('contrast','ema'),default=None,help='default: contrast; ema (fixed-effects ANOVA) under --profile sfda')
+    p.add_argument('--profile',choices=('none','sfda'),default='none',help='sfda: GCC/SFDA BE guideline DS-G-010 V3.1 rules (see README)')
+    p.add_argument('--ci-level',type=float,default=90.0,help='confidence level in percent, e.g. 94.12 for a pre-specified two-stage design')
+    p.add_argument('--anova',action='store_true',help='add the fixed-effects ANOVA table (always on with --profile sfda)')
+    p.add_argument('--predose-column',default='predose'); p.add_argument('--cmax-column',default='',help='Cmax column for the pre-dose check when the analysed value is not Cmax')
+    p.add_argument('--endogenous',action='store_true',help='endogenous substance: skip the pre-dose exclusion rule')
     p.add_argument('--metric',default=''); p.add_argument('--scaling',choices=('none','abel','rsabe','both'),default='none')
     p.add_argument('--limits',default='0.80,1.25'); p.add_argument('--nti',action='store_true',help='fixed 90.00-111.11%% limits only; NOT a full NTI methodology')
     p.add_argument('--ema-rounding',action='store_true',help='compare CI endpoints as percentages rounded to 2 decimals')
@@ -235,36 +320,70 @@ def build_parser():
     p.add_argument('--target-power',type=float,default=.8); p.add_argument('--n',type=int)
     add_format_argument(p); return p
 
+def apply_profile(a):
+    """Resolve defaults and enforce the GCC/SFDA guideline (DS-G-010 V3.1) under --profile sfda."""
+    if not 50<a.ci_level<100: raise InputError('--ci-level must be between 50 and 100')
+    if a.profile!='sfda':
+        a.analysis=a.analysis or 'contrast'; a.predose_check=False; return
+    if a.analysis=='contrast': raise InputError('SFDA profile: the guideline requires a fixed-effects ANOVA (sequence, subject within sequence, period, formulation); use --analysis ema or omit it')
+    if a.scaling in ('rsabe','both'): raise InputError('SFDA profile: reference-scaled ABE (RSABE) is not an SFDA method; the guideline provides ABEL (widened limits for Cmax) only')
+    if a.welch: raise InputError('SFDA profile: the guideline requires the ANOVA model; Welch is not provided for')
+    a.analysis='ema'; a.ema_rounding=True; a.anova=True; a.predose_check=not a.endogenous
+
 def run(argv=None):
-    a=build_parser().parse_args(argv); report=Report()
+    a=build_parser().parse_args(argv); report=Report(); apply_profile(a)
     limits=check_limits((.9,1.1111) if a.nti else a.limits.split(','))
     if a.nti and a.limits!='0.80,1.25': raise InputError('--nti and custom --limits cannot be combined')
     if a.scaling!='none' and (a.nti or limits!=(.8,1.25)): raise InputError('scaled HVD criteria cannot be combined with NTI/custom limits')
     if a.scaling!='none' and a.design not in ('partial','full','replicate'): raise InputError('scaling requires a replicate design')
     if a.welch and a.design!='parallel': raise InputError('--welch is for parallel analysis only')
     if a.power:
-        if a.scaling!='none' or a.welch or a.ema_rounding: raise InputError('power supports unrounded fixed-limit ABE with equal variances only; no ABEL/RSABE/Welch power')
+        # The SFDA profile turns CI rounding on for analyses; prospective power ignores rounding (see README).
+        if a.scaling!='none' or a.welch or (a.ema_rounding and a.profile!='sfda'): raise InputError('power supports unrounded fixed-limit ABE with equal variances only; no ABEL/RSABE/Welch power')
         if a.cv is None: raise InputError('--power requires --cv')
-        n,p=(a.n,tost_power(a.n,a.cv,a.gmr,a.design,limits,a.analysis)) if a.n is not None else sample_size(a.cv,a.gmr,a.target_power,a.design,limits,a.analysis)
+        min_n=SFDA_MIN_SUBJECTS if a.profile=='sfda' else 0
+        if a.n is not None and a.n<min_n: raise InputError(f'SFDA profile: at least {min_n} evaluable subjects are required')
+        n,p=(a.n,tost_power(a.n,a.cv,a.gmr,a.design,limits,a.analysis)) if a.n is not None else sample_size(a.cv,a.gmr,a.target_power,a.design,limits,a.analysis,min_n)
         report.scalar('n_total',n); report.scalar('power',p); report.scalar('design',a.design); report.scalar('analysis',a.analysis)
-        report.scalar('assumed_cv',a.cv); report.scalar('assumed_gmr',a.gmr); report.scalar('limits',limits)
+        report.scalar('assumed_cv',a.cv); report.scalar('assumed_gmr',a.gmr); report.scalar('limits',limits); report.scalar('profile',a.profile)
+        if a.profile=='sfda': report.note(f'SFDA profile: fixed-effects ANOVA degrees of freedom; minimum {SFDA_MIN_SUBJECTS} evaluable subjects (24 generally recommended). Plan for drop-outs separately.')
         report.note('Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. Parallel CV is between-subject. No dropout allowance.')
         return report.emit(a.format)
     if not a.input: raise InputError('provide --input or --power')
     records=load_records(a); design,_=validate(records,a.design)
-    result=parallel_design(records,a.welch) if design=='parallel' else (ema_analysis(records,design) if a.analysis=='ema' else contrast_analysis(records,design))
+    if any(r.get('stage') for r in records) and a.analysis!='ema' and design!='parallel':
+        raise InputError('a stage column requires the fixed-effects model (--analysis ema or --profile sfda)')
+    excluded=[]
+    if a.predose_check:
+        records,excluded=predose_screen(records,design)
+        if excluded: design,_=validate(records,design)
+    if design=='parallel': result=parallel_design(records,a.welch)
+    else: result=ema_analysis(records,design,a.ci_level) if a.analysis=='ema' else contrast_analysis(records,design)
+    result.ci_level=a.ci_level
     report.scalar('design',design); report.scalar('metric',a.metric or a.value_column)
     for key,val in asdict(result).items(): report.scalar(key,val)
     report.scalar('gmr_pct',100*result.gmr); report.scalar('ci90_low_pct',100*result.ci_low); report.scalar('ci90_high_pct',100*result.ci_high)
+    report.scalar('profile',a.profile)
     passed=passes_ci(result,limits,a.ema_rounding)
     report.scalar('average_be_met',passed); report.scalar('limits',limits)
     report.scalar('ci_rounding','percent, 2 decimal places, half-up' if a.ema_rounding else 'none')
     if a.nti: report.note('NTI flag changes fixed limits only. It does NOT implement FDA NTI scaling/variance comparison or all EMA endpoint-specific requirements.')
+    if a.ci_level!=90: report.note(f'{a.ci_level:g}% confidence interval (the ci90_* fields hold this interval). Adjusted levels are for a pre-specified two-stage design.')
+    if excluded:
+        report.table('pre-dose exclusions',excluded)
+        report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (GCC/SFDA BE guideline, carry-over).')
+    if a.anova:
+        at=anova_table(records,design); report.table('anova',at)
+        res=next(r for r in at if r['source']=='residual')
+        if design!='parallel': report.scalar('cv_intra_pct',100*math.sqrt(math.expm1(res['ms'])))
+    if a.profile=='sfda':
+        if result.n_subjects<SFDA_MIN_SUBJECTS: report.finding(f'SFDA: {result.n_subjects} evaluable subjects; the guideline requires at least {SFDA_MIN_SUBJECTS}')
+        report.note('SFDA profile (GCC BE guideline DS-G-010 V3.1): fixed-effects ANOVA, CI bounds rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 evaluable subjects, pre-dose > 5% of Cmax exclusion'+(' (skipped: endogenous)' if a.endogenous else '')+'.')
     rows=[]
     if a.scaling in ('abel','both'):
         if a.metric.lower()!='cmax': raise InputError('ABEL is restricted to --metric cmax')
         if not a.abel_justified: raise InputError('ABEL requires --abel-justified: clinical justification and prospective protocol specification must exist')
-        ema=ema_analysis(records,design); rv=reference_variability(records,'ema',design); low,high,widened=abel_limits(rv)
+        ema=ema_analysis(records,design,a.ci_level); rv=reference_variability(records,'ema',design); low,high,widened=abel_limits(rv)
         met=passes_ci(ema,(low,high),True) and .8<=ema.gmr<=1.25
         rows.append(dict(criterion='EMA ABEL (fixed-effects model)',met=bool(met),gmr=ema.gmr,ci_low=ema.ci_low,ci_high=ema.ci_high,df=ema.df,cvwr=rv.cvwr,s2wr=rv.s2wr,df_wr=rv.df,low=low,high=high,widened=widened))
     if a.scaling in ('rsabe','both'):

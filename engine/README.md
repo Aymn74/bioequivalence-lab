@@ -62,3 +62,15 @@ Computational references:
 - EMA Method A discussion: https://www.ema.europa.eu/en/human-regulatory-overview/research-development/scientific-guidelines/clinical-pharmacology-pharmacokinetics-guidelines/clinical-pharmacology-pharmacokinetics-questions-answers
 
 These references establish the implemented model/formula choices; they do not establish regulatory acceptability of this software for a particular submission.
+
+## Additions in the bioequivalence-lab repository
+
+This copy of the engine extends the corrected package above (the `provenance.json` hashes refer to the package as received):
+
+- `--profile sfda`: GCC/SFDA bioequivalence guideline DS-G-010 V3.1 rules — fixed-effects ANOVA, CI rounding to two decimals, ABEL for Cmax only, no RSABE, minimum 18 evaluable subjects, pre-dose > 5% of Cmax exclusion, ANOVA table output.
+- `--anova`: fixed-effects ANOVA table (sequence, subject(sequence), period, formulation) for any analysis.
+- `--ci-level`: adjusted confidence level (e.g. 94.12 for a pre-specified two-stage design); an optional `stage` column nests periods within stage.
+- `--predose-column`, `--cmax-column`, `--endogenous`: pre-dose screening inputs.
+- `sample_size(..., min_n=)`: minimum total N (18 under the SFDA profile).
+
+Default behaviour without these options is unchanged (reference output in `example_results.json` reproduced to floating-point precision). New tests: `test_sfda.py`.

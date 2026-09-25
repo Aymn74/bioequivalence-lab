@@ -50,6 +50,29 @@ All screenshots use simulated data from `engine/example_partial.csv`, `test_data
 - **Output:** verdict with exit code (0 pass · 1 not met · 2 invalid/unsupported), CI chart, scaled-criteria cards, JSON / CSV download.
 - Arabic (RTL) and English UI, light and dark themes; engine messages are translated with the English original preserved.
 
+## SFDA / GCC profile
+
+Selecting **SFDA / GCC** in the UI (CLI: `--profile sfda`) applies the GCC bioequivalence guideline **DS-G-010 V3.1** (adopted by the SFDA), section by section:
+
+| Guideline rule | What the profile does |
+|---|---|
+| ANOVA with fixed effects: sequence, subject within sequence, period, formulation | Forces the fixed-effects model; rejects `--analysis contrast` and Welch |
+| CI bounds ≥ 80.00% and ≤ 125.00% **after rounding to two decimals** | Rounding always on |
+| Widening (ABEL, k = 0.760, max 69.84–143.19%) for **Cmax only**; AUC stays 80.00–125.00% | ABEL allowed for Cmax only, with prospective justification |
+| No reference-scaled (RSABE) approach | RSABE / "both" rejected |
+| Minimum **18 evaluable subjects** | Fewer than 18 → finding, exit code 1; power solver starts at 18 |
+| Pre-dose concentration **> 5% of Cmax** → exclude that subject-period (not for endogenous substances) | Optional `predose` column; 2×2 / parallel: subject removed and listed; replicate: explicit error (incomplete design unsupported); `--endogenous` skips the rule |
+| Two-stage design: adjusted CI (e.g. 94.12%) and a stage term | `--ci-level 94.12`; an optional `stage` column nests periods within stage |
+| ANOVA tables must be submitted | Full ANOVA table (SS, df, MS, F, p) and intra-subject CV in the output |
+
+![SFDA results](docs/screenshots/08-sfda-results-ar.png)
+
+Not implemented: endogenous baseline correction, dissolution similarity f2, product-specific guidance lookup, and multiple-reference comparisons (analyse each T/R pair as a separate file, as the guideline requires).
+
+**Verification of the ANOVA:** estimate, 90% CI and formulation F-test match `statsmodels` OLS to ~1e-15 on balanced and unbalanced 2×2, partial and full replicate data; the subject(sequence) sum of squares matches the textbook between-subject formula and an explicit nested regression (statsmodels' Type I output is incorrect for this singular parameterisation). Tests: `engine/test_sfda.py` (13 tests) plus the original 12.
+
+**Power note:** for a partial replicate with N = 24, CV 30%, GMR 0.95, power is 70.8% with the contrast model (df = N − 3) and 72.5% with the fixed-effects ANOVA model the SFDA profile uses (df = (N − 1)(P − 1) − 1). Both are correct for their model.
+
 ## Run
 
 **Online:** deploy the repository root as a static site (Vercel, GitHub Pages, Cloudflare Pages). No build step is needed — `index.html` is self-contained.
@@ -103,6 +126,8 @@ The web UI was checked against the engine's reference output (`engine/example_re
 > ⚠️ **تنفيذ بحثي وليس اعتمادًا تنظيميًا.** يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. راجع [`engine/اقرأني.md`](engine/اقرأني.md).
 
 **الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى، وجميعها ببيانات مُحاكاة.
+
+**إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا. غير منفّذ: تصحيح خط الأساس، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات، والمقارنة مع أكثر من مرجع.
 
 **التشغيل:** انشر المجلد كموقع ثابت (Vercel أو GitHub Pages)، أو شغّل `run.bat` محليًا وافتح http://localhost:8765. أول زيارة تحمّل Python وNumPy وSciPy (نحو 20 ميغابايت).
 

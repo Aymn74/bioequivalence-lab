@@ -173,6 +173,42 @@ class CiLevelAndStageTests(unittest.TestCase):
         code, _, err = run_cli(rows, '--design', '2x2', extra=('stage',))
         self.assertEqual(code, 2); self.assertIn('stage column', err)
 
+    def test_stage_terms_in_anova(self):
+        rows = fixture('2x2', [12, 12])
+        for r in rows: r['stage'] = '2' if int(r['subject'].split('-')[1]) >= 8 else '1'
+        at = {r['source']: r for r in b.anova_table(rows, '2x2')}
+        for term in ('stage', 'sequence', 'sequence×stage', 'subject(sequence×stage)', 'period(stage)', 'formulation'):
+            self.assertIn(term, at)
+        self.assertEqual((at['stage']['df'], at['sequence']['df'], at['sequence×stage']['df'], at['period(stage)']['df']), (1, 1, 1, 2))
+        self.assertEqual(at['subject(sequence×stage)']['df'], 24 - 4)
+        # stage/sequence terms are tested against subject(sequence x stage)
+        self.assertAlmostEqual(at['stage']['f'], at['stage']['ms'] / at['subject(sequence×stage)']['ms'], 12)
+        e, se, df, _ = b.fixed_fit(rows)
+        self.assertAlmostEqual(at['formulation']['f'], (e / se) ** 2, 8)
+        between = sum(at[k]['ss'] for k in ('stage', 'sequence', 'sequence×stage', 'subject(sequence×stage)'))
+        within = at['period(stage)']['ss'] + at['formulation']['ss'] + at['residual']['ss']
+        self.assertAlmostEqual(between + within, at['total (corrected)']['ss'], 8)  # balanced stages: orthogonal
+
+
+class ExclusionFlagTests(unittest.TestCase):
+    def test_low_reference_auc_is_flagged_not_excluded(self):
+        rows = fixture('2x2', [10, 10])
+        low = next(r for r in rows if r['treatment'] == 'R'); low['value'] = 1e-3; low['logvalue'] = math.log(1e-3)
+        code, p, err = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--profile', 'sfda')
+        flagged = table(p, 'low reference AUC')
+        self.assertEqual([f['subject'] for f in flagged], [low['subject']])
+        self.assertEqual(p['scalars']['n_subjects'], 20)  # not excluded
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--profile', 'sfda')
+        self.assertFalse(any(t['title'] == 'low reference AUC' for t in p['tables']))
+
+    def test_endogenous_and_predose_notes(self):
+        rows = fixture('2x2', [10, 10])
+        for r in rows: r['predose'] = 0.0
+        _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', extra=('predose',))
+        self.assertTrue(any('single-dose' in n for n in p['notes']))
+        _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--endogenous', extra=('predose',))
+        self.assertTrue(any('baseline-corrected' in n for n in p['notes']))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

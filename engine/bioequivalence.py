@@ -149,7 +149,9 @@ def anova_table(records, design):
     (sequence is tested against subject(sequence)); period and formulation are
     adjusted for all other terms and tested against the residual. For complete
     crossover designs the formulation line equals the Type I, II and III sums of
-    squares. Periods are nested within stage when a stage column exists.
+    squares. With a stage column (two-stage design) the between-subject stratum is
+    stage, sequence, sequence x stage and subject(sequence x stage), and periods
+    are nested within stage; the formulation estimate equals that of fixed_fit.
     """
     design,groups=validate(records,design)
     y=np.array([r['logvalue'] for r in records]); n=len(y); one=np.ones(n)
@@ -161,14 +163,34 @@ def anova_table(records, design):
         rss_full,rk=_rss([one,frm],y); rss0,_=_rss([one],y)
         row('formulation',rss0-rss_full,1,'residual'); row('residual',rss_full,n-rk)
     else:
-        seqs=sorted({r['sequence'] for r in records}); subs=sorted({r['subject'] for r in records}); pers=sorted({period_key(r) for r in records})
-        S=_dummies(seqs,[r['sequence'] for r in records]); U=_dummies(subs,[r['subject'] for r in records]); P=_dummies(pers,[period_key(r) for r in records])
+        col=lambda key:[key(r) for r in records]
+        subs=sorted(set(col(lambda r:r['subject']))); U=_dummies(subs,col(lambda r:r['subject']))
+        # Within-subject period effects: one reference period per stage (the stage
+        # main effect is between-subject and is modelled explicitly below).
+        keys=sorted(set(col(period_key))); first={}
+        for s,p in keys: first.setdefault(s,p)
+        P=[np.array([float(period_key(r)==k) for r in records]) for k in keys if k[1]!=first[k[0]]]
         full,rk_full=_rss([one,*U,*P,frm],y)
         no_f,rk_nf=_rss([one,*U,*P],y); no_p,rk_np=_rss([one,*U,frm],y)
-        base,rk_b=_rss([one,*P,frm],y); with_seq,rk_s=_rss([one,*S,*P,frm],y)
-        staged=any(r.get('stage') for r in records)
-        row('sequence',base-with_seq,rk_s-rk_b,'subject(sequence)')
-        row('subject(sequence)',with_seq-full,rk_full-rk_s,'residual')
+        staged=len(first)>1
+        # Between-subject stratum, sequential: [stage], sequence, [sequence x stage], subject(...).
+        between=[('stage',lambda r:r.get('stage',''))] if staged else []
+        between+=[('sequence',lambda r:r['sequence'])]
+        if staged: between+=[('sequence×stage',lambda r:(r['sequence'],r.get('stage','')))]
+        # Between-subject terms use subject-level contrasts only (within-subject
+        # terms excluded): with stages, within-stage period dummies are not
+        # orthogonal to the stage effect.
+        prev,rk_prev=_rss([one],y); fixed=[]
+        for name,key in between:
+            vals=col(key); fixed=fixed+_dummies(sorted(set(vals),key=str),vals)
+            cur,rk_cur=_rss([one,*fixed],y)
+            row(name,prev-cur,rk_cur-rk_prev,'subject')
+            prev,rk_prev=cur,rk_cur
+        subj_only,rk_u=_rss([one,*U],y)
+        subject_term='subject(sequence×stage)' if staged else 'subject(sequence)'
+        row(subject_term,prev-subj_only,rk_u-rk_prev,'residual')
+        for r in rows:
+            if r['_err']=='subject': r['_err']=subject_term
         row('period(stage)' if staged else 'period',no_p-full,rk_full-rk_np,'residual')
         row('formulation',no_f-full,rk_full-rk_nf,'residual')
         row('residual',full,n-rk_full)
@@ -179,6 +201,18 @@ def anova_table(records, design):
             r['f']=r['ms']/ms[e]; r['p']=float(f_dist.sf(r['f'],r['df'],dfs[e]))
     rows.append(dict(source='total (corrected)',df=n-1,ss=float(np.sum((y-y.mean())**2)),ms=None,f=None,p=None))
     return rows
+
+def low_reference_auc(records):
+    """GCC/SFDA guideline exception: a reference AUC below 5% of the reference
+    geometric mean (computed without that subject). Flagged, never excluded
+    automatically: exclusion is exceptional and must be pre-specified."""
+    ref=[r for r in records if r['treatment']=='R']; out=[]
+    for r in ref:
+        others=[x['logvalue'] for x in ref if x['subject']!=r['subject']]
+        if not others: continue
+        gm=math.exp(float(np.mean(others)))
+        if r['value']<0.05*gm: out.append(dict(subject=r['subject'],period=r['period'],reference_auc=r['value'],reference_gm=gm,pct_of_gm=100*r['value']/gm))
+    return out
 
 def predose_screen(records, design):
     """GCC/SFDA BE guideline: exclude a subject-period whose pre-dose concentration
@@ -372,11 +406,19 @@ def run(argv=None):
     if excluded:
         report.table('pre-dose exclusions',excluded)
         report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (GCC/SFDA BE guideline, carry-over).')
+    if a.predose_check and any('predose' in r for r in records):
+        report.note('Pre-dose rule applied as for single-dose studies. Do not supply a pre-dose column for steady-state (multiple-dose) studies, where pre-dose concentrations are expected.')
     if a.anova:
         at=anova_table(records,design); report.table('anova',at)
         res=next(r for r in at if r['source']=='residual')
         if design!='parallel': report.scalar('cv_intra_pct',100*math.sqrt(math.expm1(res['ms'])))
     if a.profile=='sfda':
+        if 'auc' in (a.metric or '').lower():
+            low=low_reference_auc(records)
+            if low:
+                report.table('low reference AUC',low)
+                report.note('Reference AUC < 5% of the reference geometric mean: listed only. The guideline allows exclusion in exceptional cases, pre-specified in the protocol; this program does not exclude them.')
+        if a.endogenous: report.note('Endogenous substance: values must already be baseline-corrected by the pre-specified method (subtraction of the mean pre-dose concentration or of the pre-dose AUC is preferred); this program does not perform baseline correction.')
         if result.n_subjects<SFDA_MIN_SUBJECTS: report.finding(f'SFDA: {result.n_subjects} evaluable subjects; the guideline requires at least {SFDA_MIN_SUBJECTS}')
         report.note('SFDA profile (GCC BE guideline DS-G-010 V3.1): fixed-effects ANOVA, CI bounds rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 evaluable subjects, pre-dose > 5% of Cmax exclusion'+(' (skipped: endogenous)' if a.endogenous else '')+'.')
     rows=[]

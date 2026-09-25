@@ -68,13 +68,17 @@ Selecting **SFDA / GCC** in the UI (CLI: `--profile sfda`) applies the GCC bioeq
 | Widening (ABEL, k = 0.760, max 69.84–143.19%) for **Cmax only**; AUC stays 80.00–125.00% | ABEL allowed for Cmax only, with prospective justification |
 | No reference-scaled (RSABE) approach | RSABE / "both" rejected |
 | Minimum **18 evaluable subjects** | Fewer than 18 → finding, exit code 1; power solver starts at 18 |
-| Pre-dose concentration **> 5% of Cmax** → exclude that subject-period (not for endogenous substances) | Optional `predose` column; 2×2 / parallel: subject removed and listed; replicate: explicit error (incomplete design unsupported); `--endogenous` skips the rule |
-| Two-stage design: adjusted CI (e.g. 94.12%) and a stage term | `--ci-level 94.12`; an optional `stage` column nests periods within stage |
+| Pre-dose concentration **> 5% of Cmax** → exclude that subject-period (single-dose studies; not for endogenous substances) | Optional `predose` column; 2×2 / parallel: subject removed and listed; replicate: explicit error (incomplete design unsupported); `--endogenous` skips the rule. Do not supply it for steady-state studies |
+| Reference AUC **< 5% of the reference geometric mean** may be excluded only in exceptional, pre-specified cases | Listed in a table (AUC metrics), never excluded automatically |
+| Endogenous substances: parameters computed after pre-specified baseline correction | Not performed; supply baseline-corrected values (a note says so with `--endogenous`) |
+| Two-stage design: adjusted CI (e.g. 94.12%) and a term for stage in the ANOVA model | `--ci-level 94.12`; an optional `stage` column adds stage, sequence×stage, subject(sequence×stage) and period(stage) terms |
 | ANOVA tables must be submitted | Full ANOVA table (SS, df, MS, F, p) and intra-subject CV in the output |
 
 ![SFDA results](docs/screenshots/08-sfda-results-ar.png)
 
-Not implemented: endogenous baseline correction, dissolution similarity f2, product-specific guidance lookup, and multiple-reference comparisons (analyse each T/R pair as a separate file, as the guideline requires).
+Not implemented: endogenous baseline correction; emesis-based exclusion (before 2 × median tmax for immediate release; apply it to the data beforehand as pre-specified); the check that AUC(0-t) covers ≥ 80% of AUC(0-∞) in at least 80% of observations; assay-content correction; dissolution similarity f2; product-specific guidance lookup. **Multiple-reference studies** (e.g. a three-period study with a GCC and a US reference) cannot be analysed yet: the guideline analyses each comparison after removing the other treatment's data, which leaves non-canonical sequences (such as T–R with periods 1 and 3) that this engine does not accept.
+
+Sources re-checked against the full text of DS-G-010 V3.1 (sections 3.1.1–3.1.10): the widened-limit table (CVwR 30/35/40/45/≥50% → 80.00–125.00 / 77.23–129.48 / 74.62–134.02 / 72.15–138.59 / 69.84–143.19%) is reproduced exactly.
 
 **Verification of the ANOVA:** estimate, 90% CI and formulation F-test match `statsmodels` OLS to ~1e-15 on balanced and unbalanced 2×2, partial and full replicate data; the subject(sequence) sum of squares matches the textbook between-subject formula and an explicit nested regression (statsmodels' Type I output is incorrect for this singular parameterisation). Tests: `engine/test_sfda.py` (13 tests) plus the original 12.
 
@@ -134,7 +138,7 @@ The web UI was checked against the engine's reference output (`engine/example_re
 
 **الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى، وجميعها ببيانات مُحاكاة.
 
-**إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا. غير منفّذ: تصحيح خط الأساس، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات، والمقارنة مع أكثر من مرجع.
+**إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا يتضمن حدّ المرحلة، وعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. قاعدة ما قبل الجرعة للدراسات أحادية الجرعة فقط. غير منفّذ: تصحيح خط الأساس، واستبعاد القيء، وفحص تغطية AUC(0-t) لـ 80%، وتصحيح المحتوى، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات، ودراسات أكثر من مرجع (تحليلها يترك تسلسلات غير قياسية لا يقبلها المحرك).
 
 **التشغيل:** انشر المجلد كموقع ثابت (Vercel أو GitHub Pages)، أو شغّل `run.bat` محليًا وافتح http://localhost:8765. أول زيارة تحمّل Python وNumPy وSciPy (نحو 20 ميغابايت).
 

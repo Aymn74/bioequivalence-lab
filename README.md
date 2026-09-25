@@ -5,6 +5,31 @@ The page runs the Python engine (`engine/bioequivalence.py`) **unmodified in the
 
 > ⚠️ **Research implementation, not regulatory certification.** Complete canonical designs only. It does not replace a statistical analysis plan or product-specific guidance. See [`engine/README.md`](engine/README.md) for model assumptions, unsupported cases and references.
 
+**Live app:** https://bioequivalence-lab.vercel.app
+
+## Screenshots
+
+| Arabic interface — example study, all criteria met | Highly variable drug — EMA ABEL + FDA RSABE |
+|---|---|
+| ![Arabic results](docs/screenshots/02-results-ar.png) | ![ABEL and RSABE](docs/screenshots/03-hvd-abel-rsabe-en.png) |
+| **Same study without scaling — ABE not met (exit 1)** | **Unsupported case rejected explicitly (exit 2)** |
+| ![Not met](docs/screenshots/04-not-met-ar.png) | ![Rejected input](docs/screenshots/05-rejected-input-ar.png) |
+
+**Power & sample size** — partial replicate, CV 30%, GMR 0.95 → N = 30 (81.0%)
+
+![Power curve](docs/screenshots/06-power-en.png)
+
+<details>
+<summary>Full page and mobile views</summary>
+
+![Full page, Arabic](docs/screenshots/01-overview-ar.png)
+
+<img src="docs/screenshots/07-mobile-ar.png" width="320" alt="Mobile, Arabic">
+
+</details>
+
+All screenshots use simulated data from `engine/example_partial.csv`, `test_data/` and `test_cases/`.
+
 ## Features
 
 - **Designs:** 2×2 (TR/RT), partial replicate (TRR/RTR/RRT), full replicate (TRTR/RTRT), auto-detected replicate, parallel.
@@ -66,6 +91,8 @@ The web UI was checked against the engine's reference output (`engine/example_re
 واجهة ويب ثنائية اللغة لتحليل التكافؤ الحيوي: ABE وEMA ABEL وFDA RSABE، وحساب القوة وحجم العينة. تشغّل الواجهة ملف `engine/bioequivalence.py` كما هو داخل المتصفح عبر Pyodide، ولا تُرسل البيانات إلى أي خادم.
 
 > ⚠️ **تنفيذ بحثي وليس اعتمادًا تنظيميًا.** يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. راجع [`engine/اقرأني.md`](engine/اقرأني.md).
+
+**الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى، وجميعها ببيانات مُحاكاة.
 
 **التشغيل:** انشر المجلد كموقع ثابت (Vercel أو GitHub Pages)، أو شغّل `run.bat` محليًا وافتح http://localhost:8765. أول زيارة تحمّل Python وNumPy وSciPy (نحو 20 ميغابايت).
 

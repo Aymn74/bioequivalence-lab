@@ -109,7 +109,7 @@ class SfdaProfileTests(unittest.TestCase):
         code, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', extra=('predose',))
         self.assertEqual(p['scalars']['n_subjects'], 23)
         ex = table(p, 'pre-dose exclusions'); self.assertEqual(ex[0]['subject'], bad['subject'])
-        code, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--endogenous', extra=('predose',))
+        code, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--endogenous', '--baseline-corrected', extra=('predose',))
         self.assertEqual(p['scalars']['n_subjects'], 24)
         bad['predose'] = 0.05 * bad['value']  # exactly 5% is not "greater than"
         code, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', extra=('predose',))
@@ -206,8 +206,81 @@ class ExclusionFlagTests(unittest.TestCase):
         for r in rows: r['predose'] = 0.0
         _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', extra=('predose',))
         self.assertTrue(any('single-dose' in n for n in p['notes']))
-        _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--endogenous', extra=('predose',))
-        self.assertTrue(any('baseline-corrected' in n for n in p['notes']))
+        _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--endogenous', '--baseline-corrected', extra=('predose',))
+        self.assertTrue(any('already baseline-corrected' in n for n in p['notes']))
+
+
+def endogenous_rows(added_t=35.0, added_r=50.0, baseline=100.0, n=12, seed=9):
+    """2x2 study: every observation = endogenous baseline + dose-related increase."""
+    rng = np.random.default_rng(seed); rows = []
+    for seq in ('TR', 'RT'):
+        for j in range(n):
+            base = baseline * math.exp(rng.normal(0, .05))
+            for period, tr in enumerate(seq, 1):
+                add = (added_t if tr == 'T' else added_r) * math.exp(rng.normal(0, .08))
+                rows.append(dict(subject=f'{seq}-{j}', sequence=seq, period=str(period), treatment=tr,
+                                 value=base + add, baseline=base, baseline_auc=base * 24))
+    return rows
+
+
+class BaselineCorrectionTests(unittest.TestCase):
+    def test_required_for_endogenous(self):
+        rows = endogenous_rows()
+        code, _, err = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous')
+        self.assertEqual(code, 2); self.assertIn('baseline correction is required', err)
+        # explicit column + confirmation is contradictory
+        code, _, err = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous', '--baseline-corrected', '--baseline-column', 'baseline', extra=('baseline',))
+        self.assertEqual(code, 2); self.assertIn('choose one', err)
+        # confirmation while the file merely contains a default-named baseline column: runs, warns, does not subtract
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous', '--baseline-corrected', extra=('baseline',))
+        self.assertEqual(code, 0); self.assertAlmostEqual(p['scalars']['gmr_pct'], 90, delta=2)
+        self.assertTrue(any(n.startswith('WARNING') and 'NOT subtracted' in n for n in p['notes']))
+        code, _, err = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--baseline-corrected')
+        self.assertEqual(code, 2)
+
+    def test_uncorrected_hides_difference_corrected_reveals_it(self):
+        rows = endogenous_rows()
+        # Without correction the ratio is ~(100+35)/(100+50) = 90%: looks bioequivalent.
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous', '--baseline-corrected')
+        self.assertEqual(code, 0); self.assertAlmostEqual(p['scalars']['gmr_pct'], 90, delta=2)
+        # With subtraction the true ratio 35/50 = 70% appears and BE fails.
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous', extra=('baseline',))
+        self.assertEqual(code, 1); self.assertAlmostEqual(p['scalars']['gmr_pct'], 70, delta=3)
+        self.assertIn('pre-dose concentration', p['scalars']['baseline_correction'])
+        corr = table(p, 'baseline correction')
+        self.assertEqual(len(corr), 48)
+        r0, s0 = corr[0], rows[0]
+        self.assertAlmostEqual(r0['corrected'], s0['value'] - s0['baseline'], 9)
+
+    def test_corrected_values_enter_the_model(self):
+        rows = endogenous_rows(added_t=40, added_r=40)
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous', '--analysis', 'ema', extra=('baseline',))
+        manual = [dict(r, value=r['value'] - r['baseline'], logvalue=math.log(r['value'] - r['baseline'])) for r in rows]
+        self.assertAlmostEqual(p['scalars']['estimate'], b.ema_analysis(manual, '2x2').estimate, 12)
+
+    def test_auc_correction_options(self):
+        rows = endogenous_rows()
+        for r in rows: r['value'] = r['value'] * 24  # AUC over 24 h
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--endogenous', extra=('baseline_auc',))
+        self.assertIn('baseline) AUC', p['scalars']['baseline_correction'])
+        code2, p2, _ = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--endogenous', '--auc-hours', '24', extra=('baseline',))
+        self.assertAlmostEqual(p['scalars']['estimate'], p2['scalars']['estimate'], 10)
+        code, _, err = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--endogenous', extra=('baseline',))
+        self.assertEqual(code, 2); self.assertIn('--auc-hours', err)
+
+    def test_nonpositive_after_correction_is_explicit_error(self):
+        rows = endogenous_rows()
+        rows[5]['baseline'] = rows[5]['value'] + 1
+        code, _, err = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--endogenous', extra=('baseline',))
+        self.assertEqual(code, 2); self.assertIn('zero or negative', err); self.assertIn(rows[5]['subject'], err)
+
+    def test_sfda_profile_with_endogenous_skips_predose_and_corrects(self):
+        rows = endogenous_rows()
+        for r in rows: r['predose'] = r['baseline']  # endogenous pre-dose levels are naturally high
+        code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--profile', 'sfda', '--endogenous', extra=('baseline', 'predose'))
+        self.assertEqual(p['scalars']['n_subjects'], 24)
+        self.assertFalse(any(t['title'] == 'pre-dose exclusions' for t in p['tables']))
+        self.assertTrue(any(t['title'] == 'baseline correction' for t in p['tables']))
 
 
 if __name__ == '__main__':

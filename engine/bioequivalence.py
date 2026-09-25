@@ -314,16 +314,57 @@ def sample_size(cv,gmr,target,design='2x2',limits=(.8,1.25),analysis='contrast',
         if p>=target:return n,p
     raise InputError('target power not reached by N=5000')
 
+def baseline_plan(args, rows):
+    """Endogenous substances (GCC/SFDA BE guideline 3.1.5): parameters must refer to the
+    additional exposure from the dose. Returns None (no correction) or a function
+    row -> amount to subtract. Requires either a baseline column or an explicit
+    confirmation that the values are already corrected / correction is not needed."""
+    if not args.endogenous:
+        if args.baseline_corrected: raise InputError('--baseline-corrected is only meaningful with --endogenous')
+        return None
+    present=lambda c: bool(c) and any(r.get(c,'')!='' for r in rows)
+    explicit=args.baseline_column is not None or args.baseline_auc_column is not None
+    args.baseline_column=args.baseline_column if args.baseline_column is not None else 'baseline'
+    args.baseline_auc_column=args.baseline_auc_column if args.baseline_auc_column is not None else 'baseline_auc'
+    has_c,has_a=present(args.baseline_column),present(args.baseline_auc_column)
+    if args.baseline_corrected:
+        if explicit and (has_c or has_a): raise InputError('endogenous: a baseline column was supplied and --baseline-corrected was also set; choose one (the program would otherwise correct twice or not at all)')
+        args.unused_baseline=[c for c,h in ((args.baseline_column,has_c),(args.baseline_auc_column,has_a)) if h]
+        return None
+    if not (has_c or has_a):
+        raise InputError(f'endogenous substance: baseline correction is required. Supply a "{args.baseline_column}" column (mean pre-dose endogenous concentration per subject and period) or confirm with --baseline-corrected that the values are already corrected or that the protocol justifies no correction')
+    m=(args.metric or '').lower()
+    kind='auc' if 'auc' in m else 'conc' if m.startswith('c') else None
+    if kind is None: raise InputError('endogenous baseline correction: set --metric (cmax or auc...) so the program knows whether to subtract a concentration or an AUC')
+    def num(row,col,label):
+        try: x=float(row.get(col,''))
+        except ValueError: raise InputError(f'{label} must be a number for every row')
+        if not math.isfinite(x) or x<0: raise InputError(f'{label} must be finite and non-negative')
+        return x
+    if kind=='conc':
+        if not has_c: raise InputError(f'endogenous Cmax correction needs the "{args.baseline_column}" column (baseline concentration)')
+        return ('subtraction of the mean pre-dose concentration',lambda row: num(row,args.baseline_column,'baseline concentration'))
+    if has_a: return ('subtraction of the pre-dose (baseline) AUC',lambda row: num(row,args.baseline_auc_column,'baseline AUC'))
+    if args.auc_hours is None or not args.auc_hours>0:
+        raise InputError(f'endogenous AUC correction needs a "{args.baseline_auc_column}" column, or the "{args.baseline_column}" column with --auc-hours (length of the AUC interval) so that baseline x hours can be subtracted')
+    h=args.auc_hours
+    return (f'subtraction of baseline concentration x {h:g} h',lambda row: num(row,args.baseline_column,'baseline concentration')*h)
+
 def load_records(args):
     rows=read_table(args.input)
     cols=[args.subject_column,args.treatment_column,args.value_column]
     require_columns(rows,cols,str(args.input))
     if args.design!='parallel': require_columns(rows,['sequence','period'],str(args.input))
-    out=[]
+    plan=baseline_plan(args,rows); args.baseline_method=plan[0] if plan else None; args.baseline_rows=[]
+    out=[]; nonpositive=[]
     for row in rows:
         tr=row[args.treatment_column].upper()
         tr={'TEST':'T','REF':'R','REFERENCE':'R'}.get(tr,tr)
         val=positive(row[args.value_column],'value')
+        if plan:
+            sub=plan[1](row); raw=val; val=raw-sub
+            args.baseline_rows.append(dict(subject=row[args.subject_column].strip(),period=row.get('period',''),treatment=tr,uncorrected=raw,subtracted=sub,corrected=val,pct_remaining=100*val/raw))
+            if val<=0: nonpositive.append(f"{row[args.subject_column].strip()} period {row.get('period','')}"); continue
         rec=dict(subject=row[args.subject_column].strip(),treatment=tr,value=val,logvalue=math.log(val),sequence=row.get('sequence','').upper(),period=row.get('period',''))
         if row.get('stage','')!='': rec['stage']=row['stage'].strip()
         if getattr(args,'predose_check',False) and row.get(args.predose_column,'')!='':
@@ -333,6 +374,9 @@ def load_records(args):
             ref=val if args.cmax_column in ('',args.value_column) else positive(row.get(args.cmax_column),'cmax (pre-dose check)')
             rec['predose']=pre; rec['cmax_ref']=ref
         out.append(rec)
+    if nonpositive:
+        raise InputError('baseline correction gives zero or negative values for '+', '.join(nonpositive[:6])+(' …' if len(nonpositive)>6 else '')+
+                         ': the dose did not raise exposure above baseline there; a log-scale analysis is impossible. Review the baseline method or consider a higher (supra-therapeutic) dose, as the guideline suggests')
     return out
 
 def build_parser():
@@ -343,7 +387,11 @@ def build_parser():
     p.add_argument('--ci-level',type=float,default=90.0,help='confidence level in percent, e.g. 94.12 for a pre-specified two-stage design')
     p.add_argument('--anova',action='store_true',help='add the fixed-effects ANOVA table (always on with --profile sfda)')
     p.add_argument('--predose-column',default='predose'); p.add_argument('--cmax-column',default='',help='Cmax column for the pre-dose check when the analysed value is not Cmax')
-    p.add_argument('--endogenous',action='store_true',help='endogenous substance: skip the pre-dose exclusion rule')
+    p.add_argument('--endogenous',action='store_true',help='endogenous substance: requires baseline correction (see --baseline-column / --baseline-corrected); skips the pre-dose exclusion rule')
+    p.add_argument('--baseline-column',default=None,help='mean pre-dose endogenous concentration per subject and period')
+    p.add_argument('--baseline-auc-column',default=None,help='pre-dose (baseline) AUC over the same interval, for AUC metrics')
+    p.add_argument('--auc-hours',type=float,help='AUC interval length in hours; baseline concentration x hours is subtracted from AUC')
+    p.add_argument('--baseline-corrected',action='store_true',help='confirm values are already baseline-corrected, or that the protocol justifies no correction')
     p.add_argument('--metric',default=''); p.add_argument('--scaling',choices=('none','abel','rsabe','both'),default='none')
     p.add_argument('--limits',default='0.80,1.25'); p.add_argument('--nti',action='store_true',help='fixed 90.00-111.11%% limits only; NOT a full NTI methodology')
     p.add_argument('--ema-rounding',action='store_true',help='compare CI endpoints as percentages rounded to 2 decimals')
@@ -402,6 +450,15 @@ def run(argv=None):
     report.scalar('average_be_met',passed); report.scalar('limits',limits)
     report.scalar('ci_rounding','percent, 2 decimal places, half-up' if a.ema_rounding else 'none')
     if a.nti: report.note('NTI flag changes fixed limits only. It does NOT implement FDA NTI scaling/variance comparison or all EMA endpoint-specific requirements.')
+    if a.endogenous:
+        if a.baseline_method:
+            report.scalar('baseline_correction',a.baseline_method)
+            report.table('baseline correction',a.baseline_rows)
+            report.note(f'Endogenous substance: values baseline-corrected by {a.baseline_method} before analysis (GCC/SFDA BE guideline 3.1.5). The method must be pre-specified in the protocol.')
+        else:
+            report.scalar('baseline_correction','confirmed by user: values already corrected or no correction justified')
+            report.note('Endogenous substance: the user confirmed that values are already baseline-corrected, or that the protocol justifies no correction. The program did not verify this.')
+            if getattr(a,'unused_baseline',None): report.note('WARNING — endogenous: the file contains baseline column(s) '+', '.join(a.unused_baseline)+' that were NOT subtracted because values were confirmed as already corrected. Check this is intended')
     if a.ci_level!=90: report.note(f'{a.ci_level:g}% confidence interval (the ci90_* fields hold this interval). Adjusted levels are for a pre-specified two-stage design.')
     if excluded:
         report.table('pre-dose exclusions',excluded)
@@ -418,7 +475,6 @@ def run(argv=None):
             if low:
                 report.table('low reference AUC',low)
                 report.note('Reference AUC < 5% of the reference geometric mean: listed only. The guideline allows exclusion in exceptional cases, pre-specified in the protocol; this program does not exclude them.')
-        if a.endogenous: report.note('Endogenous substance: values must already be baseline-corrected by the pre-specified method (subtraction of the mean pre-dose concentration or of the pre-dose AUC is preferred); this program does not perform baseline correction.')
         if result.n_subjects<SFDA_MIN_SUBJECTS: report.finding(f'SFDA: {result.n_subjects} evaluable subjects; the guideline requires at least {SFDA_MIN_SUBJECTS}')
         report.note('SFDA profile (GCC BE guideline DS-G-010 V3.1): fixed-effects ANOVA, CI bounds rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 evaluable subjects, pre-dose > 5% of Cmax exclusion'+(' (skipped: endogenous)' if a.endogenous else '')+'.')
     rows=[]

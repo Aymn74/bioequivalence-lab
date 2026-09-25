@@ -183,6 +183,7 @@ table.t td{font-family:var(--mono)}
 .power-top{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
 
 /* methods */
+.endo-panel{border:1px solid var(--line);border-radius:10px;padding:12px;margin:6px 0 12px;background:var(--bg)}
 .profile-note{font-size:12px;background:var(--accent-soft);color:var(--accent-ink);border-radius:9px;padding:8px 10px;margin-top:8px;display:none}
 .profile-note.on{display:block}
 .pbadge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--accent-soft);color:var(--accent-ink);margin-inline-start:8px;vertical-align:middle}
@@ -337,6 +338,16 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
               <label for="ciLevel" data-i18n="f_cilevel">مستوى فترة الثقة</label>
               <select id="ciLevel" dir="ltr"><option value="90" data-i18n="cl_90">90% (standard)</option><option value="94.12" data-i18n="cl_94">94.12% (two-stage, pre-specified)</option></select>
             </div>
+            <label class="check" style="padding-top:2px"><input type="checkbox" id="endogenous"><span><span data-i18n="c_endo">مادة داخلية المنشأ (هرمونات، بوتاسيوم، حديد…)</span><small data-i18n="c_endo_s">موجودة طبيعيًا في الجسم: يلزم تصحيح خط الأساس قبل التحليل.</small></span></label>
+            <div id="endoPanel" class="endo-panel" style="display:none">
+              <div class="row2">
+                <div class="field"><label><span data-i18n="f_base">عمود خط الأساس (تركيز)</span></label><select id="colBaseline"></select></div>
+                <div class="field"><label><span data-i18n="f_base_auc">عمود مساحة خط الأساس</span></label><select id="colBaselineAuc"></select></div>
+              </div>
+              <div class="field" id="aucHoursF"><label for="aucHours" data-i18n="f_auc_h">مدة AUC بالساعات (خط الأساس × الساعات)</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="aucHours" placeholder="e.g. 72"></div>
+              <label class="check"><input type="checkbox" id="baseConfirmed"><span><span data-i18n="c_base_ok">القيم مصححة مسبقًا، أو البروتوكول يبرر عدم التصحيح</span><small data-i18n="c_base_ok_s">بديل عن عمود خط الأساس؛ لا يستطيع البرنامج التحقق منه.</small></span></label>
+              <div class="hint" data-i18n="endo_hint">يطرح البرنامج خط الأساس من كل قيمة (الطريقة المفضلة في الدليل الخليجي 3.1.5). بدون عمود خط أساس أو تأكيد، لن يُجرى التحليل.</div>
+            </div>
             <div class="row2" id="customLimits" style="display:none">
               <div class="field"><label data-i18n="f_lo">الحد الأدنى</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="limLo" value="0.80" step="0.01"></div>
               <div class="field"><label data-i18n="f_hi">الحد الأعلى</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="limHi" value="1.25" step="0.01"></div>
@@ -371,7 +382,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <div class="field"><label>predose <small style="color:var(--muted)" data-i18n="opt">(اختياري، جرعة مفردة)</small></label><select id="colPredose"></select></div>
                 <div class="field"><label>cmax <small style="color:var(--muted)" data-i18n="opt_cmax">(لفحص ما قبل الجرعة)</small></label><select id="colCmax"></select></div>
               </div>
-              <label class="check" id="endoRow"><input type="checkbox" id="endogenous"><span><span data-i18n="c_endo">مادة داخلية المنشأ (تجاوز قاعدة ما قبل الجرعة)</span><small class="mono">--endogenous</small></span></label>
+
             </details>
           </div>
         </div>
@@ -505,7 +516,11 @@ ar:{
  pr_note_ich:"ABE وفق ICH M13A (الدليل المنسّق دوليًا، ساري منذ يناير 2025) كما في المستودع الأصلي K-Dense، مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA. المعايير المتدرجة لم تُنسَّق دوليًا بعد (ICH M13C).",pr_sfda:"SFDA / الخليجي",
  pr_note:"يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة > 5% من Cmax.",
  f_cilevel:"مستوى فترة الثقة",cl_90:"90% (قياسي)",cl_94:"94.12% (تصميم على مرحلتين، محدد مسبقًا)",
- opt:"(اختياري، جرعة مفردة)",opt_cmax:"(لفحص ما قبل الجرعة)",c_endo:"مادة داخلية المنشأ (تجاوز قاعدة ما قبل الجرعة)",
+ opt:"(اختياري، جرعة مفردة)",opt_cmax:"(لفحص ما قبل الجرعة)",c_endo:"مادة داخلية المنشأ (هرمونات، بوتاسيوم، حديد…)",c_endo_s:"موجودة طبيعيًا في الجسم: يلزم تصحيح خط الأساس قبل التحليل.",
+ f_base:"عمود خط الأساس (تركيز)",f_base_auc:"عمود مساحة خط الأساس",f_auc_h:"مدة AUC بالساعات (خط الأساس × الساعات)",
+ c_base_ok:"القيم مصححة مسبقًا، أو البروتوكول يبرر عدم التصحيح",c_base_ok_s:"بديل عن عمود خط الأساس؛ لا يستطيع البرنامج التحقق منه.",
+ endo_hint:"يطرح البرنامج خط الأساس من كل قيمة (الطريقة المفضلة في الدليل الخليجي 3.1.5). بدون عمود خط أساس أو تأكيد، لن يُجرى التحليل.",
+ base_t:"تصحيح خط الأساس",base_rows:"عرض القيم قبل التصحيح وبعده",base_min:"أقل نسبة متبقية بعد الطرح",
  anova_t:"جدول تحليل التباين ANOVA (تأثيرات ثابتة)",a_src:"المصدر",cv_intra:"CV داخل الفرد",excl_t:"استبعادات ما قبل الجرعة (> 5% من Cmax)",lowauc_t:"مساحة مرجع منخفضة جدًا (< 5% من المتوسط الهندسي) — للعرض فقط",
  k_ci_lvl:"فترة الثقة",sfda_badge:"SFDA",err_read:"تعذّرت قراءة الملف",ex_loaded:"تم تحميل بيانات المثال",
 },
@@ -549,7 +564,11 @@ en:{
  pr_note_ich:"Average BE per ICH M13A (the harmonised guideline, in effect since January 2025), as in the original K-Dense repository, with two regional options for highly variable drugs: ABEL from the EMA guideline and RSABE from the FDA. Scaled criteria are not yet harmonised (ICH M13C).",pr_sfda:"SFDA / GCC",
  pr_note:"Applies the GCC bioequivalence guideline DS-G-010 V3.1: fixed-effects ANOVA, limits rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 subjects, and exclusion of pre-dose concentrations > 5% of Cmax.",
  f_cilevel:"Confidence level",cl_90:"90% (standard)",cl_94:"94.12% (two-stage, pre-specified)",
- opt:"(optional, single dose)",opt_cmax:"(for pre-dose check)",c_endo:"Endogenous substance (skip pre-dose rule)",
+ opt:"(optional, single dose)",opt_cmax:"(for pre-dose check)",c_endo:"Endogenous substance (hormones, potassium, iron…)",c_endo_s:"Naturally present in the body: baseline correction is required before analysis.",
+ f_base:"Baseline column (concentration)",f_base_auc:"Baseline AUC column",f_auc_h:"AUC interval in hours (baseline × hours)",
+ c_base_ok:"Values already corrected, or the protocol justifies no correction",c_base_ok_s:"Alternative to a baseline column; the program cannot verify it.",
+ endo_hint:"The program subtracts the baseline from each value (the preferred method in GCC guideline 3.1.5). Without a baseline column or confirmation, the analysis will not run.",
+ base_t:"Baseline correction",base_rows:"Show values before and after correction",base_min:"lowest share remaining after subtraction",
  anova_t:"ANOVA table (fixed effects)",a_src:"Source",cv_intra:"Intra-subject CV",excl_t:"Pre-dose exclusions (> 5% of Cmax)",lowauc_t:"Very low reference AUC (< 5% of GM) — listed only",
  k_ci_lvl:"confidence interval",sfda_badge:"SFDA",err_read:"Could not read file",ex_loaded:"Example data loaded",
 }};
@@ -597,6 +616,16 @@ const MSG_AR=[
  [/Pre-dose rule applied as for single-dose studies/,"طُبّقت قاعدة ما قبل الجرعة كما في الدراسات أحادية الجرعة. لا تُدخل عمود ما قبل الجرعة لدراسات الحالة المستقرة (متعددة الجرعات)، حيث يُتوقع وجود تركيز قبل الجرعة."],
  [/Reference AUC < 5% of the reference geometric mean/,"مساحة المرجع أقل من 5% من المتوسط الهندسي للمرجع: للعرض فقط. يسمح الدليل بالاستبعاد في حالات استثنائية محددة مسبقًا في البروتوكول، والبرنامج لا يستبعدها."],
  [/Endogenous substance: values must already be baseline-corrected/,"مادة داخلية المنشأ: يجب أن تكون القيم مصححة لخط الأساس مسبقًا بالطريقة المحددة في البروتوكول (يُفضّل طرح متوسط تركيز ما قبل الجرعة أو مساحة ما قبل الجرعة)؛ البرنامج لا يجري تصحيح خط الأساس."],
+ [/endogenous substance: baseline correction is required/,"مادة داخلية المنشأ: تصحيح خط الأساس مطلوب. اختر عمود خط الأساس (متوسط التركيز قبل الجرعة لكل مشارك وفترة)، أو أكّد أن القيم مصححة مسبقًا أو أن البروتوكول يبرر عدم التصحيح."],
+ [/a baseline column was supplied and --baseline-corrected was also set/,"اخترت عمود خط أساس وأكدت أن القيم مصححة مسبقًا معًا؛ اختر أحدهما فقط حتى لا يُصحَّح مرتين."],
+ [/endogenous AUC correction needs/,"تصحيح AUC يحتاج عمود مساحة خط الأساس، أو عمود التركيز مع مدة AUC بالساعات."],
+ [/endogenous Cmax correction needs/,"تصحيح Cmax يحتاج عمود خط الأساس (تركيز)."],
+ [/endogenous baseline correction: set --metric/,"حدد المؤشر الدوائي (Cmax أو AUC) ليعرف البرنامج ما يطرحه."],
+ [/baseline correction gives zero or negative values/,"التصحيح أعطى قيمًا صفرية أو سالبة لبعض المشاركين: الجرعة لم ترفع التركيز فوق خط الأساس، ولا يمكن التحليل اللوغاريتمي. راجع طريقة التصحيح، أو فكّر بجرعة أعلى كما يقترح الدليل."],
+ [/baseline concentration must be|baseline AUC must be/,"قيم خط الأساس يجب أن تكون أرقامًا غير سالبة في كل الصفوف."],
+ [/Endogenous substance: values baseline-corrected by/,"مادة داخلية المنشأ: صُحّحت القيم بطرح خط الأساس قبل التحليل (الدليل الخليجي 3.1.5). يجب تحديد الطريقة مسبقًا في البروتوكول."],
+ [/WARNING — endogenous: the file contains baseline/,"تنبيه: الملف يحتوي عمود خط أساس لم يُطرح لأنك أكدت أن القيم مصححة مسبقًا. تأكد أن هذا مقصود؛ وإلا فألغِ التأكيد واختر عمود خط الأساس."],
+ [/Endogenous substance: the user confirmed/,"مادة داخلية المنشأ: أكّد المستخدم أن القيم مصححة مسبقًا أو أن البروتوكول يبرر عدم التصحيح. البرنامج لم يتحقق من ذلك."],
  [/Research implementation, not regulatory certification/,"تنفيذ بحثي وليس اعتمادًا تنظيميًا. تصاميم قياسية كاملة فقط؛ راجع README للافتراضات والحالات غير المدعومة والمراجع."],
  [/NTI flag changes fixed limits only/,"خيار NTI يغيّر الحدود الثابتة فقط، ولا ينفّذ منهجية FDA للأدوية ضيقة المؤشر العلاجي."],
  [/Numerical integration of fixed-limit TOST power/,I18N.ar.p_note],
@@ -609,7 +638,7 @@ ar:`<div class="card"><div class="card-b"><h4>ABE — تحليل التباين�
 <div class="card"><div class="card-b"><h4>القوة وحجم العينة</h4><p>تكامل عددي على توزيع χ² لقوة TOST بحدود ثابتة. عوامل التباين: 2/N (2×2)، 1.5/N (جزئي)، 1/N (كامل)، 4/N (متوازي).</p></div></div>
 <div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>الدراسات غير المكتملة أو تسلسلات أخرى.</li><li>نماذج الأثر المتبقي (carryover).</li><li>منهجية FDA لـ NTI.</li><li>قوة ABEL/RSABE وقوة Welch.</li><li>تحقق تنظيمي مستقل مع SAS/R.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>تنسيق البيانات</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>القيم موجبة، لا حذف أو تعويض صامت. يُقبل Test/Ref/Reference للمعالجة.</p></div></div>
-<div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. خارج النطاق: تصحيح خط الأساس، استبعاد القيء، فحص تغطية AUC(0-t) لـ 80%، تصحيح المحتوى، f2 للذوبان، وتصاميم أكثر من مرجع.</p></div></div>
+<div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. خارج النطاق: استبعاد القيء، فحص تغطية AUC(0-t) لـ 80%، تصحيح المحتوى، f2 للذوبان، وتصاميم أكثر من مرجع.</p></div></div>
 <div class="card"><div class="card-b"><h4>رموز الخروج</h4><ul><li><b>0</b> — كل المعايير متحققة</li><li><b>1</b> — معيار غير متحقق</li><li><b>2</b> — مدخلات غير صالحة/غير مدعومة</li></ul><p>المراجع: مثال FDA 2011 للبروجستيرون، إرشادات EMA للتكافؤ الحيوي (4.1.8–4.1.10).</p></div></div>`,
 en:`<div class="card"><div class="card-b"><h4>ABE — subject contrasts (default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
 <div class="card"><div class="card-b"><h4>ABE — EMA fixed effects</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
@@ -618,7 +647,7 @@ en:`<div class="card"><div class="card-b"><h4>ABE — subject contrasts (default
 <div class="card"><div class="card-b"><h4>Power & sample size</h4><p>Numerical integration over χ² for fixed-limit TOST power. Variance factors: 2/N (2×2), 1.5/N (partial), 1/N (full), 4/N (parallel).</p></div></div>
 <div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete studies or other sequence sets.</li><li>Carryover models.</li><li>FDA NTI methodology.</li><li>ABEL/RSABE power and Welch power.</li><li>Independent regulatory validation against SAS/R.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>Data format</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>Positive values only; no silent dropping or imputation. Test/Ref/Reference are accepted as treatment labels.</p></div></div>
-<div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Out of scope: baseline correction, emesis exclusion, 80% AUC(0-t) coverage check, content correction, dissolution f2, and multiple-reference designs.</p></div></div>
+<div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Endogenous substances: baseline subtraction (concentration for Cmax; baseline AUC or concentration × hours for AUC), or an explicit confirmation that values are already corrected.</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Out of scope: emesis exclusion, 80% AUC(0-t) coverage check, content correction, dissolution f2, and multiple-reference designs.</p></div></div>
 <div class="card"><div class="card-b"><h4>Exit codes</h4><ul><li><b>0</b> — all criteria met</li><li><b>1</b> — a criterion not met</li><li><b>2</b> — invalid / unsupported input</li></ul><p>References: FDA 2011 progesterone example; EMA BE guideline §4.1.8–4.1.10.</p></div></div>`};
 
 /* ================= state ================= */
@@ -664,6 +693,10 @@ function setSeg(id,v){$(id).querySelectorAll('button').forEach(x=>x.setAttribute
 seg('#designSeg',v=>{S.design=v;syncForm();});
 seg('#analysisSeg',v=>{S.analysis=v;});
 seg('#profileSeg',v=>{S.profile=v;syncForm();});
+function syncEndo(){const on=$('#endogenous').checked;$('#endoPanel').style.display=on?'':'none';
+  $('#aucHoursF').style.display=/auc/.test($('#metric').value)?'':'none';
+  const c=$('#baseConfirmed').checked;$('#colBaseline').disabled=c;$('#colBaselineAuc').disabled=c;$('#aucHours').disabled=c;}
+$('#endogenous').addEventListener('change',syncEndo);$('#baseConfirmed').addEventListener('change',syncEndo);$('#metric').addEventListener('change',syncEndo);
 seg('#pProfileSeg',v=>{S.p.profile=v;if(v==='sfda'){S.p.analysis='ema';setSeg('#pAnalysisSeg','ema');}$$('#pAnalysisSeg button').forEach(b=>b.disabled=v==='sfda'&&b.dataset.v==='contrast');});
 seg('#scalingSeg',v=>{S.scaling=v;syncForm();});
 seg('#pDesignSeg',v=>{S.p.design=v;$('#cvHint').textContent=v==='parallel'?t('cv_par'):'';syncPN();});
@@ -678,7 +711,7 @@ function syncForm(){
   if(sf&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
   if(sf&&(S.scaling==='rsabe'||S.scaling==='both')){S.scaling=S.scaling==='both'?'abel':'none';setSeg('#scalingSeg',S.scaling);}
   if(sf){$('#emaRound').checked=true;$('#welch').checked=false;}
-  $('#emaRound').disabled=sf; $('#endoRow').style.display=sf?'':'none';
+  $('#emaRound').disabled=sf;
   const rep=['partial','full','replicate'].includes(S.design), par=S.design==='parallel';
   $('#designHint').textContent=t('h_'+S.design);
   $$('#scalingSeg button').forEach(b=>{if(b.dataset.v!=='none')b.disabled=!rep||$('#limits').value!=='std';});
@@ -723,7 +756,7 @@ function setData(text,name){
       sel.value=guess; document.querySelector('details.adv').open=true;
     }
   }
-  for(const [id,def] of [['#colPredose','predose'],['#colCmax','cmax']]){
+  for(const [id,def] of [['#colPredose','predose'],['#colCmax','cmax'],['#colBaseline','baseline'],['#colBaselineAuc','baseline_auc']]){
     const sel=$(id);sel.innerHTML='<option value="">—</option>'+headers.map(h=>`<option ${h===def?'selected':''}>${esc(h)}</option>`).join('');
     if(!headers.includes(def))sel.value='';
   }
@@ -805,7 +838,7 @@ async function boot(){
     await call('init',{common:JSON.parse($('#py-common').textContent),be:JSON.parse($('#py-bioequivalence').textContent),glue:PY_GLUE},
       d=>{bar.style.width=d.progress+'%'; if(d.stage==='pkgs')msg.textContent=t('boot_pkgs'); if(d.stage==='mod')msg.textContent=t('boot_mod');});
     bar.style.width='100%';ready=true;setEngine('ok');updateRun();
-    setTimeout(()=>$('#boot').classList.add('hide'),250);
+    setTimeout(()=>$('#boot').classList.add('hide'),250); setTimeout(()=>{$('#boot').style.display='none';},900);
   }catch(e){console.error(e);msg.textContent=t('boot_fail');setEngine('err');$('#bootBar').style.background='var(--fail)';}
 }
 const cli=argv=>call('cli',argv);
@@ -827,7 +860,11 @@ $('#runBtn').onclick=async()=>{
     if($('#abelJust').checked&&(S.scaling==='abel'||S.scaling==='both'))argv.push('--abel-justified');
     if($('#emaRound').checked)argv.push('--ema-rounding');
     if($('#welch').checked)argv.push('--welch');
-    if(S.profile==='sfda'){argv.push('--profile','sfda');if($('#endogenous').checked)argv.push('--endogenous');}
+    if(S.profile==='sfda')argv.push('--profile','sfda');
+    if($('#endogenous').checked){argv.push('--endogenous');
+      if($('#baseConfirmed').checked)argv.push('--baseline-corrected');
+      else{argv.push('--baseline-column',$('#colBaseline').value||'__none__','--baseline-auc-column',$('#colBaselineAuc').value||'__none__');
+        if(/auc/.test($('#metric').value)&&$('#aucHours').value)argv.push('--auc-hours',$('#aucHours').value);}}
     if($('#ciLevel').value!=='90')argv.push('--ci-level',$('#ciLevel').value);
     if($('#colPredose').value)argv.push('--predose-column',$('#colPredose').value);
     if($('#colCmax').value&&$('#metric').value!=='cmax')argv.push('--cmax-column',$('#colCmax').value);
@@ -884,6 +921,8 @@ function renderResult(r){
   }
   const ex=(j.tables||[]).find(x=>x.title==='pre-dose exclusions');
   if(ex)h+=`<div class="section-t">${t('excl_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>pre-dose</th><th>Cmax</th><th>%</th></tr></thead><tbody>${ex.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.predose)}</td><td>${fmtN(x.cmax)}</td><td>${x.ratio_pct.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
+  const bc=(j.tables||[]).find(x=>x.title==='baseline correction');
+  if(bc){const mn=Math.min(...bc.rows.map(x=>x.pct_remaining));h+=`<div class="section-t">${t('base_t')}</div><div class="hint" style="margin-bottom:6px">${esc(s.baseline_correction||'')} · ${t('base_min')}: <span class="num">${mn.toFixed(1)}%</span></div><details><summary class="hint" style="cursor:pointer">${t('base_rows')} (${bc.rows.length})</summary><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>before</th><th>baseline</th><th>after</th><th>%</th></tr></thead><tbody>${bc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.uncorrected)}</td><td>${fmtN(x.subtracted)}</td><td>${fmtN(x.corrected)}</td><td>${x.pct_remaining.toFixed(1)}</td></tr>`).join('')}</tbody></table></div></details>`;}
   const la=(j.tables||[]).find(x=>x.title==='low reference AUC');
   if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>AUC (R)</th><th>GM (R)</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.reference_auc)}</td><td>${fmtN(x.reference_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const an=(j.tables||[]).find(x=>x.title==='anova');

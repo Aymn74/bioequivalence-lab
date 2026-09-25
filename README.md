@@ -1,5 +1,15 @@
 # Bioequivalence Lab · مختبر التكافؤ الحيوي
 
+[![Live demo](https://img.shields.io/badge/demo-live-0f766e?style=flat-square&logo=vercel&logoColor=white)](https://bioequivalence-lab.vercel.app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![Pyodide](https://img.shields.io/badge/runs%20in%20browser-Pyodide%200.25-654FF0?style=flat-square&logo=webassembly&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?style=flat-square&logo=scipy&logoColor=white)
+![Languages](https://img.shields.io/badge/UI-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9%20%7C%20English-b7791f?style=flat-square)
+![Privacy](https://img.shields.io/badge/data-stays%20in%20browser-177245?style=flat-square)
+![Status](https://img.shields.io/badge/status-research%20use%20only-orange?style=flat-square)
+
 A bilingual (Arabic / English) web interface for average bioequivalence analysis — ABE, EMA ABEL, FDA RSABE, and power / sample size.
 The page runs the Python engine (`engine/bioequivalence.py`) **unmodified in the browser** via [Pyodide](https://pyodide.org). No data leaves the user's device.
 

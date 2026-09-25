@@ -1,0 +1,44 @@
+{
+  "seed": 20260925,
+  "repetitions_per_design": 4000,
+  "python": "3.12.14",
+  "numpy": "2.3.5",
+  "scipy": "1.17.0",
+  "assumptions": {
+    "true_gmr": 0.95,
+    "cv_t": 0.3,
+    "cv_r": 0.3,
+    "between_subject_log_sd": 0.5,
+    "period_effect": ".08 * period",
+    "interaction": 0,
+    "missing_data": false,
+    "allocation": "balanced",
+    "analysis": "equal-sequence subject contrasts"
+  },
+  "results": [
+    {
+      "design": "2x2",
+      "n": 24,
+      "theoretical_power": 0.5576574385987434,
+      "empirical_power": 0.563,
+      "power_mc_standard_error": 0.00785295517264412,
+      "ci90_coverage": 0.8945
+    },
+    {
+      "design": "partial",
+      "n": 24,
+      "theoretical_power": 0.7080531753480326,
+      "empirical_power": 0.71625,
+      "power_mc_standard_error": 0.007188773821515057,
+      "ci90_coverage": 0.9075
+    },
+    {
+      "design": "full",
+      "n": 24,
+      "theoretical_power": 0.8687602033218778,
+      "empirical_power": 0.87175,
+      "power_mc_standard_error": 0.00533891169729392,
+      "ci90_coverage": 0.8995
+    }
+  ]
+}

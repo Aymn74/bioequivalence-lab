@@ -1,0 +1,17 @@
+test_2x2_against_independent_full_ols (test_bioequivalence.Tests.test_2x2_against_independent_full_ols) ... ok
+test_cli_guards (test_bioequivalence.Tests.test_cli_guards) ... ok
+test_fixed_model_against_lstsq (test_bioequivalence.Tests.test_fixed_model_against_lstsq) ... ok
+test_malformed_data (test_bioequivalence.Tests.test_malformed_data) ... ok
+test_parallel_welch (test_bioequivalence.Tests.test_parallel_welch) ... ok
+test_power_known_and_designs (test_bioequivalence.Tests.test_power_known_and_designs) ... ok
+test_reference_df (test_bioequivalence.Tests.test_reference_df) ... ok
+test_reference_period_invariance (test_bioequivalence.Tests.test_reference_period_invariance) ... ok
+test_rounding_and_cap (test_bioequivalence.Tests.test_rounding_and_cap) ... ok
+test_rsabe_fda_reference_algebra (test_bioequivalence.Tests.test_rsabe_fda_reference_algebra) ... ok
+test_sample_size_minimal (test_bioequivalence.Tests.test_sample_size_minimal) ... ok
+test_three_sequence_against_glm (test_bioequivalence.Tests.test_three_sequence_against_glm) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.476s
+
+OK

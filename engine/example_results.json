@@ -1,0 +1,77 @@
+{
+  "scalars": {
+    "design": "partial",
+    "metric": "cmax",
+    "estimate": -0.052766284185094874,
+    "se": 0.08471394387257992,
+    "df": 33,
+    "n_subjects": 36,
+    "method": "equal-sequence subject contrasts; common contrast variance",
+    "gmr_pct": 94.8601689793493,
+    "ci90_low_pct": 82.19030783592378,
+    "ci90_high_pct": 109.48312393176916,
+    "average_be_met": true,
+    "limits": [
+      0.8,
+      1.25
+    ],
+    "ci_rounding": "none"
+  },
+  "tables": [
+    {
+      "title": "scaled criteria",
+      "columns": [
+        "criterion",
+        "met",
+        "gmr",
+        "ci_low",
+        "ci_high",
+        "df",
+        "cvwr",
+        "s2wr",
+        "df_wr",
+        "low",
+        "high",
+        "widened",
+        "estimate",
+        "se",
+        "criterion_point_estimate",
+        "criterion_95_upper_bound",
+        "passes_scaled_criterion"
+      ],
+      "rows": [
+        {
+          "criterion": "EMA ABEL (fixed-effects model)",
+          "met": true,
+          "gmr": 0.9486016897934927,
+          "ci_low": 0.8106342672425332,
+          "ci_high": 1.110050737109841,
+          "df": 69,
+          "cvwr": 0.5447202400207906,
+          "s2wr": 0.2598381071003536,
+          "df_wr": 34,
+          "low": 0.6983678197809269,
+          "high": 1.4319101935620302,
+          "widened": true
+        },
+        {
+          "criterion": "FDA HVD RSABE (complete-data contrast model)",
+          "met": true,
+          "estimate": -0.052766284185094874,
+          "se": 0.08471394387257992,
+          "df": 33,
+          "s2wr": 0.262910074206323,
+          "df_wr": 33,
+          "cvwr": 0.5483700815472091,
+          "criterion_point_estimate": -0.2138496599020521,
+          "criterion_95_upper_bound": -0.1371289321818856,
+          "passes_scaled_criterion": true
+        }
+      ]
+    }
+  ],
+  "findings": [],
+  "notes": [
+    "Research implementation, not regulatory certification. Complete canonical designs only; see README for assumptions, unsupported cases and references."
+  ]
+}

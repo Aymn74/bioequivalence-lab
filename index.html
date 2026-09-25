@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مختبر التكافؤ الحيوي · BE Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea; --bg2:#ebe6db; --panel:#fffdf8; --ink:#14213a; --ink2:#46526a; --muted:#7a8397;
+  --line:#dcd5c6; --line2:#e9e3d6;
+  --accent:#0f766e; --accent-soft:#d5ece8; --accent-ink:#0b4f4a;
+  --gold:#b7791f; --gold-soft:#f6e8cc;
+  --pass:#177245; --pass-soft:#dcf1e4; --fail:#b42318; --fail-soft:#fbe1dc; --warn:#9a6700; --warn-soft:#fbefcf;
+  --chart-zone:#cfe8e3; --chart-zone2:#f3e2bd; --shadow:0 1px 0 rgba(20,33,58,.04),0 10px 30px -18px rgba(20,33,58,.35);
+  --radius:14px;
+  --font:"IBM Plex Sans Arabic","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --display:"Fraunces","IBM Plex Sans Arabic",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1220; --bg2:#111a2c; --panel:#141e33; --ink:#e8ecf4; --ink2:#b3bdd0; --muted:#8290aa;
+    --line:#26324b; --line2:#1d2840;
+    --accent:#2dd4bf; --accent-soft:#12383a; --accent-ink:#8ff0e0;
+    --gold:#e0a84a; --gold-soft:#3a2e17;
+    --pass:#4ade80; --pass-soft:#123424; --fail:#f87171; --fail-soft:#3b1717; --warn:#fbbf24; --warn-soft:#3a2d0c;
+    --chart-zone:#16403d; --chart-zone2:#43361a; --shadow:0 10px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1220; --bg2:#111a2c; --panel:#141e33; --ink:#e8ecf4; --ink2:#b3bdd0; --muted:#8290aa;
+  --line:#26324b; --line2:#1d2840;
+  --accent:#2dd4bf; --accent-soft:#12383a; --accent-ink:#8ff0e0;
+  --gold:#e0a84a; --gold-soft:#3a2e17;
+  --pass:#4ade80; --pass-soft:#123424; --fail:#f87171; --fail-soft:#3b1717; --warn:#fbbf24; --warn-soft:#3a2d0c;
+  --chart-zone:#16403d; --chart-zone2:#43361a; --shadow:0 10px 30px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;
+  background-image:radial-gradient(circle at 1px 1px,var(--line2) 1px,transparent 0);background-size:22px 22px;min-height:100vh}
+html[lang="en"] body{font-family:"IBM Plex Sans","IBM Plex Sans Arabic",system-ui,sans-serif}
+.num,.mono{font-family:var(--mono);direction:ltr;unicode-bidi:isolate}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+
+/* header */
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.topbar{display:flex;align-items:center;gap:16px;height:64px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:38px;height:38px;flex:none}
+.brand h1{font-size:17px;margin:0;font-weight:600;line-height:1.2;white-space:nowrap}
+.brand small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+.spacer{flex:1}
+.pill-btn{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.pill-btn:hover{border-color:var(--accent)}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px var(--gold-soft)}
+.dot.ok{background:var(--pass);box-shadow:0 0 0 4px var(--pass-soft)}
+.dot.err{background:var(--fail);box-shadow:0 0 0 4px var(--fail-soft)}
+.dot.busy{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* hero */
+.hero{padding:34px 0 10px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.hero h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,40px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.01em}
+html[lang="ar"] .hero h2{font-family:"IBM Plex Sans Arabic",sans-serif;font-weight:700}
+.hero p{color:var(--ink2);max-width:760px;margin:0}
+.disclaimer{margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:var(--gold-soft);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);color:var(--ink);padding:10px 14px;border-radius:10px;font-size:13px;max-width:900px}
+.disclaimer svg{flex:none;margin-top:3px;color:var(--gold)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;margin:24px 0 18px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{border:0;background:none;padding:10px 16px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.tabs{scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .k{font-family:var(--mono);font-size:11px;color:var(--accent);opacity:.8}
+.pane{display:none}.pane.on{display:block}
+
+/* layout */
+.grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:10px}
+.card-h h3{margin:0;font-size:14px;font-weight:600}
+.card-h .step{font-family:var(--mono);font-size:11px;background:var(--accent-soft);color:var(--accent-ink);border-radius:6px;padding:1px 7px}
+.card-b{padding:16px 18px}
+.side{position:sticky;top:80px;display:flex;flex-direction:column;gap:16px}
+@media (max-width:920px){.side{position:static}}
+
+/* form */
+.field{margin-bottom:14px}
+.field>label,.lbl{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+select,input[type=text],input[type=number]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 10px;outline:none}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.seg{display:flex;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1 1 auto;border:0;background:none;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--ink2);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;cursor:pointer;font-size:13px}
+.check input{margin-top:4px;accent-color:var(--accent)}
+.check small{display:block;color:var(--muted);font-size:12px}
+details.adv{border-top:1px dashed var(--line);margin-top:6px;padding-top:8px}
+details.adv summary{cursor:pointer;font-size:13px;color:var(--ink2);font-weight:500}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+:root[data-theme="dark"] .btn-primary{color:#04201d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn-primary{color:#04201d}}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn-primary:disabled{opacity:.5;cursor:wait}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--ink2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--ink)}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:8px}
+
+/* dropzone */
+.drop{display:block;border:1.5px dashed var(--line);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:.15s;background:var(--bg)}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop b{display:block;font-size:14px}
+.drop span{font-size:12px;color:var(--muted)}
+.file-chip{display:flex;align-items:center;gap:10px;background:var(--accent-soft);color:var(--accent-ink);border-radius:10px;padding:8px 12px;font-size:13px;margin-top:10px}
+.file-chip .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:start}
+.file-chip button{background:none;border:0;cursor:pointer;color:inherit;font-size:16px;line-height:1}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:10px 0}
+.or:before,.or:after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* results */
+.empty{padding:60px 20px;text-align:center;color:var(--muted)}
+.empty svg{opacity:.55;margin-bottom:10px}
+.verdict{display:flex;gap:16px;align-items:center;padding:18px 20px;border-radius:var(--radius);border:1px solid;margin-bottom:16px}
+.verdict.pass{background:var(--pass-soft);border-color:color-mix(in srgb,var(--pass) 40%,transparent)}
+.verdict.fail{background:var(--fail-soft);border-color:color-mix(in srgb,var(--fail) 40%,transparent)}
+.verdict.err{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+.verdict .ico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff}
+.verdict.pass .ico{background:var(--pass)}.verdict.fail .ico{background:var(--fail)}.verdict.err .ico{background:var(--warn)}
+.verdict h4{margin:0;font-size:18px}
+.verdict p{margin:2px 0 0;color:var(--ink2);font-size:13px}
+.verdict .code{margin-inline-start:auto;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:end}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi .l{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.kpi .v{font-family:var(--mono);font-size:22px;font-weight:500;direction:ltr;text-align:start;unicode-bidi:plaintext}
+.kpi .s{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.section-t{font-size:13px;font-weight:600;color:var(--ink2);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.section-t:after{content:"";flex:1;height:1px;background:var(--line2)}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--mono);fill:var(--muted);font-size:11px}
+.crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.crit .card-b{padding:14px 16px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
+.badge.pass{background:var(--pass-soft);color:var(--pass)}.badge.fail{background:var(--fail-soft);color:var(--fail)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px;margin-top:10px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono);direction:ltr;text-align:end}
+.list{margin:0;padding:0;list-style:none}
+.list li{padding:8px 12px;border-radius:9px;font-size:13px;margin-bottom:6px;display:flex;gap:8px}
+.list li.f{background:var(--fail-soft)}.list li.n{background:var(--bg);border:1px solid var(--line2);color:var(--ink2)}
+.list .en{direction:ltr;text-align:start;unicode-bidi:plaintext;display:block;color:var(--muted);font-size:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+pre.json{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;max-height:360px;font-size:12px;direction:ltr;text-align:left}
+
+/* preview table */
+.tbl-wrap{overflow:auto;max-height:260px;border:1px solid var(--line2);border-radius:10px}
+table.t{border-collapse:collapse;width:100%;font-size:12px;direction:ltr}
+table.t th,table.t td{padding:6px 10px;border-bottom:1px solid var(--line2);text-align:left;white-space:nowrap}
+table.t th{position:sticky;top:0;background:var(--bg2);font-weight:600;color:var(--ink2)}
+table.t td{font-family:var(--mono)}
+.seqs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.seqchip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:8px;padding:3px 8px;background:var(--bg)}
+.seqchip b{color:var(--accent)}
+
+/* power */
+.big{font-family:var(--mono);font-size:54px;line-height:1;font-weight:500;color:var(--accent);direction:ltr;display:inline-block}
+.big-l{font-size:12px;color:var(--muted);font-weight:600}
+.power-top{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+
+/* methods */
+.methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.methods h4{margin:0 0 6px;font-size:15px}
+.methods p,.methods li{font-size:13.5px;color:var(--ink2)}
+.methods ul{padding-inline-start:18px;margin:6px 0}
+.formula{font-family:var(--mono);background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:12.5px;direction:ltr;text-align:left;overflow-x:auto;white-space:nowrap}
+
+/* loader */
+#boot{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;transition:opacity .4s}
+#boot.hide{opacity:0;pointer-events:none}
+.boot-in{text-align:center;max-width:360px;padding:20px}
+.helix{width:120px;height:60px;margin:0 auto 16px}
+.helix circle{fill:var(--accent);animation:hx 1.4s ease-in-out infinite}
+@keyframes hx{0%,100%{transform:translateY(-14px)}50%{transform:translateY(14px)}}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+#boot .skip{margin-top:14px;font-size:12px;color:var(--muted)}
+.toast{position:fixed;bottom:18px;inset-inline-start:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:13px;z-index:60;opacity:0;transition:.25s;pointer-events:none}
+html[dir="rtl"] .toast{transform:translateX(50%)}
+.toast.on{opacity:1}
+footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:rot .7s linear infinite;display:none}
+.busy .spin{display:inline-block}
+@keyframes rot{to{transform:rotate(360deg)}}
+@media (max-width:560px){.brand small{display:none}.wrap{padding:0 16px}.status span{display:none}}
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="boot-in">
+    <svg class="helix" viewBox="0 0 120 60"><g transform="translate(0,30)">
+      <circle cx="10" cy="0" r="5" style="animation-delay:0s"/><circle cx="30" cy="0" r="5" style="animation-delay:.12s"/>
+      <circle cx="50" cy="0" r="5" style="animation-delay:.24s"/><circle cx="70" cy="0" r="5" style="animation-delay:.36s"/>
+      <circle cx="90" cy="0" r="5" style="animation-delay:.48s"/><circle cx="110" cy="0" r="5" style="animation-delay:.6s"/></g></svg>
+    <div style="font-weight:600" data-i18n="boot_title">تجهيز محرك الحساب</div>
+    <div style="font-size:13px;color:var(--muted)" id="bootMsg" data-i18n="boot_py">تحميل Python + NumPy + SciPy داخل المتصفح…</div>
+    <div class="bar"><i id="bootBar"></i></div>
+    <div class="skip" data-i18n="boot_note">يعمل الكود الأصلي bioequivalence.py كما هو — لا تُرسل بياناتك لأي خادم.</div>
+  </div>
+</div>
+
+<header class="top">
+  <div class="wrap topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="1" y="1" width="38" height="38" rx="10" fill="var(--accent)"/>
+        <path d="M8 27 C14 27 14 12 20 12 C26 12 26 27 32 27" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M8 27 C14 27 15 16 21 16 C27 16 27 27 32 27" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="2 3" stroke-linecap="round"/>
+        <line x1="8" y1="31" x2="32" y2="31" stroke="#fff" stroke-opacity=".7" stroke-width="1.4"/>
+      </svg>
+      <div><h1 data-i18n="app_name">مختبر التكافؤ الحيوي</h1><small data-i18n="app_sub">Bioequivalence Lab · ABE · ABEL · RSABE · Power</small></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="status"><i class="dot busy" id="engDot"></i><span id="engTxt" data-i18n="eng_loading">المحرك قيد التحميل</span></div>
+    <button class="pill-btn" id="themeBtn" title="Theme" aria-label="Theme">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="pill-btn" id="langBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span id="langLbl">English</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow" data-i18n="eyebrow">تحليل إحصائي للتكافؤ الحيوي</div>
+    <h2 data-i18n="hero_t">من بيانات الدراسة إلى قرار التكافؤ — بشفافية كاملة</h2>
+    <p data-i18n="hero_p">ارفع بيانات دراسة تبادلية (2×2، مكرّرة جزئيًا أو كليًا، أو متوازية) لحساب نسبة المتوسط الهندسي وفترة الثقة 90%، مع معايير EMA ABEL وFDA RSABE للأدوية عالية التباين، وحساب القوة وحجم العينة.</p>
+    <div class="disclaimer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span data-i18n="disc">تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.</span>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="analysis"><span class="k">01</span><span data-i18n="tab_analysis">تحليل البيانات</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="power"><span class="k">02</span><span data-i18n="tab_power">القوة وحجم العينة</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="methods"><span class="k">03</span><span data-i18n="tab_methods">المنهجية والحدود</span></button>
+  </nav>
+
+  <!-- ================= ANALYSIS ================= -->
+  <section class="pane on" id="pane-analysis">
+    <div class="grid">
+      <div class="side">
+        <div class="card">
+          <div class="card-h"><span class="step">1</span><h3 data-i18n="s_data">البيانات</h3></div>
+          <div class="card-b">
+            <label class="drop" id="drop">
+              <input type="file" id="file" accept=".csv,.tsv,.txt" hidden>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+              <b data-i18n="drop_t">اسحب ملف CSV هنا أو اضغط للاختيار</b>
+              <span data-i18n="drop_s">الأعمدة: subject, sequence, period, treatment, value</span>
+            </label>
+            <div class="or" data-i18n="or">أو</div>
+            <button class="btn btn-ghost" style="width:100%" id="loadExample" data-i18n="load_ex">تحميل مثال: تصميم جزئي TRR/RTR/RRT (مُحاكى)</button>
+            <div id="fileChip"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="step">2</span><h3 data-i18n="s_design">التصميم والنموذج</h3></div>
+          <div class="card-b">
+            <div class="field">
+              <span class="lbl" data-i18n="f_design">تصميم الدراسة</span>
+              <div class="seg" id="designSeg">
+                <button data-v="2x2" aria-pressed="true">2×2</button>
+                <button data-v="partial" data-i18n="d_partial">جزئي 3P</button>
+                <button data-v="full" data-i18n="d_full">كامل 4P</button>
+                <button data-v="replicate" data-i18n="d_auto">مكرّر (تلقائي)</button>
+                <button data-v="parallel" data-i18n="d_parallel">متوازي</button>
+              </div>
+              <div class="hint" id="designHint"></div>
+            </div>
+            <div class="field" id="analysisField">
+              <span class="lbl" data-i18n="f_analysis">نموذج ABE الأساسي</span>
+              <div class="seg" id="analysisSeg">
+                <button data-v="contrast" aria-pressed="true" data-i18n="a_contrast">تباينات الأفراد</button>
+                <button data-v="ema" data-i18n="a_ema">EMA ثابت التأثيرات</button>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="metric" data-i18n="f_metric">المؤشر الدوائي</label>
+                <select id="metric"><option value="cmax">Cmax</option><option value="auc">AUC(0-t)</option><option value="aucinf">AUC(0-∞)</option><option value="">—</option></select>
+              </div>
+              <div class="field">
+                <label for="limits" data-i18n="f_limits">حدود القبول</label>
+                <select id="limits" dir="ltr">
+                  <option value="std" data-i18n="l_std">80.00–125.00%</option>
+                  <option value="nti" data-i18n="l_nti">NTI 90.00–111.11%</option>
+                  <option value="custom" data-i18n="l_custom">مخصّصة…</option>
+                </select>
+              </div>
+            </div>
+            <div class="row2" id="customLimits" style="display:none">
+              <div class="field"><label data-i18n="f_lo">الحد الأدنى</label><input type="number" id="limLo" value="0.80" step="0.01"></div>
+              <div class="field"><label data-i18n="f_hi">الحد الأعلى</label><input type="number" id="limHi" value="1.25" step="0.01"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="step">3</span><h3 data-i18n="s_hvd">الأدوية عالية التباين (HVD)</h3></div>
+          <div class="card-b">
+            <div class="field">
+              <span class="lbl" data-i18n="f_scaling">المعيار المتدرج</span>
+              <div class="seg" id="scalingSeg">
+                <button data-v="none" aria-pressed="true" data-i18n="sc_none">بدون</button>
+                <button data-v="abel">EMA ABEL</button>
+                <button data-v="rsabe">FDA RSABE</button>
+                <button data-v="both" data-i18n="sc_both">كلاهما</button>
+              </div>
+              <div class="hint" data-i18n="scaling_hint">يتطلب تصميمًا مكرّرًا وحدود 80–125%.</div>
+            </div>
+            <label class="check" id="abelJustRow"><input type="checkbox" id="abelJust"><span><span data-i18n="c_abel">أُقرّ بوجود مبرر سريري ومواصفة مسبقة في البروتوكول لـ ABEL</span><small data-i18n="c_abel_s">البرنامج لا يستطيع التحقق من هذه الوثائق — مطلوب لـ ABEL (Cmax فقط).</small></span></label>
+            <label class="check"><input type="checkbox" id="emaRound"><span><span data-i18n="c_round">تقريب حدود فترة الثقة (منزلتان عشريتان، نصف لأعلى)</span><small class="mono">--ema-rounding</small></span></label>
+            <label class="check" id="welchRow"><input type="checkbox" id="welch"><span><span data-i18n="c_welch">اختبار Welch لتباينات غير متساوية</span><small data-i18n="c_welch_s">للتصميم المتوازي فقط</small></span></label>
+            <details class="adv">
+              <summary data-i18n="adv_cols">ربط الأعمدة</summary>
+              <div class="row3" style="margin-top:10px">
+                <div class="field"><label>subject</label><select id="colSubject"></select></div>
+                <div class="field"><label>treatment</label><select id="colTreatment"></select></div>
+                <div class="field"><label>value</label><select id="colValue"></select></div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="runBtn" disabled><span class="spin"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg><span data-i18n="run">تشغيل التحليل</span></button>
+      </div>
+
+      <div id="results">
+        <div class="card" id="previewCard" style="display:none;margin-bottom:16px">
+          <div class="card-h"><h3 data-i18n="preview">معاينة البيانات</h3><div class="spacer"></div><span class="mono" style="font-size:12px;color:var(--muted)" id="previewMeta"></span></div>
+          <div class="card-b"><div class="seqs" id="seqChips"></div><div class="tbl-wrap"><table class="t" id="previewTbl"></table></div></div>
+        </div>
+        <div class="card" id="resCard">
+          <div class="empty" id="resEmpty">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="8" y="12" width="48" height="40" rx="6"/><path d="M8 22h48M18 42l8-8 6 6 12-12"/></svg>
+            <div data-i18n="empty">ارفع بيانات أو حمّل المثال، ثم اضغط «تشغيل التحليل».</div>
+          </div>
+          <div class="card-b" id="resBody" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= POWER ================= -->
+  <section class="pane" id="pane-power">
+    <div class="grid">
+      <div class="side">
+        <div class="card">
+          <div class="card-h"><span class="step">P</span><h3 data-i18n="p_inputs">افتراضات التصميم</h3></div>
+          <div class="card-b">
+            <div class="field">
+              <span class="lbl" data-i18n="f_design">تصميم الدراسة</span>
+              <div class="seg" id="pDesignSeg">
+                <button data-v="2x2" aria-pressed="true">2×2</button>
+                <button data-v="partial" data-i18n="d_partial">جزئي 3P</button>
+                <button data-v="full" data-i18n="d_full">كامل 4P</button>
+                <button data-v="parallel" data-i18n="d_parallel">متوازي</button>
+              </div>
+            </div>
+            <div class="field">
+              <span class="lbl" data-i18n="f_analysis">نموذج ABE الأساسي</span>
+              <div class="seg" id="pAnalysisSeg">
+                <button data-v="contrast" aria-pressed="true" data-i18n="a_contrast">تباينات الأفراد</button>
+                <button data-v="ema" data-i18n="a_ema">EMA ثابت التأثيرات</button>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="pCV"><span data-i18n="f_cv">CV داخل الفرد</span> (%)</label><input type="number" id="pCV" value="30" min="1" max="200" step="1"><div class="hint" id="cvHint"></div></div>
+              <div class="field"><label for="pGMR" data-i18n="f_gmr">GMR المتوقع</label><input type="number" id="pGMR" value="0.95" min="0.5" max="2" step="0.01"></div>
+            </div>
+            <div class="field">
+              <label for="pLimits" data-i18n="f_limits">حدود القبول</label>
+              <select id="pLimits" dir="ltr"><option value="std" data-i18n="l_std">80.00–125.00%</option><option value="nti" data-i18n="l_nti">NTI 90.00–111.11%</option></select>
+            </div>
+            <div class="field">
+              <span class="lbl" data-i18n="p_mode">المطلوب</span>
+              <div class="seg" id="pModeSeg">
+                <button data-v="n" aria-pressed="true" data-i18n="p_mode_n">حجم العينة</button>
+                <button data-v="power" data-i18n="p_mode_p">القوة لعدد محدد</button>
+              </div>
+            </div>
+            <div class="field" id="pTargetF"><label for="pTarget"><span data-i18n="f_target">القوة المستهدفة</span> (%)</label><input type="number" id="pTarget" value="80" min="50" max="99" step="1"></div>
+            <div class="field" id="pNF" style="display:none"><label for="pN" data-i18n="f_n">العدد الإجمالي N</label><input type="number" id="pN" value="24" min="4" step="1"><div class="hint" data-i18n="n_hint">يجب أن يكون متوازنًا: مضاعفات 3 للجزئي و2 لغيره.</div></div>
+            <button class="btn btn-primary" id="pRun" disabled><span class="spin"></span><span data-i18n="p_run">احسب</span></button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-b" id="pOut">
+          <div class="empty"><svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M8 54h48M12 50c10 0 12-36 20-36s10 36 20 36"/></svg><div data-i18n="p_empty">حدد الافتراضات ثم اضغط «احسب» لعرض منحنى القوة.</div></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= METHODS ================= -->
+  <section class="pane" id="pane-methods">
+    <div class="methods" id="methodsBody"></div>
+  </section>
+</main>
+<footer><span data-i18n="foot">المحرك: bioequivalence.py (النسخة المصححة) عبر Pyodide · جميع الحسابات محلية في متصفحك</span></footer>
+<div class="toast" id="toast"></div>
+
+<script type="application/json" id="py-bioequivalence">"#!/usr/bin/env python3\n\"\"\"Auditable BE calculations for complete, canonical crossover designs.\nSee README.md for model assumptions, regulatory scope and intentional API changes.\n\"\"\"\nfrom __future__ import annotations\nimport argparse\nimport math\nfrom collections import defaultdict\nfrom dataclasses import dataclass, asdict\nfrom decimal import Decimal, ROUND_HALF_UP\nimport numpy as np\nfrom scipy.integrate import quad\nfrom scipy.linalg import qr as pivoted_qr\nfrom scipy.stats import chi2, norm, t\nfrom _common import InputError, Report, read_table, require_columns, add_format_argument, main_wrapper\n\nDESIGNS = {'2x2': ('TR', 'RT'), 'partial': ('TRR', 'RTR', 'RRT'), 'full': ('TRTR', 'RTRT')}\nTHETA_FDA = (math.log(1.25)/0.25)**2\n\n@dataclass\nclass AverageBE:\n    estimate: float\n    se: float\n    df: float\n    n_subjects: int\n    method: str\n    @property\n    def gmr(self): return math.exp(self.estimate)\n    @property\n    def ci_low(self): return math.exp(self.estimate-t.ppf(.95,self.df)*self.se)\n    @property\n    def ci_high(self): return math.exp(self.estimate+t.ppf(.95,self.df)*self.se)\n\n@dataclass\nclass ReferenceVariability:\n    s2wr: float\n    df: int\n    n_subjects: int\n    @property\n    def swr(self): return math.sqrt(self.s2wr)\n    @property\n    def cvwr(self): return math.sqrt(math.expm1(self.s2wr))\n\ndef positive(value, label):\n    try: x = float(value)\n    except (ValueError, TypeError): raise InputError(f'{label}: expected a finite positive number')\n    if not math.isfinite(x) or x <= 0: raise InputError(f'{label}: expected a finite positive number')\n    return x\n\ndef validate(records, design):\n    \"\"\"No silent exclusion, imputation, sequence guessing or duplicate averaging.\"\"\"\n    groups = defaultdict(list)\n    for r in records:\n        if not r.get('subject'): raise InputError('empty subject ID')\n        if r.get('treatment') not in ('T','R'): raise InputError('treatment must be T or R')\n        if not math.isfinite(r['logvalue']): raise InputError('non-finite log value')\n        groups[r['subject']].append(r)\n    if design == 'parallel':\n        if any(len(g)!=1 for g in groups.values()): raise InputError('parallel: one observation per unique subject required')\n        if any(sum(r['treatment']==tr for r in records)<2 for tr in ('T','R')): raise InputError('parallel: at least two subjects per arm')\n        return design, groups\n    seqs = {r.get('sequence','') for r in records}\n    if design == 'replicate':\n        matches = [d for d in ('partial','full') if seqs == set(DESIGNS[d])]\n        if not matches: raise InputError('replicate requires all TRR/RTR/RRT or TRTR/RTRT sequences')\n        design = matches[0]\n    if design not in DESIGNS or seqs != set(DESIGNS[design]):\n        raise InputError(f'{design}: all canonical sequences required; missing/unknown sequence found')\n    for sid,g in groups.items():\n        seq = g[0]['sequence']\n        if any(r['sequence']!=seq for r in g): raise InputError(f'{sid}: inconsistent sequence')\n        if len(g)!=len(seq): raise InputError(f'{sid}: incomplete or duplicate records')\n        try: periods = [int(str(r['period'])) for r in g]\n        except (ValueError,KeyError): raise InputError(f'{sid}: integer period required')\n        if sorted(periods)!=list(range(1,len(seq)+1)): raise InputError(f'{sid}: missing/duplicate/invalid period')\n        for r,p in zip(g,periods):\n            if seq[p-1]!=r['treatment']: raise InputError(f'{sid}: treatment conflicts with sequence/period')\n        g.sort(key=lambda r:int(r['period']))\n    counts = [sum(g[0]['sequence']==s for g in groups.values()) for s in DESIGNS[design]]\n    if min(counts)<2: raise InputError('at least two complete subjects in every sequence required')\n    return design, groups\n\ndef contrast_analysis(records, design='2x2'):\n    design,groups = validate(records,design)\n    ds = defaultdict(list)\n    for g in groups.values():\n        diff = np.mean([r['logvalue'] for r in g if r['treatment']=='T'])-np.mean([r['logvalue'] for r in g if r['treatment']=='R'])\n        ds[g[0]['sequence']].append(diff)\n    m=len(ds); df=len(groups)-m\n    mse=sum(sum((np.asarray(v)-np.mean(v))**2) for v in ds.values())/df\n    se=math.sqrt(mse*sum(1/len(v) for v in ds.values())/m**2)\n    return AverageBE(float(np.mean([np.mean(v) for v in ds.values()])),se,df,len(groups),'equal-sequence subject contrasts; common contrast variance')\n\n# Compatibility name, with stricter validation and corrected m-squared denominator.\ncrossover_2x2 = contrast_analysis\n\ndef fixed_fit(records, treatment=True):\n    \"\"\"OLS subject + period (+ treatment); sequence is absorbed by subject effects.\n    Reduced QR avoids forming the inverse of X'X. Complete designs only.\n    \"\"\"\n    subjects=sorted({r['subject'] for r in records}); periods=sorted({int(r['period']) for r in records})\n    x=np.array([[1.]+[float(r['subject']==s) for s in subjects[1:]]+[float(int(r['period'])==p) for p in periods[1:]]+([float(r['treatment']=='T')] if treatment else []) for r in records])\n    y=np.array([r['logvalue'] for r in records])\n    rank=np.linalg.matrix_rank(x)\n    if rank!=x.shape[1]:\n        if treatment: raise InputError('rank-deficient treatment model')\n        # Reference-only full replication has disconnected period/subject blocks.\n        # Remove aliased nuisance columns; retain their complete column space.\n        _,_,pivot=pivoted_qr(x,mode='economic',pivoting=True)\n        x=x[:,pivot[:rank]]\n    df=len(y)-x.shape[1]\n    if df<=0: raise InputError('no residual degrees of freedom')\n    q,r=np.linalg.qr(x,mode='reduced'); beta=np.linalg.solve(r,q.T@y)\n    mse=float(np.sum((y-x@beta)**2)/df)\n    z=np.linalg.solve(r.T,np.eye(len(beta))[:,-1])\n    return float(beta[-1]), math.sqrt(mse*float(z@z)), df, mse\n\ndef ema_analysis(records, design):\n    _,groups=validate(records,design)\n    e,se,df,_=fixed_fit(records)\n    return AverageBE(e,se,df,len(groups),'fixed subject + period + treatment; common residual variance (EMA Method A structure)')\n\ndef reference_variability(records, method='contrast', design='replicate'):\n    design,groups=validate(records,design)\n    if design not in ('partial','full'): raise InputError('replicated reference required')\n    if method=='ema':\n        _,_,df,mse=fixed_fit([r for r in records if r['treatment']=='R'],False)\n        return ReferenceVariability(mse,df,len(groups))\n    ds=defaultdict(list)\n    for g in groups.values():\n        vals=[r['logvalue'] for r in g if r['treatment']=='R']\n        ds[g[0]['sequence']].append(vals[0]-vals[1])\n    df=len(groups)-len(ds)\n    s2=sum(sum((np.asarray(v)-np.mean(v))**2) for v in ds.values())/(2*df)\n    return ReferenceVariability(float(s2),df,len(groups))\n\ndef rsabe_bound(estimate,se,df_point,rv):\n    if not all(math.isfinite(x) for x in (estimate,se,df_point,rv.s2wr,rv.df)) or se<0 or rv.s2wr<0 or min(df_point,rv.df)<=0:\n        raise InputError('invalid RSABE inputs')\n    x=estimate**2-se**2\n    bx=(abs(estimate)+t.ppf(.95,df_point)*se)**2\n    y=-THETA_FDA*rv.s2wr\n    by=y*rv.df/chi2.ppf(.95,rv.df)\n    bound=float(x+y+math.hypot(bx-x,by-y))\n    return {'criterion_point_estimate':x+y,'criterion_95_upper_bound':bound,'passes_scaled_criterion':bool(bound<=0)}\n\ndef abel_limits(rv):\n    if rv.cvwr<=.30: return .8,1.25,False\n    s=min(rv.swr,math.sqrt(math.log1p(.5**2)))\n    return math.exp(-.760*s),math.exp(.760*s),True\n\ndef rounded_pct(x): return Decimal(str(100*x)).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)\n\ndef passes_ci(result,limits=(.8,1.25),rounding=False):\n    if rounding: return rounded_pct(result.ci_low)>=rounded_pct(limits[0]) and rounded_pct(result.ci_high)<=rounded_pct(limits[1])\n    return bool(result.ci_low>=limits[0] and result.ci_high<=limits[1])\n\ndef parallel_design(records,welch=False):\n    _,groups=validate(records,'parallel')\n    a,b=[np.array([r['logvalue'] for r in records if r['treatment']==tr]) for tr in ('T','R')]\n    n1,n2=len(a),len(b); v1,v2=a.var(ddof=1),b.var(ddof=1)\n    if welch:\n        v=v1/n1+v2/n2\n        if v<=0: raise InputError('Welch requires positive estimated variance')\n        df=v**2/((v1/n1)**2/(n1-1)+(v2/n2)**2/(n2-1))\n    else:\n        df=n1+n2-2; v=((n1-1)*v1+(n2-1)*v2)/df*(1/n1+1/n2)\n    return AverageBE(float(a.mean()-b.mean()),math.sqrt(v),float(df),len(groups),'parallel Welch' if welch else 'parallel pooled variance')\n\ndef power_parameters(n,design,analysis='contrast'):\n    if design=='replicate': raise InputError('power: specify partial or full explicitly')\n    m=3 if design=='partial' else 2\n    if design not in (*DESIGNS,'parallel') or not isinstance(n,(int,np.integer)) or n<2*m or n%m:\n        raise InputError('power requires an integer N, at least two subjects per sequence/arm and balanced allocation')\n    if analysis not in ('contrast','ema'): raise InputError('unknown analysis')\n    df=n-m\n    if analysis=='ema' and design in ('partial','full'):\n        p=len(DESIGNS[design][0]); df=(n-1)*(p-1)-1\n    factor=math.sqrt({'parallel':4,'2x2':2,'partial':1.5,'full':1}[design]/n)\n    return df,factor\n\ndef tost_power(n_total,cv,gmr,design='2x2',limits=(.8,1.25),analysis='contrast'):\n    sigma=math.sqrt(math.log1p(positive(cv,'CV')**2)); delta=math.log(positive(gmr,'GMR'))\n    lo,hi=map(math.log,check_limits(limits)); df,factor=power_parameters(n_total,design,analysis)\n    crit=t.ppf(.95,df); sd=sigma*factor\n    max_q=((hi-lo)/(2*crit*sd))**2*df\n    def integrand(q):\n        se=sd*math.sqrt(q/df)\n        return max(0.,norm.cdf((hi-crit*se-delta)/sd)-norm.cdf((lo+crit*se-delta)/sd))*chi2.pdf(q,df)\n    value,error=quad(integrand,0,max_q,epsabs=1e-9,epsrel=1e-8,limit=200)\n    if error>1e-6: raise InputError('power integration did not converge sufficiently')\n    return float(np.clip(value,0,1))\n\ndef check_limits(limits):\n    try: lo,hi=limits; lo=positive(lo,'lower limit'); hi=positive(hi,'upper limit')\n    except (ValueError,TypeError): raise InputError('limits must be two positive numbers')\n    if lo>=hi: raise InputError('lower limit must be below upper limit')\n    return lo,hi\n\ndef sample_size(cv,gmr,target,design='2x2',limits=(.8,1.25),analysis='contrast'):\n    if not math.isfinite(target) or not 0<target<1: raise InputError('target power must be between 0 and 1')\n    if design=='replicate': raise InputError('specify partial or full for power')\n    lo,hi=check_limits(limits)\n    if not lo<gmr<hi: raise InputError('sample-size solver requires a GMR strictly inside the limits')\n    m=3 if design=='partial' else 2\n    for n in range(2*m,5001,m):\n        p=tost_power(n,cv,gmr,design,limits,analysis)\n        if p>=target:return n,p\n    raise InputError('target power not reached by N=5000')\n\ndef load_records(args):\n    rows=read_table(args.input)\n    cols=[args.subject_column,args.treatment_column,args.value_column]\n    require_columns(rows,cols,str(args.input))\n    if args.design!='parallel': require_columns(rows,['sequence','period'],str(args.input))\n    out=[]\n    for row in rows:\n        tr=row[args.treatment_column].upper()\n        tr={'TEST':'T','REF':'R','REFERENCE':'R'}.get(tr,tr)\n        val=positive(row[args.value_column],'value')\n        out.append(dict(subject=row[args.subject_column].strip(),treatment=tr,value=val,logvalue=math.log(val),sequence=row.get('sequence','').upper(),period=row.get('period','')))\n    return out\n\ndef build_parser():\n    p=argparse.ArgumentParser(description=__doc__)\n    p.add_argument('-i','--input'); p.add_argument('--design',choices=(*DESIGNS,'replicate','parallel'),default='2x2')\n    p.add_argument('--analysis',choices=('contrast','ema'),default='contrast')\n    p.add_argument('--metric',default=''); p.add_argument('--scaling',choices=('none','abel','rsabe','both'),default='none')\n    p.add_argument('--limits',default='0.80,1.25'); p.add_argument('--nti',action='store_true',help='fixed 90.00-111.11%% limits only; NOT a full NTI methodology')\n    p.add_argument('--ema-rounding',action='store_true',help='compare CI endpoints as percentages rounded to 2 decimals')\n    p.add_argument('--abel-justified',action='store_true',help='acknowledge clinical justification and prospective protocol specification')\n    p.add_argument('--welch',action='store_true')\n    for c in ('subject','treatment','value'): p.add_argument('--'+c+'-column',default=c)\n    p.add_argument('--power',action='store_true'); p.add_argument('--cv',type=float); p.add_argument('--gmr',type=float,default=.95)\n    p.add_argument('--target-power',type=float,default=.8); p.add_argument('--n',type=int)\n    add_format_argument(p); return p\n\ndef run(argv=None):\n    a=build_parser().parse_args(argv); report=Report()\n    limits=check_limits((.9,1.1111) if a.nti else a.limits.split(','))\n    if a.nti and a.limits!='0.80,1.25': raise InputError('--nti and custom --limits cannot be combined')\n    if a.scaling!='none' and (a.nti or limits!=(.8,1.25)): raise InputError('scaled HVD criteria cannot be combined with NTI/custom limits')\n    if a.scaling!='none' and a.design not in ('partial','full','replicate'): raise InputError('scaling requires a replicate design')\n    if a.welch and a.design!='parallel': raise InputError('--welch is for parallel analysis only')\n    if a.power:\n        if a.scaling!='none' or a.welch or a.ema_rounding: raise InputError('power supports unrounded fixed-limit ABE with equal variances only; no ABEL/RSABE/Welch power')\n        if a.cv is None: raise InputError('--power requires --cv')\n        n,p=(a.n,tost_power(a.n,a.cv,a.gmr,a.design,limits,a.analysis)) if a.n is not None else sample_size(a.cv,a.gmr,a.target_power,a.design,limits,a.analysis)\n        report.scalar('n_total',n); report.scalar('power',p); report.scalar('design',a.design); report.scalar('analysis',a.analysis)\n        report.scalar('assumed_cv',a.cv); report.scalar('assumed_gmr',a.gmr); report.scalar('limits',limits)\n        report.note('Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. Parallel CV is between-subject. No dropout allowance.')\n        return report.emit(a.format)\n    if not a.input: raise InputError('provide --input or --power')\n    records=load_records(a); design,_=validate(records,a.design)\n    result=parallel_design(records,a.welch) if design=='parallel' else (ema_analysis(records,design) if a.analysis=='ema' else contrast_analysis(records,design))\n    report.scalar('design',design); report.scalar('metric',a.metric or a.value_column)\n    for key,val in asdict(result).items(): report.scalar(key,val)\n    report.scalar('gmr_pct',100*result.gmr); report.scalar('ci90_low_pct',100*result.ci_low); report.scalar('ci90_high_pct',100*result.ci_high)\n    passed=passes_ci(result,limits,a.ema_rounding)\n    report.scalar('average_be_met',passed); report.scalar('limits',limits)\n    report.scalar('ci_rounding','percent, 2 decimal places, half-up' if a.ema_rounding else 'none')\n    if a.nti: report.note('NTI flag changes fixed limits only. It does NOT implement FDA NTI scaling/variance comparison or all EMA endpoint-specific requirements.')\n    rows=[]\n    if a.scaling in ('abel','both'):\n        if a.metric.lower()!='cmax': raise InputError('ABEL is restricted to --metric cmax')\n        if not a.abel_justified: raise InputError('ABEL requires --abel-justified: clinical justification and prospective protocol specification must exist')\n        ema=ema_analysis(records,design); rv=reference_variability(records,'ema',design); low,high,widened=abel_limits(rv)\n        met=passes_ci(ema,(low,high),True) and .8<=ema.gmr<=1.25\n        rows.append(dict(criterion='EMA ABEL (fixed-effects model)',met=bool(met),gmr=ema.gmr,ci_low=ema.ci_low,ci_high=ema.ci_high,df=ema.df,cvwr=rv.cvwr,s2wr=rv.s2wr,df_wr=rv.df,low=low,high=high,widened=widened))\n    if a.scaling in ('rsabe','both'):\n        contrast=contrast_analysis(records,design); rv=reference_variability(records,'contrast',design)\n        if rv.swr<.294: raise InputError('sWR < 0.294: FDA unscaled heterogeneous mixed-model fallback is not implemented; no FDA decision produced')\n        bound=rsabe_bound(contrast.estimate,contrast.se,contrast.df,rv)\n        met=bound['passes_scaled_criterion'] and .8<=contrast.gmr<=1.25\n        rows.append(dict(criterion='FDA HVD RSABE (complete-data contrast model)',met=bool(met),estimate=contrast.estimate,se=contrast.se,df=contrast.df,s2wr=rv.s2wr,df_wr=rv.df,cvwr=rv.cvwr,**bound))\n    if rows:\n        report.table('scaled criteria',rows)\n        for row in rows:\n            if not row['met']:report.finding(row['criterion']+': criterion not met')\n    elif not passed: report.finding('Fixed-limit average BE criterion not met')\n    report.note('Research implementation, not regulatory certification. Complete canonical designs only; see README for assumptions, unsupported cases and references.')\n    return report.emit(a.format)\n\nif __name__=='__main__': raise SystemExit(main_wrapper(run))\n"</script>
+<script type="application/json" id="py-common">"\"\"\"Shared I/O, formatting, and reporting helpers for the pkpd-modeling scripts.\n\nEvery script in this skill follows the same contract:\n\n* data goes to **stdout**, provenance and findings go to **stderr**, so\n  ``script.py ... > out.tsv`` keeps them apart;\n* ``--format table|tsv|json`` selects the stdout rendering, and ``json`` is\n  self-contained (it carries findings and notes too, because a machine reading\n  stdout should not have to also parse stderr);\n* exit status is ``0`` when nothing was flagged, ``1`` when at least one\n  finding was raised, and ``2`` for unusable input — so any script can gate a\n  pipeline.\n\nNothing here does pharmacology. The numerics live in ``_models.py`` and in the\nindividual scripts; this module only moves tables around.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport csv\nimport json\nimport math\nimport sys\nfrom dataclasses import dataclass, field\nfrom pathlib import Path\nfrom typing import Any, Iterable, Mapping, Sequence\n\nEXIT_OK = 0\nEXIT_FINDINGS = 1\nEXIT_INPUT = 2\n\n_MISSING = {\"\", \".\", \"na\", \"n/a\", \"nan\", \"null\", \"none\", \"-\"}\n\n\nclass InputError(Exception):\n    \"\"\"Unusable input. Callers map this to exit code 2.\"\"\"\n\n\n# --------------------------------------------------------------- formatting\n\n\ndef fmt(value: Any, digits: int = 6) -> str:\n    \"\"\"Render a value for a fixed-width table without lying about precision.\"\"\"\n    if value is None:\n        return \"n/a\"\n    if isinstance(value, bool):\n        return \"yes\" if value else \"no\"\n    if isinstance(value, str):\n        return value\n    if isinstance(value, (int,)):\n        return str(value)\n    try:\n        x = float(value)\n    except (TypeError, ValueError):\n        return str(value)\n    if math.isnan(x):\n        return \"n/a\"\n    if math.isinf(x):\n        return \"inf\" if x > 0 else \"-inf\"\n    if x == 0:\n        return \"0\"\n    return f\"{x:.{digits}g}\"\n\n\ndef parse_float(text: Any, field_name: str = \"value\", allow_missing: bool = False):\n    \"\"\"Parse a float, treating the usual missing-value spellings as ``None``.\"\"\"\n    if text is None:\n        if allow_missing:\n            return None\n        raise InputError(f\"{field_name}: missing\")\n    if isinstance(text, (int, float)):\n        x = float(text)\n        if math.isnan(x) and not allow_missing:\n            raise InputError(f\"{field_name}: not a number\")\n        return x\n    s = str(text).strip()\n    if s.lower() in _MISSING:\n        if allow_missing:\n            return None\n        raise InputError(f\"{field_name}: missing\")\n    try:\n        return float(s)\n    except ValueError as exc:\n        raise InputError(f\"{field_name}: {s!r} is not a number\") from exc\n\n\ndef parse_positive(text: Any, field_name: str) -> float:\n    x = parse_float(text, field_name)\n    if x is None or x <= 0:\n        raise InputError(f\"{field_name}: must be greater than zero, got {text!r}\")\n    return x\n\n\n# ------------------------------------------------------------------- tables\n\n\ndef _sniff_delimiter(sample: str, path: Path) -> str:\n    if path.suffix.lower() in {\".tsv\", \".tab\"}:\n        return \"\\t\"\n    if path.suffix.lower() == \".csv\":\n        return \",\"\n    counts = {d: sample.count(d) for d in (\",\", \"\\t\", \";\")}\n    return max(counts, key=lambda d: counts[d]) if max(counts.values()) else \",\"\n\n\ndef read_table(source: str | Path) -> list[dict[str, str]]:\n    \"\"\"Read a delimited table into a list of row dicts.\n\n    Accepts ``-`` for stdin. Column names are lower-cased and stripped so a\n    file with ``Time`` and one with ``TIME`` behave the same; blank lines and\n    lines beginning with ``#`` are skipped, which lets a fixture carry a\n    provenance header.\n    \"\"\"\n    if str(source) == \"-\":\n        text = sys.stdin.read()\n        path = Path(\"stdin.csv\")\n    else:\n        path = Path(source)\n        if not path.is_file():\n            raise InputError(f\"no such file: {path}\")\n        text = path.read_text(encoding=\"utf-8-sig\")\n\n    lines = [ln for ln in text.splitlines() if ln.strip() and not ln.lstrip().startswith(\"#\")]\n    if not lines:\n        raise InputError(f\"{path}: no data rows\")\n\n    delimiter = _sniff_delimiter(lines[0], path)\n    reader = csv.DictReader(lines, delimiter=delimiter)\n    if not reader.fieldnames:\n        raise InputError(f\"{path}: no header row\")\n\n    fieldnames = [(name or \"\").strip().lower() for name in reader.fieldnames]\n    if len(set(fieldnames)) != len(fieldnames):\n        dupes = sorted({n for n in fieldnames if fieldnames.count(n) > 1})\n        raise InputError(f\"{path}: duplicate column names: {', '.join(dupes)}\")\n\n    rows: list[dict[str, str]] = []\n    for raw in reader:\n        row = {}\n        for key, value in zip(fieldnames, (raw.get(orig) for orig in reader.fieldnames)):\n            row[key] = (value or \"\").strip()\n        rows.append(row)\n    if not rows:\n        raise InputError(f\"{path}: header only, no data rows\")\n    return rows\n\n\ndef require_columns(rows: Sequence[Mapping[str, Any]], required: Iterable[str], where: str) -> None:\n    present = set(rows[0].keys())\n    missing = [c for c in required if c not in present]\n    if missing:\n        raise InputError(\n            f\"{where}: missing required column(s): {', '.join(missing)}. \"\n            f\"Found: {', '.join(sorted(present))}\"\n        )\n\n\ndef column(rows: Sequence[Mapping[str, Any]], name: str, allow_missing: bool = False) -> list:\n    return [parse_float(r.get(name), f\"{name} (row {i + 1})\", allow_missing) for i, r in enumerate(rows)]\n\n\ndef group_by(rows: Sequence[Mapping[str, Any]], key: str) -> dict[str, list[Mapping[str, Any]]]:\n    \"\"\"Stable grouping that preserves first-seen order of the keys.\"\"\"\n    out: dict[str, list[Mapping[str, Any]]] = {}\n    for row in rows:\n        out.setdefault(str(row.get(key, \"\")).strip(), []).append(row)\n    return out\n\n\n# ------------------------------------------------------------------ reports\n\n\n@dataclass\nclass Table:\n    title: str\n    rows: list[dict[str, Any]]\n    columns: list[str] | None = None\n\n    def headers(self) -> list[str]:\n        if self.columns:\n            return list(self.columns)\n        seen: list[str] = []\n        for row in self.rows:\n            for key in row:\n                if key not in seen:\n                    seen.append(key)\n        return seen\n\n\n@dataclass\nclass Report:\n    \"\"\"Accumulates output, then renders it once at the end.\n\n    Findings are the reason a script exits non-zero. They are deliberately\n    plain sentences rather than codes: they are read by a person deciding\n    whether an analysis is defensible.\n    \"\"\"\n\n    tables: list[Table] = field(default_factory=list)\n    findings: list[str] = field(default_factory=list)\n    notes: list[str] = field(default_factory=list)\n    scalars: dict[str, Any] = field(default_factory=dict)\n\n    def table(self, title: str, rows: Sequence[Mapping[str, Any]], columns: Sequence[str] | None = None) -> None:\n        self.tables.append(Table(title, [dict(r) for r in rows], list(columns) if columns else None))\n\n    def scalar(self, name: str, value: Any) -> None:\n        self.scalars[name] = value\n\n    def note(self, text: str) -> None:\n        self.notes.append(text)\n\n    def finding(self, text: str) -> None:\n        self.findings.append(text)\n\n    # -- rendering\n\n    def _render_table(self, table: Table) -> str:\n        headers = table.headers()\n        cells = [[fmt(row.get(h)) for h in headers] for row in table.rows]\n        widths = [len(h) for h in headers]\n        for line in cells:\n            for i, value in enumerate(line):\n                widths[i] = max(widths[i], len(value))\n        out = [\"\"]\n        if table.title:\n            out.append(table.title)\n        out.append(\"  \".join(h.ljust(widths[i]) for i, h in enumerate(headers)).rstrip())\n        for line in cells:\n            out.append(\"  \".join(v.ljust(widths[i]) for i, v in enumerate(line)).rstrip())\n        return \"\\n\".join(out)\n\n    def emit(self, fmt_name: str, stream=None, err=None) -> int:\n        stream = stream or sys.stdout\n        err = err or sys.stderr\n\n        if fmt_name == \"json\":\n            payload = {\n                \"scalars\": self.scalars,\n                \"tables\": [\n                    {\"title\": t.title, \"columns\": t.headers(), \"rows\": t.rows} for t in self.tables\n                ],\n                \"findings\": self.findings,\n                \"notes\": self.notes,\n            }\n            print(json.dumps(payload, indent=2, default=_json_default), file=stream)\n        elif fmt_name == \"tsv\":\n            for key, value in self.scalars.items():\n                print(f\"{key}\\t{fmt(value)}\", file=stream)\n            for table in self.tables:\n                headers = table.headers()\n                print(\"\\t\".join(headers), file=stream)\n                for row in table.rows:\n                    print(\"\\t\".join(fmt(row.get(h)) for h in headers), file=stream)\n        else:\n            if self.scalars:\n                width = max(len(k) for k in self.scalars)\n                for key, value in self.scalars.items():\n                    print(f\"{key.ljust(width)}  {fmt(value)}\", file=stream)\n            for table in self.tables:\n                print(self._render_table(table), file=stream)\n\n        if fmt_name != \"json\":\n            for note in self.notes:\n                print(f\"note: {note}\", file=err)\n            for finding in self.findings:\n                print(f\"finding: {finding}\", file=err)\n\n        return EXIT_FINDINGS if self.findings else EXIT_OK\n\n\ndef _json_default(obj: Any) -> Any:\n    if hasattr(obj, \"item\"):  # numpy scalar\n        return obj.item()\n    if hasattr(obj, \"tolist\"):  # numpy array\n        return obj.tolist()\n    if isinstance(obj, float) and math.isnan(obj):\n        return None\n    raise TypeError(f\"not JSON serialisable: {type(obj).__name__}\")\n\n\n# --------------------------------------------------------------------- CLI\n\n\ndef add_format_argument(parser: argparse.ArgumentParser) -> None:\n    parser.add_argument(\n        \"--format\",\n        choices=(\"table\", \"tsv\", \"json\"),\n        default=\"table\",\n        help=\"stdout rendering (default: table). json is self-contained.\",\n    )\n\n\ndef main_wrapper(func, argv: Sequence[str] | None = None) -> int:\n    \"\"\"Run a script body, mapping InputError to exit code 2.\n\n    Keeps the ``if __name__`` block in every script down to one line and makes\n    the exit-code contract impossible to get wrong in one script and right in\n    another.\n    \"\"\"\n    try:\n        return func(argv)\n    except InputError as exc:\n        print(f\"error: {exc}\", file=sys.stderr)\n        return EXIT_INPUT\n    except BrokenPipeError:  # `| head`\n        return EXIT_OK\n\n\n__all__ = [\n    \"EXIT_OK\",\n    \"EXIT_FINDINGS\",\n    \"EXIT_INPUT\",\n    \"InputError\",\n    \"Report\",\n    \"Table\",\n    \"add_format_argument\",\n    \"column\",\n    \"fmt\",\n    \"group_by\",\n    \"main_wrapper\",\n    \"parse_float\",\n    \"parse_positive\",\n    \"read_table\",\n    \"require_columns\",\n]\n\n"</script>
+<script type="application/json" id="example-csv">"subject,sequence,period,treatment,value\r\nTRR-0,TRR,1,T,48.92532977778458\r\nTRR-0,TRR,2,R,92.78839728546947\r\nTRR-0,TRR,3,R,43.69122286295134\r\nTRR-1,TRR,1,T,94.02652597859198\r\nTRR-1,TRR,2,R,62.645808246331995\r\nTRR-1,TRR,3,R,113.33911570572295\r\nTRR-2,TRR,1,T,43.66779794997171\r\nTRR-2,TRR,2,R,18.845889389584954\r\nTRR-2,TRR,3,R,125.45507291135218\r\nTRR-3,TRR,1,T,67.76097220656041\r\nTRR-3,TRR,2,R,79.14388032734422\r\nTRR-3,TRR,3,R,66.26573208244683\r\nTRR-4,TRR,1,T,33.473624254547765\r\nTRR-4,TRR,2,R,86.76523744355542\r\nTRR-4,TRR,3,R,52.70846455222058\r\nTRR-5,TRR,1,T,21.98204146984332\r\nTRR-5,TRR,2,R,14.460348840106759\r\nTRR-5,TRR,3,R,34.32071052514692\r\nTRR-6,TRR,1,T,26.731345944481248\r\nTRR-6,TRR,2,R,41.32680174370348\r\nTRR-6,TRR,3,R,35.10393645060466\r\nTRR-7,TRR,1,T,54.23042842354235\r\nTRR-7,TRR,2,R,37.6402023777104\r\nTRR-7,TRR,3,R,107.79701081368626\r\nTRR-8,TRR,1,T,26.812402771323594\r\nTRR-8,TRR,2,R,38.55338641060469\r\nTRR-8,TRR,3,R,36.220792265839\r\nTRR-9,TRR,1,T,63.35339913628074\r\nTRR-9,TRR,2,R,214.20765732916152\r\nTRR-9,TRR,3,R,64.43370536823414\r\nTRR-10,TRR,1,T,19.105213001490686\r\nTRR-10,TRR,2,R,21.062239889279237\r\nTRR-10,TRR,3,R,66.99316369833264\r\nTRR-11,TRR,1,T,190.1011712185221\r\nTRR-11,TRR,2,R,21.328737085516305\r\nTRR-11,TRR,3,R,139.03411452710034\r\nRTR-0,RTR,1,R,44.73186973590394\r\nRTR-0,RTR,2,T,22.4546586703025\r\nRTR-0,RTR,3,R,26.35082048037593\r\nRTR-1,RTR,1,R,25.168299022849354\r\nRTR-1,RTR,2,T,46.365849128959184\r\nRTR-1,RTR,3,R,23.54053509512132\r\nRTR-2,RTR,1,R,23.084695807462175\r\nRTR-2,RTR,2,T,16.083586325024303\r\nRTR-2,RTR,3,R,53.80890606985552\r\nRTR-3,RTR,1,R,121.22713906335395\r\nRTR-3,RTR,2,T,58.099264924617856\r\nRTR-3,RTR,3,R,133.87802872791295\r\nRTR-4,RTR,1,R,98.99569531880634\r\nRTR-4,RTR,2,T,72.13900393739198\r\nRTR-4,RTR,3,R,113.74999479827731\r\nRTR-5,RTR,1,R,30.48749529151243\r\nRTR-5,RTR,2,T,66.8709691606987\r\nRTR-5,RTR,3,R,73.54348771386289\r\nRTR-6,RTR,1,R,92.69247908041633\r\nRTR-6,RTR,2,T,96.01234882268047\r\nRTR-6,RTR,3,R,106.49086839283846\r\nRTR-7,RTR,1,R,92.5325556663993\r\nRTR-7,RTR,2,T,41.97742170806743\r\nRTR-7,RTR,3,R,73.4351189668294\r\nRTR-8,RTR,1,R,11.778661776158735\r\nRTR-8,RTR,2,T,18.858329652882684\r\nRTR-8,RTR,3,R,33.33631241628177\r\nRTR-9,RTR,1,R,130.54083144033612\r\nRTR-9,RTR,2,T,77.86072997283497\r\nRTR-9,RTR,3,R,80.25051987966734\r\nRTR-10,RTR,1,R,56.26572892246852\r\nRTR-10,RTR,2,T,148.87735607736624\r\nRTR-10,RTR,3,R,170.79137718831785\r\nRTR-11,RTR,1,R,18.397007997125066\r\nRTR-11,RTR,2,T,27.07423169324938\r\nRTR-11,RTR,3,R,54.9485264747479\r\nRRT-0,RRT,1,R,28.536788700468165\r\nRRT-0,RRT,2,R,32.43427691260794\r\nRRT-0,RRT,3,T,27.384793191449607\r\nRRT-1,RRT,1,R,172.17441299517424\r\nRRT-1,RRT,2,R,170.05754158079617\r\nRRT-1,RRT,3,T,95.99334234935276\r\nRRT-2,RRT,1,R,122.99146391739907\r\nRRT-2,RRT,2,R,83.9367790732865\r\nRRT-2,RRT,3,T,49.60385858030676\r\nRRT-3,RRT,1,R,53.35504196977333\r\nRRT-3,RRT,2,R,70.13336428164438\r\nRRT-3,RRT,3,T,104.07889992738399\r\nRRT-4,RRT,1,R,103.97047067346769\r\nRRT-4,RRT,2,R,89.31667762548165\r\nRRT-4,RRT,3,T,123.75029109985599\r\nRRT-5,RRT,1,R,53.79916562295866\r\nRRT-5,RRT,2,R,146.6932535272572\r\nRRT-5,RRT,3,T,102.69002200293548\r\nRRT-6,RRT,1,R,100.8965298414822\r\nRRT-6,RRT,2,R,87.3013022801988\r\nRRT-6,RRT,3,T,92.18099860997022\r\nRRT-7,RRT,1,R,45.00150286486945\r\nRRT-7,RRT,2,R,56.31814390965812\r\nRRT-7,RRT,3,T,77.67645916678894\r\nRRT-8,RRT,1,R,114.15935802909323\r\nRRT-8,RRT,2,R,137.84523919215164\r\nRRT-8,RRT,3,T,129.2717922138393\r\nRRT-9,RRT,1,R,63.41615414983579\r\nRRT-9,RRT,2,R,95.04341289277463\r\nRRT-9,RRT,3,T,148.8833384912828\r\nRRT-10,RRT,1,R,20.635852046536364\r\nRRT-10,RRT,2,R,30.30575891762645\r\nRRT-10,RRT,3,T,33.99723250387078\r\nRRT-11,RRT,1,R,26.425742428299404\r\nRRT-11,RRT,2,R,66.0973033626468\r\nRRT-11,RRT,3,T,148.89897358155912\r\n"</script>
+<script>
+/* ================= i18n ================= */
+const I18N={
+ar:{
+ boot_title:"تجهيز محرك الحساب",boot_py:"تحميل Python + NumPy + SciPy داخل المتصفح…",boot_note:"يعمل الكود الأصلي bioequivalence.py كما هو — لا تُرسل بياناتك لأي خادم.",
+ boot_pkgs:"تحميل NumPy وSciPy…",boot_mod:"تهيئة وحدة التكافؤ الحيوي…",boot_fail:"تعذّر تحميل المحرك. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.",
+ app_name:"مختبر التكافؤ الحيوي",app_sub:"Bioequivalence Lab · ABE · ABEL · RSABE · القوة",
+ eng_loading:"المحرك قيد التحميل",eng_ready:"المحرك جاهز",eng_err:"خطأ في المحرك",eng_busy:"جارٍ الحساب…",
+ eyebrow:"تحليل إحصائي للتكافؤ الحيوي",hero_t:"من بيانات الدراسة إلى قرار التكافؤ — بشفافية كاملة",
+ hero_p:"ارفع بيانات دراسة تبادلية (2×2، مكرّرة جزئيًا أو كليًا، أو متوازية) لحساب نسبة المتوسط الهندسي وفترة الثقة 90%، مع معايير EMA ABEL وFDA RSABE للأدوية عالية التباين، وحساب القوة وحجم العينة.",
+ disc:"تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.",
+ tab_analysis:"تحليل البيانات",tab_power:"القوة وحجم العينة",tab_methods:"المنهجية والحدود",
+ s_data:"البيانات",drop_t:"اسحب ملف CSV هنا أو اضغط للاختيار",drop_s:"الأعمدة: subject, sequence, period, treatment, value",or:"أو",
+ load_ex:"تحميل مثال: تصميم جزئي TRR/RTR/RRT (مُحاكى)",
+ s_design:"التصميم والنموذج",f_design:"تصميم الدراسة",d_partial:"جزئي 3P",d_full:"كامل 4P",d_auto:"مكرّر (تلقائي)",d_parallel:"متوازي",
+ f_analysis:"نموذج ABE الأساسي",a_contrast:"تباينات الأفراد",a_ema:"EMA ثابت التأثيرات",f_metric:"المؤشر الدوائي",f_limits:"حدود القبول",
+ l_std:"80.00–125.00%",l_nti:"NTI 90.00–111.11%",l_custom:"مخصّصة…",f_lo:"الحد الأدنى",f_hi:"الحد الأعلى",
+ s_hvd:"الأدوية عالية التباين (HVD)",f_scaling:"المعيار المتدرج",sc_none:"بدون",sc_both:"كلاهما",scaling_hint:"يتطلب تصميمًا مكرّرًا وحدود 80–125%.",
+ c_abel:"أُقرّ بوجود مبرر سريري ومواصفة مسبقة في البروتوكول لـ ABEL",c_abel_s:"البرنامج لا يستطيع التحقق من هذه الوثائق — مطلوب لـ ABEL (Cmax فقط).",
+ c_round:"تقريب حدود فترة الثقة (منزلتان عشريتان، نصف لأعلى)",c_welch:"اختبار Welch لتباينات غير متساوية",c_welch_s:"للتصميم المتوازي فقط",
+ adv_cols:"ربط الأعمدة",run:"تشغيل التحليل",preview:"معاينة البيانات",empty:"ارفع بيانات أو حمّل المثال، ثم اضغط «تشغيل التحليل».",
+ h_2x2:"تسلسلان TR / RT، فترتان.",h_partial:"ثلاثة تسلسلات TRR / RTR / RRT — المرجع مكرّر.",h_full:"تسلسلان TRTR / RTRT — الاختبار والمرجع مكرّران.",h_replicate:"يستنتج التصميم الجزئي أو الكامل من التسلسلات الموجودة.",h_parallel:"مجموعتان مستقلتان، سجل واحد لكل مشارك.",
+ v_pass:"تحقّق التكافؤ الحيوي",v_fail:"لم يتحقق معيار التكافؤ",v_err:"مدخلات غير صالحة أو حالة غير مدعومة",
+ v_pass_s:"فترة الثقة 90% ضمن حدود القبول لجميع المعايير المطلوبة.",v_fail_s:"معيار واحد على الأقل من المعايير المطلوبة لم يتحقق — راجع التفاصيل أدناه.",v_err_s:"البرنامج يرفض الحالات غير المدعومة صراحة بدل إعطاء حكم مضلل.",
+ k_gmr:"نسبة المتوسط الهندسي",k_ci:"فترة الثقة 90%",k_n:"عدد المشاركين",k_df:"درجات الحرية",k_se:"الخطأ المعياري (log)",
+ ci_title:"فترة الثقة 90% مقابل حدود القبول",ci_abe:"ABE",ci_abel:"ABEL",lim:"الحدود",
+ crit_t:"المعايير المتدرجة",met:"متحقق",notmet:"غير متحقق",
+ abel_t:"EMA ABEL — نموذج ثابت التأثيرات",rsabe_t:"FDA RSABE — نموذج التباينات",
+ r_cvwr:"CVwR (تباين المرجع)",r_swr:"s²wR",r_dfwr:"df للمرجع",r_lims:"الحدود الموسّعة",r_widened:"تم التوسيع؟",r_ci:"CI 90%",r_gmr:"GMR",r_pe:"قيد التقدير النقطي 80–125%",
+ r_crit:"تقدير المعيار",r_ub:"الحد الأعلى 95% للمعيار",r_rule:"القاعدة: الحد الأعلى ≤ 0",yes:"نعم",no:"لا",
+ findings:"الملاحظات الحرجة",notes:"ملاحظات منهجية",method:"الطريقة",raw:"عرض JSON الخام",dl_json:"تنزيل JSON",dl_csv:"تنزيل ملخص CSV",copy:"نسخ",copied:"تم النسخ",
+ exit_code:"رمز الخروج",
+ p_inputs:"افتراضات التصميم",f_cv:"CV داخل الفرد",f_gmr:"GMR المتوقع",p_mode:"المطلوب",p_mode_n:"حجم العينة",p_mode_p:"القوة لعدد محدد",
+ f_target:"القوة المستهدفة",f_n:"العدد الإجمالي N",n_hint:"يجب أن يكون متوازنًا: مضاعفات 3 للجزئي و2 لغيره.",p_run:"احسب",
+ p_empty:"حدد الافتراضات ثم اضغط «احسب» لعرض منحنى القوة.",cv_par:"للتصميم المتوازي: CV بين الأفراد.",
+ p_n:"N الإجمالي المطلوب",p_pow:"القوة المحققة",p_per:"لكل تسلسل",p_curve:"منحنى القوة مقابل حجم العينة",p_target:"الهدف",
+ p_note:"تكامل عددي لقوة TOST بحدود ثابتة؛ تصميم متوازن كامل، بيانات لوغاريتمية طبيعية، تباين متساوٍ لـ T/R، بلا تفاعل فرد×معالجة. لا يشمل هامش الانسحاب ولا قوة ABEL/RSABE.",
+ foot:"المحرك: bioequivalence.py (النسخة المصححة) عبر Pyodide · جميع الحسابات محلية في متصفحك",
+ loaded:"تم تحميل الملف",err_read:"تعذّرت قراءة الملف",ex_loaded:"تم تحميل بيانات المثال",
+},
+en:{
+ boot_title:"Preparing the compute engine",boot_py:"Loading Python + NumPy + SciPy in your browser…",boot_note:"The original bioequivalence.py runs unmodified — your data never leaves this device.",
+ boot_pkgs:"Loading NumPy and SciPy…",boot_mod:"Initialising bioequivalence module…",boot_fail:"Could not load the engine. Check your internet connection and reload.",
+ app_name:"Bioequivalence Lab",app_sub:"ABE · ABEL · RSABE · Power & sample size",
+ eng_loading:"Engine loading",eng_ready:"Engine ready",eng_err:"Engine error",eng_busy:"Computing…",
+ eyebrow:"Statistical bioequivalence analysis",hero_t:"From study data to a BE decision — fully auditable",
+ hero_p:"Upload a crossover study (2×2, partial or full replicate) or a parallel study to compute the geometric mean ratio and 90% CI, apply EMA ABEL and FDA RSABE for highly variable drugs, and plan power and sample size.",
+ disc:"Research implementation, not regulatory certification. Complete canonical designs only; it does not replace your statistical analysis plan or product-specific guidance.",
+ tab_analysis:"Data analysis",tab_power:"Power & sample size",tab_methods:"Methods & limits",
+ s_data:"Data",drop_t:"Drop a CSV here or click to browse",drop_s:"Columns: subject, sequence, period, treatment, value",or:"or",
+ load_ex:"Load example: partial replicate TRR/RTR/RRT (simulated)",
+ s_design:"Design & model",f_design:"Study design",d_partial:"Partial 3P",d_full:"Full 4P",d_auto:"Replicate (auto)",d_parallel:"Parallel",
+ f_analysis:"Primary ABE model",a_contrast:"Subject contrasts",a_ema:"EMA fixed effects",f_metric:"PK metric",f_limits:"Acceptance limits",
+ l_std:"80.00–125.00%",l_nti:"NTI 90.00–111.11%",l_custom:"Custom…",f_lo:"Lower",f_hi:"Upper",
+ s_hvd:"Highly variable drugs (HVD)",f_scaling:"Scaled criterion",sc_none:"None",sc_both:"Both",scaling_hint:"Requires a replicate design and 80–125% limits.",
+ c_abel:"I confirm clinical justification and prospective protocol specification for ABEL",c_abel_s:"The software cannot verify these documents — required for ABEL (Cmax only).",
+ c_round:"Round CI endpoints (2 decimals, half-up)",c_welch:"Welch unequal-variance test",c_welch_s:"Parallel design only",
+ adv_cols:"Column mapping",run:"Run analysis",preview:"Data preview",empty:"Upload data or load the example, then press “Run analysis”.",
+ h_2x2:"Two sequences TR / RT, two periods.",h_partial:"Three sequences TRR / RTR / RRT — reference replicated.",h_full:"Two sequences TRTR / RTRT — test and reference replicated.",h_replicate:"Infers partial or full from the sequences present.",h_parallel:"Two independent arms, one record per subject.",
+ v_pass:"Bioequivalence demonstrated",v_fail:"BE criterion not met",v_err:"Invalid input or unsupported case",
+ v_pass_s:"The 90% CI lies within the acceptance limits for every requested criterion.",v_fail_s:"At least one requested criterion was not met — see details below.",v_err_s:"The engine rejects unsupported cases explicitly instead of producing a misleading decision.",
+ k_gmr:"Geometric mean ratio",k_ci:"90% confidence interval",k_n:"Subjects",k_df:"Degrees of freedom",k_se:"SE (log scale)",
+ ci_title:"90% CI against acceptance limits",ci_abe:"ABE",ci_abel:"ABEL",lim:"limits",
+ crit_t:"Scaled criteria",met:"Met",notmet:"Not met",
+ abel_t:"EMA ABEL — fixed-effects model",rsabe_t:"FDA RSABE — contrast model",
+ r_cvwr:"CVwR (reference)",r_swr:"s²wR",r_dfwr:"df (reference)",r_lims:"Widened limits",r_widened:"Widened?",r_ci:"90% CI",r_gmr:"GMR",r_pe:"80–125% point-estimate constraint",
+ r_crit:"Criterion estimate",r_ub:"95% upper bound",r_rule:"Rule: upper bound ≤ 0",yes:"yes",no:"no",
+ findings:"Findings",notes:"Methodological notes",method:"Method",raw:"Show raw JSON",dl_json:"Download JSON",dl_csv:"Download summary CSV",copy:"Copy",copied:"Copied",
+ exit_code:"exit code",
+ p_inputs:"Design assumptions",f_cv:"Within-subject CV",f_gmr:"Expected GMR",p_mode:"Solve for",p_mode_n:"Sample size",p_mode_p:"Power at given N",
+ f_target:"Target power",f_n:"Total N",n_hint:"Must be balanced: multiples of 3 for partial, 2 otherwise.",p_run:"Calculate",
+ p_empty:"Set assumptions and press “Calculate” to see the power curve.",cv_par:"Parallel design: between-subject CV.",
+ p_n:"Required total N",p_pow:"Achieved power",p_per:"per sequence",p_curve:"Power vs. sample size",p_target:"target",
+ p_note:"Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. No dropout allowance; no ABEL/RSABE power.",
+ foot:"Engine: bioequivalence.py (corrected) via Pyodide · all computation runs locally in your browser",
+ loaded:"File loaded",err_read:"Could not read file",ex_loaded:"Example data loaded",
+}};
+/* Arabic translations of known engine messages (English original is always shown too) */
+const MSG_AR=[
+ [/ABEL requires --abel-justified/,"يتطلب ABEL الإقرار بوجود مبرر سريري ومواصفة مسبقة في البروتوكول (فعّل خيار الإقرار)."],
+ [/ABEL is restricted to --metric cmax/,"يقتصر ABEL على المؤشر Cmax."],
+ [/sWR < 0.294/,"sWR أقل من 0.294: مسار FDA غير المتدرج (النموذج المختلط) غير منفّذ، لذا لا يُصدر قرار FDA."],
+ [/scaled HVD criteria cannot be combined/,"لا يمكن دمج المعايير المتدرجة مع حدود NTI أو حدود مخصصة."],
+ [/scaling requires a replicate design/,"المعايير المتدرجة تتطلب تصميمًا مكرّرًا (جزئي أو كامل)."],
+ [/--welch is for parallel analysis only/,"اختبار Welch للتصميم المتوازي فقط."],
+ [/all canonical sequences required/,"يجب وجود جميع التسلسلات القياسية للتصميم المختار؛ وُجد تسلسل ناقص أو غير معروف."],
+ [/replicate requires all/,"التصميم المكرّر يتطلب جميع تسلسلات TRR/RTR/RRT أو TRTR/RTRT."],
+ [/inconsistent sequence/,"تسلسل غير متسق لنفس المشارك."],
+ [/incomplete or duplicate records/,"سجلات ناقصة أو مكررة لمشارك."],
+ [/missing\/duplicate\/invalid period/,"فترة مفقودة أو مكررة أو غير صالحة."],
+ [/treatment conflicts with sequence\/period/,"المعالجة لا تطابق التسلسل والفترة."],
+ [/at least two complete subjects in every sequence/,"يلزم مشاركان مكتملان على الأقل في كل تسلسل."],
+ [/treatment must be T or R/,"يجب أن تكون المعالجة T أو R."],
+ [/expected a finite positive number/,"قيمة غير صالحة: يجب أن تكون رقمًا موجبًا محددًا."],
+ [/missing required column/,"عمود مطلوب مفقود."],
+ [/parallel: one observation per unique subject/,"المتوازي: سجل واحد لكل مشارك فريد."],
+ [/parallel: at least two subjects per arm/,"المتوازي: مشاركان على الأقل لكل ذراع."],
+ [/power requires an integer N/,"حساب القوة يتطلب N صحيحًا متوازنًا مع مشاركَين على الأقل لكل تسلسل."],
+ [/target power not reached/,"لم تُبلغ القوة المستهدفة حتى N = 5000."],
+ [/sample-size solver requires a GMR strictly inside/,"حساب حجم العينة يتطلب GMR داخل حدود القبول."],
+ [/--nti and custom --limits cannot be combined/,"لا يمكن دمج NTI مع حدود مخصصة."],
+ [/lower limit must be below upper limit/,"الحد الأدنى يجب أن يكون أقل من الأعلى."],
+ [/rank-deficient/,"النموذج ناقص الرتبة."],
+ [/Fixed-limit average BE criterion not met/,"لم يتحقق معيار ABE بالحدود الثابتة."],
+ [/EMA ABEL.*criterion not met/,"لم يتحقق معيار EMA ABEL."],
+ [/FDA HVD RSABE.*criterion not met/,"لم يتحقق معيار FDA RSABE."],
+ [/Research implementation, not regulatory certification/,"تنفيذ بحثي وليس اعتمادًا تنظيميًا. تصاميم قياسية كاملة فقط؛ راجع README للافتراضات والحالات غير المدعومة والمراجع."],
+ [/NTI flag changes fixed limits only/,"خيار NTI يغيّر الحدود الثابتة فقط، ولا ينفّذ منهجية FDA للأدوية ضيقة المؤشر العلاجي."],
+ [/Numerical integration of fixed-limit TOST power/,I18N.ar.p_note],
+];
+const METHODS={
+ar:`<div class="card"><div class="card-b"><h4>ABE — تحليل التباينات (افتراضي)</h4><p>لكل مشارك: متوسط log(T) − متوسط log(R). التقدير = متوسط متساوي الوزن لمتوسطات التسلسلات، والتباين المشترك للتباينات بدرجات حرية N − m.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>يطابق التحليل العادي لـ 2×2 الكامل.</p></div></div>
+<div class="card"><div class="card-b"><h4>ABE — نموذج EMA ثابت التأثيرات</h4><p>انحدار OLS: فرد + فترة + معالجة (التسلسل مستوعب في الفرد)، تباين متبقٍ مشترك. يُستخدم دائمًا لـ ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
+<div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax فقط، مع إقرار بالمبرر السريري.</li><li>التوسيع إذا CVwR &gt; 30%، بحد أقصى CV = 50%.</li><li>قيد التقدير النقطي 80.00–125.00%.</li><li>مقارنة بنسب مئوية مقربة لمنزلتين.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
+<div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>تقدير تباين المرجع من فروق R المرتبة داخل التسلسل، ثم حد أعلى 95% بطريقة Howe:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>يُرفض القرار إذا sWR &lt; 0.294 لأن المسار البديل غير منفّذ.</p></div></div>
+<div class="card"><div class="card-b"><h4>القوة وحجم العينة</h4><p>تكامل عددي على توزيع χ² لقوة TOST بحدود ثابتة. عوامل التباين: 2/N (2×2)، 1.5/N (جزئي)، 1/N (كامل)، 4/N (متوازي).</p></div></div>
+<div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>الدراسات غير المكتملة أو تسلسلات أخرى.</li><li>نماذج الأثر المتبقي (carryover).</li><li>منهجية FDA لـ NTI.</li><li>قوة ABEL/RSABE وقوة Welch.</li><li>تحقق تنظيمي مستقل مع SAS/R.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>تنسيق البيانات</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>القيم موجبة، لا حذف أو تعويض صامت. يُقبل Test/Ref/Reference للمعالجة.</p></div></div>
+<div class="card"><div class="card-b"><h4>رموز الخروج</h4><ul><li><b>0</b> — كل المعايير متحققة</li><li><b>1</b> — معيار غير متحقق</li><li><b>2</b> — مدخلات غير صالحة/غير مدعومة</li></ul><p>المراجع: مثال FDA 2011 للبروجستيرون، إرشادات EMA للتكافؤ الحيوي (4.1.8–4.1.10).</p></div></div>`,
+en:`<div class="card"><div class="card-b"><h4>ABE — subject contrasts (default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
+<div class="card"><div class="card-b"><h4>ABE — EMA fixed effects</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
+<div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax only, with acknowledged clinical justification.</li><li>Widening when CVwR &gt; 30%, capped at CV = 50%.</li><li>80.00–125.00% point-estimate constraint.</li><li>CI compared as percentages rounded to 2 decimals.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
+<div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>Reference variance from ordered R differences centred within sequence, then Howe's 95% upper bound:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>Rejected when sWR &lt; 0.294, because the unscaled fallback is not implemented.</p></div></div>
+<div class="card"><div class="card-b"><h4>Power & sample size</h4><p>Numerical integration over χ² for fixed-limit TOST power. Variance factors: 2/N (2×2), 1.5/N (partial), 1/N (full), 4/N (parallel).</p></div></div>
+<div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete studies or other sequence sets.</li><li>Carryover models.</li><li>FDA NTI methodology.</li><li>ABEL/RSABE power and Welch power.</li><li>Independent regulatory validation against SAS/R.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>Data format</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>Positive values only; no silent dropping or imputation. Test/Ref/Reference are accepted as treatment labels.</p></div></div>
+<div class="card"><div class="card-b"><h4>Exit codes</h4><ul><li><b>0</b> — all criteria met</li><li><b>1</b> — a criterion not met</li><li><b>2</b> — invalid / unsupported input</li></ul><p>References: FDA 2011 progesterone example; EMA BE guideline §4.1.8–4.1.10.</p></div></div>`};
+
+/* ================= state ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let lang=store.get('be_lang')||'ar';
+const S={design:'2x2',analysis:'contrast',scaling:'none',csv:null,fname:null,headers:[],last:null,
+         p:{design:'2x2',analysis:'contrast',mode:'n'},plast:null};
+let ready=false;
+const t=k=>(I18N[lang][k]??I18N.en[k]??k);
+function trMsg(m){ if(lang!=='ar')return null; for(const [re,ar] of MSG_AR) if(re.test(m)) return ar; return null;}
+
+function applyLang(){
+  document.documentElement.lang=lang; document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  $$('[data-i18n]').forEach(el=>{const k=el.dataset.i18n; if(I18N[lang][k]!=null) el.textContent=I18N[lang][k];});
+  $('#langLbl').textContent=lang==='ar'?'English':'العربية';
+  document.title=lang==='ar'?'مختبر التكافؤ الحيوي · BE Lab':'Bioequivalence Lab';
+  $('#methodsBody').innerHTML=METHODS[lang];
+  $('#designHint').textContent=t('h_'+S.design);
+  $('#cvHint').textContent=S.p.design==='parallel'?t('cv_par'):'';
+  setEngine(ready?'ok':'busy');
+  if(S.last) renderResult(S.last); if(S.plast) renderPower(S.plast);
+  if(S.csv) renderPreview();
+}
+$('#langBtn').onclick=()=>{lang=lang==='ar'?'en':'ar';store.set('be_lang',lang);applyLang();};
+/* theme */
+(function(){const th=store.get('be_theme'); if(th) document.documentElement.dataset.theme=th;})();
+$('#themeBtn').onclick=()=>{const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const nx=cur==='dark'?'light':'dark'; document.documentElement.dataset.theme=nx; store.set('be_theme',nx); if(S.last)renderResult(S.last); if(S.plast)renderPower(S.plast);};
+
+function setEngine(st){const d=$('#engDot'),x=$('#engTxt'); d.className='dot'+(st==='ok'?' ok':st==='err'?' err':' busy');
+  x.textContent=t(st==='ok'?'eng_ready':st==='err'?'eng_err':st==='run'?'eng_busy':'eng_loading');}
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800);}
+
+/* tabs */
+$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+b.dataset.tab));});
+
+/* segmented controls */
+function seg(id,cb){const root=$(id);root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+  root.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));cb(b.dataset.v);});}
+function setSeg(id,v){$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v));}
+seg('#designSeg',v=>{S.design=v;syncForm();});
+seg('#analysisSeg',v=>{S.analysis=v;});
+seg('#scalingSeg',v=>{S.scaling=v;syncForm();});
+seg('#pDesignSeg',v=>{S.p.design=v;$('#cvHint').textContent=v==='parallel'?t('cv_par'):'';syncPN();});
+seg('#pAnalysisSeg',v=>{S.p.analysis=v;});
+seg('#pModeSeg',v=>{S.p.mode=v;$('#pTargetF').style.display=v==='n'?'':'none';$('#pNF').style.display=v==='power'?'':'none';});
+function syncPN(){const m=S.p.design==='partial'?3:2;const n=$('#pN');n.step=m;n.min=2*m;}
+$('#limits').onchange=syncForm;
+
+function syncForm(){
+  const rep=['partial','full','replicate'].includes(S.design), par=S.design==='parallel';
+  $('#designHint').textContent=t('h_'+S.design);
+  $$('#scalingSeg button').forEach(b=>{if(b.dataset.v!=='none')b.disabled=!rep||$('#limits').value!=='std';});
+  if((!rep||$('#limits').value!=='std')&&S.scaling!=='none'){S.scaling='none';setSeg('#scalingSeg','none');}
+  $('#analysisField').style.opacity=par?.45:1; $$('#analysisSeg button').forEach(b=>b.disabled=par);
+  $('#welchRow').style.display=par?'':'none'; if(!par)$('#welch').checked=false;
+  $('#abelJustRow').style.display=(S.scaling==='abel'||S.scaling==='both')?'':'none';
+  $('#customLimits').style.display=$('#limits').value==='custom'?'':'none';
+}
+
+/* ================= data input ================= */
+const drop=$('#drop');
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',ev=>{const f=ev.dataTransfer.files[0]; if(f)readFile(f);});
+$('#file').onchange=e=>{const f=e.target.files[0]; if(f)readFile(f); e.target.value='';};
+function readFile(f){const r=new FileReader();r.onload=()=>{setData(String(r.result).replace(/^﻿/,''),f.name);toast(t('loaded'));};r.onerror=()=>toast(t('err_read'));r.readAsText(f);}
+$('#loadExample').onclick=()=>{setData(JSON.parse($('#example-csv').textContent),'example_partial.csv');
+  S.design='partial';setSeg('#designSeg','partial');$('#metric').value='cmax';S.scaling='both';syncForm();setSeg('#scalingSeg','both');syncForm();
+  $('#abelJust').checked=true;toast(t('ex_loaded'));};
+
+function splitLine(line,d){const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];
+  if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;} else if(c===d&&!q){out.push(cur);cur='';} else cur+=c;} out.push(cur);return out.map(s=>s.trim());}
+function parseCSV(text,name){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim()&&!l.trim().startsWith('#'));
+  if(!lines.length)return{headers:[],rows:[]};
+  let d=',';const ext=(name||'').toLowerCase();
+  if(ext.endsWith('.tsv')||ext.endsWith('.tab'))d='\t'; else if(!ext.endsWith('.csv')){const c={',':0,'\t':0,';':0};for(const k in c)c[k]=lines[0].split(k).length-1;d=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][1]?Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]:',';}
+  const headers=splitLine(lines[0],d).map(h=>h.toLowerCase());
+  const rows=lines.slice(1).map(l=>{const v=splitLine(l,d);const o={};headers.forEach((h,i)=>o[h]=v[i]??'');return o;});
+  return{headers,rows};
+}
+function setData(text,name){
+  S.csv=text;S.fname=name;const {headers}=parseCSV(text,name);S.headers=headers;
+  for(const [id,def] of [['#colSubject','subject'],['#colTreatment','treatment'],['#colValue','value']]){
+    const sel=$(id);sel.innerHTML=headers.map(h=>`<option ${h===def?'selected':''}>${esc(h)}</option>`).join('');
+    if(!headers.includes(def)){
+      const alias={subject:['subj','id','volunteer','patient'],treatment:['treat','trt','formulation','product','form'],value:['conc','cmax','auc','response','result','pk']}[def];
+      const guess=alias.map(a=>headers.find(h=>h.includes(a))).find(Boolean)||headers.find(h=>!['sequence','period'].includes(h))||headers[0];
+      sel.value=guess; document.querySelector('details.adv').open=true;
+    }
+  }
+  // auto-guess design from sequences
+  const {rows}=parseCSV(text,name);const seqs=[...new Set(rows.map(r=>(r.sequence||'').toUpperCase()).filter(Boolean))].sort().join(',');
+  const guess={'RT,TR':'2x2','RRT,RTR,TRR':'partial','RTRT,TRTR':'full'}[seqs]||(!headers.includes('sequence')&&rows.length&&new Set(rows.map(r=>r[$('#colSubject').value])).size===rows.length?'parallel':null);
+  if(guess){S.design=guess;setSeg('#designSeg',guess);syncForm();}
+  $('#fileChip').innerHTML=`<div class="file-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="name">${esc(name)}</span><button aria-label="remove" id="rmFile">×</button></div>`;
+  $('#rmFile').onclick=()=>{S.csv=null;S.fname=null;$('#fileChip').innerHTML='';$('#previewCard').style.display='none';updateRun();};
+  renderPreview();updateRun();
+}
+function renderPreview(){
+  const {headers,rows}=parseCSV(S.csv,S.fname);
+  const subj=$('#colSubject').value||'subject';
+  const nsub=new Set(rows.map(r=>r[subj])).size;
+  $('#previewMeta').textContent=`${rows.length} rows · ${nsub} subjects`;
+  const bySeq={};rows.forEach(r=>{const s=(r.sequence||'—').toUpperCase();(bySeq[s]=bySeq[s]||new Set()).add(r[subj]);});
+  $('#seqChips').innerHTML=Object.entries(bySeq).sort().map(([s,set])=>`<span class="seqchip">${esc(s)} · <b>n=${set.size}</b></span>`).join('');
+  $('#previewTbl').innerHTML=`<thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,60).map(r=>`<tr>${headers.map(h=>`<td>${esc(fmtCell(r[h]))}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  $('#previewCard').style.display='';
+}
+function fmtCell(v){const x=Number(v);return v!==''&&isFinite(x)&&String(v).includes('.')?x.toFixed(3):v;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function updateRun(){$('#runBtn').disabled=!(ready&&S.csv);$('#pRun').disabled=!ready;}
+
+/* ================= engine (Web Worker keeps the UI responsive) ================= */
+const PY_GLUE=`
+import sys, io, json, contextlib
+sys.path.insert(0,'/be')
+import bioequivalence as be
+from _common import main_wrapper
+def _cli(argv_json):
+    argv=json.loads(argv_json); out=io.StringIO(); err=io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        try: code=main_wrapper(be.run, argv)
+        except SystemExit as e: code=e.code if isinstance(e.code,int) else 2
+        except Exception as e:
+            print(f'error: {type(e).__name__}: {e}', file=sys.stderr); code=2
+    return json.dumps({'code':code,'stdout':out.getvalue(),'stderr':err.getvalue()})
+def _curve(design, analysis, cv, gmr, lo, hi, nmax, n_sol):
+    m=3 if design=='partial' else 2
+    step=m*max(1,-(-(nmax-2*m)//(m*30)))
+    ns=sorted(set(range(2*m, nmax+1, step))|{n_sol})
+    pts=[]
+    for n in ns:
+        try: pts.append([n, be.tost_power(n,cv,gmr,design,(lo,hi),analysis)])
+        except Exception: pass
+    return json.dumps(pts)
+`;
+const WORKER_SRC=`
+importScripts('https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js');
+let py;
+onmessage=async(e)=>{const {id,op,args}=e.data;
+  try{
+    if(op==='init'){
+      postMessage({id,progress:15}); py=await loadPyodide();
+      postMessage({id,progress:45,stage:'pkgs'}); await py.loadPackage(['numpy','scipy']);
+      postMessage({id,progress:85,stage:'mod'});
+      py.FS.mkdirTree('/be'); py.FS.writeFile('/be/_common.py',args.common); py.FS.writeFile('/be/bioequivalence.py',args.be);
+      py.runPython(args.glue); postMessage({id,result:true}); return;
+    }
+    if(op==='write'){py.FS.writeFile(args.path,args.text);postMessage({id,result:true});return;}
+    if(op==='cli'){postMessage({id,result:JSON.parse(py.globals.get('_cli')(JSON.stringify(args)))});return;}
+    if(op==='curve'){postMessage({id,result:JSON.parse(py.globals.get('_curve')(...args))});return;}
+  }catch(err){postMessage({id,error:String(err&&err.message||err)});}
+};`;
+let worker=null,reqId=0;const pending={};
+function call(op,args,onProgress){return new Promise((res,rej)=>{const id=++reqId;pending[id]={res,rej,onProgress};worker.postMessage({id,op,args});});}
+async function boot(){
+  const bar=$('#bootBar'),msg=$('#bootMsg');
+  try{
+    worker=new Worker(URL.createObjectURL(new Blob([WORKER_SRC],{type:'text/javascript'})));
+    worker.onmessage=e=>{const d=e.data,p=pending[d.id];if(!p)return;
+      if(d.progress!=null){p.onProgress&&p.onProgress(d);return;}
+      delete pending[d.id]; d.error!=null?p.rej(new Error(d.error)):p.res(d.result);};
+    worker.onerror=e=>{console.error(e);Object.values(pending).forEach(p=>p.rej(new Error(e.message||'worker error')));};
+    await call('init',{common:JSON.parse($('#py-common').textContent),be:JSON.parse($('#py-bioequivalence').textContent),glue:PY_GLUE},
+      d=>{bar.style.width=d.progress+'%'; if(d.stage==='pkgs')msg.textContent=t('boot_pkgs'); if(d.stage==='mod')msg.textContent=t('boot_mod');});
+    bar.style.width='100%';ready=true;setEngine('ok');updateRun();
+    setTimeout(()=>$('#boot').classList.add('hide'),250);
+  }catch(e){console.error(e);msg.textContent=t('boot_fail');setEngine('err');$('#bootBar').style.background='var(--fail)';}
+}
+const cli=argv=>call('cli',argv);
+
+/* ================= run analysis ================= */
+$('#runBtn').onclick=async()=>{
+  const btn=$('#runBtn');btn.classList.add('busy');btn.disabled=true;setEngine('run');
+  await new Promise(r=>setTimeout(r,30));
+  try{
+    const ext=/\.(tsv|tab)$/i.test(S.fname||'')?'.tsv':/\.csv$/i.test(S.fname||'')?'.csv':'.txt';
+    await call('write',{path:'/be/input'+ext,text:S.csv});
+    const argv=['-i','/be/input'+ext,'--design',S.design,'--format','json',
+      '--subject-column',$('#colSubject').value,'--treatment-column',$('#colTreatment').value,'--value-column',$('#colValue').value];
+    if(S.design!=='parallel')argv.push('--analysis',S.analysis);
+    if($('#metric').value)argv.push('--metric',$('#metric').value);
+    const lim=$('#limits').value;
+    if(lim==='nti')argv.push('--nti'); else if(lim==='custom')argv.push('--limits',`${$('#limLo').value},${$('#limHi').value}`);
+    if(S.scaling!=='none')argv.push('--scaling',S.scaling);
+    if($('#abelJust').checked&&(S.scaling==='abel'||S.scaling==='both'))argv.push('--abel-justified');
+    if($('#emaRound').checked)argv.push('--ema-rounding');
+    if($('#welch').checked)argv.push('--welch');
+    const r=await cli(argv); r.argv=argv; S.last=r; renderResult(r);
+  }catch(e){S.last={code:2,stdout:'',stderr:'error: '+e.message,argv:[]};renderResult(S.last);}
+  btn.classList.remove('busy');btn.disabled=false;setEngine('ok');
+  if(innerWidth<920)$('#resCard').scrollIntoView({behavior:'smooth'});
+};
+
+const P=x=>(100*x).toFixed(2);
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function msgLi(m,cls){const ar=trMsg(m);return `<li class="${cls}"><span>${ar?esc(ar)+`<span class="en">${esc(m)}</span>`:`<span class="en" style="color:inherit;font-size:13px">${esc(m)}</span>`}</span></li>`;}
+
+function renderResult(r){
+  $('#resEmpty').style.display='none';const body=$('#resBody');body.style.display='';
+  let j=null;try{j=r.stdout.trim()?JSON.parse(r.stdout):null;}catch(e){}
+  const errLines=(r.stderr||'').split('\n').filter(Boolean).map(l=>l.replace(/^error:\s*/,''));
+  const kind=r.code===0?'pass':r.code===1?'fail':'err';
+  const icon={pass:'<path d="M5 12l5 5L20 7"/>',fail:'<path d="M6 6l12 12M18 6 6 18"/>',err:'<path d="M12 8v5m0 4h.01"/>'}[kind];
+  let h=`<div class="verdict ${kind}"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">${icon}</svg></div>
+   <div><h4>${t('v_'+kind)}</h4><p>${t('v_'+kind+'_s')}</p></div><div class="code">${t('exit_code')}<br><b style="font-size:18px">${r.code}</b></div></div>`;
+  if(kind==='err'||!j){
+    h+=`<ul class="list">${errLines.map(m=>msgLi(m,'f')).join('')}</ul>`;
+    h+=toolbar(r);body.innerHTML=h;bindToolbar(r,null);return;
+  }
+  const s=j.scalars, lim=s.limits;
+  h+=`<div class="kpis">
+    <div class="kpi"><div class="l">${t('k_gmr')}</div><div class="v">${s.gmr_pct.toFixed(2)}%</div><div class="s">${esc(s.metric||'')}</div></div>
+    <div class="kpi"><div class="l">${t('k_ci')}</div><div class="v" style="font-size:18px">${s.ci90_low_pct.toFixed(2)} – ${s.ci90_high_pct.toFixed(2)}</div><div class="s">${t("lim")}: <span class="num">${P(lim[0])}–${P(lim[1])}%</span></div></div>
+    <div class="kpi"><div class="l">${t('k_n')}</div><div class="v">${s.n_subjects}</div><div class="s">${esc(s.design)}</div></div>
+    <div class="kpi"><div class="l">${t('k_df')}</div><div class="v">${Number(s.df).toFixed(Number.isInteger(s.df)?0:2)}</div><div class="s">SE ${Number(s.se).toFixed(4)}</div></div>
+  </div>`;
+  // chart rows
+  const rows=[{label:t('ci_abe'),lo:s.ci90_low_pct/100,hi:s.ci90_high_pct/100,pe:s.gmr_pct/100,L:lim[0],U:lim[1],ok:s.average_be_met}];
+  const tab=(j.tables||[]).find(x=>x.title==='scaled criteria');
+  const abel=tab&&tab.rows.find(x=>x.criterion.startsWith('EMA'));
+  const rs=tab&&tab.rows.find(x=>x.criterion.startsWith('FDA'));
+  if(abel)rows.push({label:t('ci_abel'),lo:abel.ci_low,hi:abel.ci_high,pe:abel.gmr,L:abel.low,U:abel.high,ok:abel.met,alt:true});
+  h+=`<div class="section-t">${t('ci_title')}</div>${ciChart(rows)}`;
+  h+=`<div class="hint" style="margin-top:2px">${t('method')}: <span class="en" style="display:inline">${esc(s.method)}</span> · CI rounding: ${esc(s.ci_rounding)}</div>`;
+  if(abel||rs){
+    h+=`<div class="section-t">${t('crit_t')}</div><div class="crit">`;
+    if(abel)h+=`<div class="card"><div class="card-b"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:14px">${t('abel_t')}</b>${badge(abel.met)}</div>
+      <dl class="kv"><dt>${t('r_cvwr')}</dt><dd>${P(abel.cvwr)}%</dd><dt>${t('r_swr')}</dt><dd>${abel.s2wr.toFixed(5)}</dd><dt>${t('r_dfwr')}</dt><dd>${abel.df_wr}</dd>
+      <dt>${t('r_widened')}</dt><dd>${abel.widened?t('yes'):t('no')}</dd><dt>${t('r_lims')}</dt><dd>${P(abel.low)} – ${P(abel.high)}%</dd>
+      <dt>${t('r_gmr')}</dt><dd>${P(abel.gmr)}%</dd><dt>${t('r_ci')}</dt><dd>${P(abel.ci_low)} – ${P(abel.ci_high)}%</dd><dt>df</dt><dd>${abel.df}</dd>
+      <dt>${t('r_pe')}</dt><dd>${abel.gmr>=.8&&abel.gmr<=1.25?'✓':'✗'}</dd></dl></div></div>`;
+    if(rs)h+=`<div class="card"><div class="card-b"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:14px">${t('rsabe_t')}</b>${badge(rs.met)}</div>
+      ${rsGauge(rs)}
+      <dl class="kv"><dt>${t('r_cvwr')}</dt><dd>${P(rs.cvwr)}%</dd><dt>${t('r_swr')}</dt><dd>${rs.s2wr.toFixed(5)}</dd><dt>${t('r_dfwr')}</dt><dd>${rs.df_wr}</dd>
+      <dt>${t('r_crit')}</dt><dd>${rs.criterion_point_estimate.toFixed(5)}</dd><dt>${t('r_ub')}</dt><dd>${rs.criterion_95_upper_bound.toFixed(5)}</dd>
+      <dt>${t('r_gmr')}</dt><dd>${P(Math.exp(rs.estimate))}%</dd><dt>${t('r_pe')}</dt><dd>${Math.exp(rs.estimate)>=.8&&Math.exp(rs.estimate)<=1.25?'✓':'✗'}</dd></dl></div></div>`;
+    h+=`</div>`;
+  }
+  if(j.findings.length)h+=`<div class="section-t">${t('findings')}</div><ul class="list">${j.findings.map(m=>msgLi(m,'f')).join('')}</ul>`;
+  if(j.notes.length)h+=`<div class="section-t">${t('notes')}</div><ul class="list">${j.notes.map(m=>msgLi(m,'n')).join('')}</ul>`;
+  h+=toolbar(r);body.innerHTML=h;bindToolbar(r,j);
+}
+const badge=ok=>`<span class="badge ${ok?'pass':'fail'}">${ok?'✓ '+t('met'):'✗ '+t('notmet')}</span>`;
+function toolbar(r){return `<div class="toolbar"><button class="btn btn-ghost btn-sm" id="tbRaw">${t('raw')}</button><button class="btn btn-ghost btn-sm" id="tbJson">${t('dl_json')}</button><button class="btn btn-ghost btn-sm" id="tbCsv">${t('dl_csv')}</button></div>
+ <pre class="json" id="rawBox" style="display:none"></pre>`;}
+function bindToolbar(r,j){
+  const raw=JSON.stringify({argv:['bioequivalence.py',...(r.argv||[])],exit_code:r.code,result:j,stderr:r.stderr||undefined},null,2);
+  $('#tbRaw').onclick=()=>{const b=$('#rawBox');b.textContent=raw;b.style.display=b.style.display==='none'?'':'none';};
+  $('#tbJson').onclick=()=>download('be_result.json',raw,'application/json');
+  $('#tbCsv').onclick=()=>{if(!j){download('be_error.txt',r.stderr,'text/plain');return;}
+    const lines=['key,value',...Object.entries(j.scalars).map(([k,v])=>`${k},"${Array.isArray(v)?v.join(' - '):v}"`)];
+    (j.tables||[]).forEach(tb=>{lines.push('',tb.title);lines.push(tb.columns.join(','));tb.rows.forEach(row=>lines.push(tb.columns.map(c=>row[c]??'').join(',')));});
+    j.findings.forEach(f=>lines.push('finding,"'+f+'"'));download('be_summary.csv',lines.join('\n'),'text/csv');};
+}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+
+/* CI forest-style chart on log scale */
+function ciChart(rows){
+  const W=720,rowH=58,top=26,H=top+rows.length*rowH+34,padL=70,padR=24;
+  let mn=Math.min(...rows.flatMap(r=>[r.lo,r.L]))*0.95,mx=Math.max(...rows.flatMap(r=>[r.hi,r.U]))*1.05;
+  mn=Math.min(mn,0.78);mx=Math.max(mx,1.28);
+  const x=v=>padL+(Math.log(v)-Math.log(mn))/(Math.log(mx)-Math.log(mn))*(W-padL-padR);
+  const ticks=[0.5,0.6,0.7,0.8,0.9,1,1.1,1.25,1.43,1.6,1.8,2].filter(v=>v>=mn&&v<=mx);
+  const pass=css('--pass'),fail=css('--fail'),ink=css('--ink'),line=css('--line'),zone=css('--chart-zone'),zone2=css('--chart-zone2');
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" direction="ltr">`;
+  ticks.forEach(v=>{g+=`<line x1="${x(v)}" x2="${x(v)}" y1="${top-8}" y2="${H-26}" stroke="${line}" stroke-dasharray="${v===1?'':'2 4'}"/><text x="${x(v)}" y="${H-10}" text-anchor="middle">${Math.round(v*100)}%</text>`;});
+  rows.forEach((r,i)=>{const cy=top+i*rowH+rowH/2,c=r.ok?pass:fail;
+    g+=`<rect x="${x(r.L)}" y="${cy-18}" width="${x(r.U)-x(r.L)}" height="36" rx="6" fill="${r.alt?zone2:zone}" opacity=".85"/>`;
+    g+=`<line x1="${x(r.L)}" x2="${x(r.L)}" y1="${cy-22}" y2="${cy+22}" stroke="${ink}" stroke-width="1.5"/><line x1="${x(r.U)}" x2="${x(r.U)}" y1="${cy-22}" y2="${cy+22}" stroke="${ink}" stroke-width="1.5"/>`;
+    g+=`<text x="${x(r.L)}" y="${cy-25}" text-anchor="middle" style="font-size:10px">${P(r.L)}</text><text x="${x(r.U)}" y="${cy-25}" text-anchor="middle" style="font-size:10px">${P(r.U)}</text>`;
+    g+=`<line x1="${x(r.lo)}" x2="${x(r.hi)}" y1="${cy}" y2="${cy}" stroke="${c}" stroke-width="4" stroke-linecap="round"/>`;
+    g+=`<line x1="${x(r.lo)}" x2="${x(r.lo)}" y1="${cy-8}" y2="${cy+8}" stroke="${c}" stroke-width="3"/><line x1="${x(r.hi)}" x2="${x(r.hi)}" y1="${cy-8}" y2="${cy+8}" stroke="${c}" stroke-width="3"/>`;
+    g+=`<rect x="${x(r.pe)-6}" y="${cy-6}" width="12" height="12" transform="rotate(45 ${x(r.pe)} ${cy})" fill="${css('--panel')}" stroke="${c}" stroke-width="2.5"/>`;
+    g+=`<text x="${x(r.pe)}" y="${cy+26}" text-anchor="middle" style="fill:${ink};font-size:11px">${P(r.lo)} · ${P(r.pe)} · ${P(r.hi)}</text>`;
+    g+=`<text x="10" y="${cy+4}" style="fill:${ink};font-weight:600;font-size:12px">${esc(r.label)}</text>`;
+  });
+  return g+`</svg>`;
+}
+function rsGauge(rs){
+  const W=320,H=54,ub=rs.criterion_95_upper_bound,pe=rs.criterion_point_estimate;
+  const ext=Math.max(Math.abs(ub),Math.abs(pe),0.05)*1.3;const x=v=>16+(v+ext)/(2*ext)*(W-32);
+  const c=ub<=0?css('--pass'):css('--fail');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" direction="ltr" style="margin-top:10px">
+   <rect x="16" y="14" width="${x(0)-16}" height="14" rx="4" fill="${css('--chart-zone')}"/>
+   <line x1="${x(0)}" x2="${x(0)}" y1="8" y2="34" stroke="${css('--ink')}" stroke-width="1.5"/><text x="${x(0)}" y="48" text-anchor="middle">0</text>
+   <line x1="${x(pe)}" x2="${x(ub)}" y1="21" y2="21" stroke="${c}" stroke-width="4" stroke-linecap="round"/>
+   <circle cx="${x(pe)}" cy="21" r="5" fill="${css('--panel')}" stroke="${c}" stroke-width="2.5"/>
+   <line x1="${x(ub)}" x2="${x(ub)}" y1="12" y2="30" stroke="${c}" stroke-width="3"/>
+   <text x="${x(ub)}" y="48" text-anchor="middle" style="fill:${c}">UB ${ub.toFixed(3)}</text></svg>
+   <div class="hint">${t('r_rule')}</div>`;
+}
+
+/* ================= power ================= */
+$('#pRun').onclick=async()=>{
+  const btn=$('#pRun');btn.classList.add('busy');btn.disabled=true;setEngine('run');await new Promise(r=>setTimeout(r,30));
+  const d=S.p.design,cv=Number($('#pCV').value)/100,gmr=Number($('#pGMR').value),nti=$('#pLimits').value==='nti';
+  const argv=['--power','--design',d,'--analysis',S.p.analysis,'--cv',String(cv),'--gmr',String(gmr),'--format','json'];
+  if(nti)argv.push('--nti');
+  if(S.p.mode==='n')argv.push('--target-power',String(Number($('#pTarget').value)/100)); else argv.push('--n',String(parseInt($('#pN').value)));
+  let r;try{r=await cli(argv);}catch(e){r={code:2,stdout:'',stderr:'error: '+e.message};}
+  r.argv=argv;r.cv=cv;r.gmr=gmr;r.lim=nti?[.9,1.1111]:[.8,1.25];r.target=S.p.mode==='n'?Number($('#pTarget').value)/100:null;
+  S.plast=r;renderPower(r);
+  if(r.code!==2){try{const j=JSON.parse(r.stdout);const n=j.scalars.n_total;const m=d==='partial'?3:2;
+      const nmax=Math.min(Math.max(Math.ceil(n*2/m)*m,12*m),600);
+      r.curve=await call('curve',[d,S.p.analysis,cv,gmr,r.lim[0],r.lim[1],nmax,n]);}catch(e){r.curve=[];}
+    if(S.plast===r)renderPower(r);}btn.classList.remove('busy');btn.disabled=false;setEngine('ok');
+};
+function renderPower(r){
+  const box=$('#pOut');
+  if(r.code===2){const m=(r.stderr||'').replace(/^error:\s*/,'').trim();
+    box.innerHTML=`<div class="verdict err"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 8v5m0 4h.01"/></svg></div><div><h4>${t('v_err')}</h4></div></div><ul class="list">${msgLi(m,'f')}</ul>`;return;}
+  const j=JSON.parse(r.stdout),s=j.scalars,m=s.design==='partial'?3:2;
+  let h=`<div class="power-top"><div><div class="big-l">${t('p_n')}</div><div class="big">${s.n_total}</div><div class="hint">${s.n_total/m} ${t('p_per')} × ${m}</div></div>
+    <div><div class="big-l">${t('p_pow')}</div><div class="big" style="font-size:40px;color:var(--ink)">${(s.power*100).toFixed(1)}%</div><div class="hint mono">CV ${(r.cv*100).toFixed(0)}% · GMR ${r.gmr} · ${P(r.lim[0])}–${P(r.lim[1])}%</div></div></div>`;
+  h+=`<div class="section-t">${t('p_curve')}</div>${r.curve?powerChart(r.curve,s.n_total,s.power,r.target):'<div class="hint" style="padding:40px;text-align:center"><span class="spin" style="display:inline-block;vertical-align:middle"></span> …</div>'}`;
+  h+=`<ul class="list" style="margin-top:12px">${j.notes.map(n=>msgLi(n,'n')).join('')}</ul>`;
+  h+=`<details style="margin-top:8px"><summary class="hint" style="cursor:pointer">CLI</summary><pre class="json">python bioequivalence.py ${esc(r.argv.join(' '))}</pre></details>`;
+  box.innerHTML=h;
+}
+function powerChart(pts,n,p,target){
+  if(!pts.length)return'';
+  const W=720,H=300,pl=46,pr=18,pt=14,pb=36;const nmax=pts[pts.length-1][0],nmin=pts[0][0];
+  const x=v=>pl+(v-nmin)/(nmax-nmin||1)*(W-pl-pr),y=v=>pt+(1-v)*(H-pt-pb);
+  const acc=css('--accent'),line=css('--line'),ink=css('--ink'),gold=css('--gold');
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" direction="ltr">`;
+  [0,.2,.4,.6,.8,1].forEach(v=>g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${line}" stroke-dasharray="${v?'2 4':''}"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end">${v*100}%</text>`);
+  const step=Math.max(1,Math.ceil(pts.length/10));pts.forEach((q,i)=>{if(i%step===0)g+=`<text x="${x(q[0])}" y="${H-14}" text-anchor="middle">${q[0]}</text>`;});
+  g+=`<text x="${W-pr}" y="${H-1}" text-anchor="end" style="font-size:10px">N</text>`;
+  const d=pts.map((q,i)=>`${i?'L':'M'}${x(q[0]).toFixed(1)},${y(q[1]).toFixed(1)}`).join('');
+  g+=`<path d="${d} L${x(nmax)},${y(0)} L${x(nmin)},${y(0)}Z" fill="${acc}" opacity=".10"/><path d="${d}" fill="none" stroke="${acc}" stroke-width="2.5"/>`;
+  if(target)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(target)}" y2="${y(target)}" stroke="${gold}" stroke-width="1.5" stroke-dasharray="6 4"/><text x="${W-pr}" y="${y(target)-6}" text-anchor="end" style="fill:${gold}">${t('p_target')} ${Math.round(target*100)}%</text>`;
+  if(n>=nmin&&n<=nmax)g+=`<line x1="${x(n)}" x2="${x(n)}" y1="${y(p)}" y2="${y(0)}" stroke="${ink}" stroke-dasharray="3 3"/><circle cx="${x(n)}" cy="${y(p)}" r="6" fill="${css('--panel')}" stroke="${acc}" stroke-width="3"/><text x="${x(n)+10}" y="${y(p)+18}" style="fill:${ink};font-weight:600">N=${n} · ${(p*100).toFixed(1)}%</text>`;
+  return g+`</svg>`;
+}
+
+/* init */
+$('#colSubject').onchange=()=>S.csv&&renderPreview();
+syncForm();syncPN();applyLang();boot();
+</script>
+</body>
+</html>

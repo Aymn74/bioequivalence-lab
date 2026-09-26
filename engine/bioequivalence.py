@@ -16,6 +16,8 @@ from _common import InputError, Report, read_table, require_columns, add_format_
 
 DESIGNS = {'2x2': ('TR', 'RT'), 'partial': ('TRR', 'RTR', 'RRT'), 'full': ('TRTR', 'RTRT')}
 THETA_FDA = (math.log(1.25)/0.25)**2
+THETA_FDA_NTI = (math.log(1/0.9)/0.10)**2   # FDA Statistical Approaches (2026), Appendix F
+NTI_SD_RATIO_LIMIT = 2.5
 SFDA_MIN_SUBJECTS = 18
 ICH_MIN_SUBJECTS = 12  # ICH M13A: crossover, or per arm in a parallel design
 
@@ -60,6 +62,19 @@ def validate(records, design):
         if r.get('treatment') not in ('T','R'): raise InputError('treatment must be T or R')
         if not math.isfinite(r['logvalue']): raise InputError('non-finite log value')
         groups[r['subject']].append(r)
+    if design == 'multi':
+        # Multiple comparator / multiple test study, one comparison at a time (ICH M13A 2.2.3.1):
+        # data of the other treatments are already removed; sequences and periods are the originals.
+        for sid,g in groups.items():
+            if len({r.get('sequence','') for r in g})!=1: raise InputError(f'{sid}: inconsistent sequence')
+            if len({nest(r) for r in g})!=1: raise InputError(f'{sid}: inconsistent stage')
+            try: periods=[int(str(r['period'])) for r in g]
+            except (ValueError,KeyError): raise InputError(f'{sid}: integer period required')
+            if len(set(periods))!=len(periods): raise InputError(f'{sid}: missing/duplicate/invalid period')
+            if not {'T','R'}<={r['treatment'] for r in g}: raise InputError(f'{sid}: both the test and the reference treatment are required for this comparison')
+            g.sort(key=lambda r:int(r['period']))
+        if len(groups)<3: raise InputError('at least three complete subjects required')
+        return design, groups
     if design == 'parallel':
         if any(len(g)!=1 for g in groups.values()): raise InputError('parallel: one observation per unique subject required')
         if any(sum(r['treatment']==tr for r in records)<2 for tr in ('T','R')): raise InputError('parallel: at least two subjects per arm')
@@ -74,7 +89,7 @@ def validate(records, design):
     for sid,g in groups.items():
         seq = g[0]['sequence']
         if any(r['sequence']!=seq for r in g): raise InputError(f'{sid}: inconsistent sequence')
-        if len({r.get('stage','') for r in g})!=1: raise InputError(f'{sid}: inconsistent stage')
+        if len({nest(r) for r in g})!=1: raise InputError(f'{sid}: inconsistent stage')
         if len(g)!=len(seq): raise InputError(f'{sid}: incomplete or duplicate records')
         try: periods = [int(str(r['period'])) for r in g]
         except (ValueError,KeyError): raise InputError(f'{sid}: integer period required')
@@ -100,9 +115,34 @@ def contrast_analysis(records, design='2x2'):
 # Compatibility name, with stricter validation and corrected m-squared denominator.
 crossover_2x2 = contrast_analysis
 
+def nest(r):
+    """Stage and/or group a record belongs to ('' when neither column exists)."""
+    return '|'.join(str(x).strip() for x in (r.get('stage',''),r.get('group','')) if str(x or '').strip())
+
 def period_key(r):
-    """Period effect key; in a two-stage study periods are nested within stage."""
-    return (str(r.get('stage','')), int(r['period']))
+    """Period effect key; periods are nested within stage (two-stage design) and/or
+    group (multi-group study, ICH M13A 2.2.3.5)."""
+    return (nest(r), int(r['period']))
+
+def nest_label(records):
+    has_s=any(r.get('stage') for r in records); has_g=any(r.get('group') for r in records)
+    return 'stage×group' if has_s and has_g else 'stage' if has_s else 'group' if has_g else ''
+
+def group_interaction(records):
+    """Supportive analysis (ICH M13A 2.2.3.5): test group x formulation in an extended
+    model; the primary model does not include this term."""
+    y=np.array([r['logvalue'] for r in records]); n=len(y); one=np.ones(n)
+    frm=np.array([float(r['treatment']=='T') for r in records])
+    subs=sorted({r['subject'] for r in records}); U=_dummies(subs,[r['subject'] for r in records])
+    keys=sorted({period_key(r) for r in records}); first={}
+    for s_,p_ in keys: first.setdefault(s_,p_)
+    P=[np.array([float(period_key(r)==k) for r in records]) for k in keys if k[1]!=first[k[0]]]
+    gv=[r.get('group','') for r in records]; G=_dummies(sorted(set(gv)),gv)
+    full,rk=_rss([one,*U,*P,frm],y); ext,rk_e=_rss([one,*U,*P,frm,*[g*frm for g in G]],y)
+    df1,df2=rk_e-rk,n-rk_e
+    if df1<=0 or df2<=0: return None
+    F=((full-ext)/df1)/(ext/df2)
+    return dict(term='group × formulation (supportive)',df=df1,df_residual=df2,f=float(F),p=float(f_dist.sf(F,df1,df2)))
 
 def fixed_fit(records, treatment=True):
     """OLS subject + period (+ treatment); sequence is absorbed by subject effects.
@@ -173,11 +213,11 @@ def anova_table(records, design):
         P=[np.array([float(period_key(r)==k) for r in records]) for k in keys if k[1]!=first[k[0]]]
         full,rk_full=_rss([one,*U,*P,frm],y)
         no_f,rk_nf=_rss([one,*U,*P],y); no_p,rk_np=_rss([one,*U,frm],y)
-        staged=len(first)>1
-        # Between-subject stratum, sequential: [stage], sequence, [sequence x stage], subject(...).
-        between=[('stage',lambda r:r.get('stage',''))] if staged else []
+        staged=len(first)>1; nl=nest_label(records) or 'stage'
+        # Between-subject stratum, sequential: [stage/group], sequence, [sequence x stage/group], subject(...).
+        between=[(nl,nest)] if staged else []
         between+=[('sequence',lambda r:r['sequence'])]
-        if staged: between+=[('sequence×stage',lambda r:(r['sequence'],r.get('stage','')))]
+        if staged: between+=[(f'sequence×{nl}',lambda r:(r['sequence'],nest(r)))]
         # Between-subject terms use subject-level contrasts only (within-subject
         # terms excluded): with stages, within-stage period dummies are not
         # orthogonal to the stage effect.
@@ -188,11 +228,11 @@ def anova_table(records, design):
             row(name,prev-cur,rk_cur-rk_prev,'subject')
             prev,rk_prev=cur,rk_cur
         subj_only,rk_u=_rss([one,*U],y)
-        subject_term='subject(sequence×stage)' if staged else 'subject(sequence)'
+        subject_term=f'subject(sequence×{nl})' if staged else 'subject(sequence)'
         row(subject_term,prev-subj_only,rk_u-rk_prev,'residual')
         for r in rows:
             if r['_err']=='subject': r['_err']=subject_term
-        row('period(stage)' if staged else 'period',no_p-full,rk_full-rk_np,'residual')
+        row(f'period({nl})' if staged else 'period',no_p-full,rk_full-rk_np,'residual')
         row('formulation',no_f-full,rk_full-rk_nf,'residual')
         row('residual',full,n-rk_full)
     ms={r['source']:r['ms'] for r in rows}; dfs={r['source']:r['df'] for r in rows}
@@ -224,9 +264,14 @@ def predose_screen(records, design):
     flagged=[r for r in records if r.get('predose') is not None and r['predose']>0.05*r['cmax_ref']]
     if not flagged: return records,[]
     info=[dict(subject=r['subject'],period=r['period'],predose=r['predose'],cmax=r['cmax_ref'],ratio_pct=100*r['predose']/r['cmax_ref']) for r in flagged]
-    if design not in ('2x2','parallel'):
+    if design not in ('2x2','parallel','multi'):
         raise InputError('pre-dose > 5% of Cmax in '+', '.join(f"{i['subject']} period {i['period']}" for i in info)+
                          ': the guideline excludes only that period, which leaves an incomplete replicate design; incomplete designs are not supported')
+    if design=='multi':
+        kept=[r for r in records if r not in flagged]
+        have=defaultdict(set)
+        for r in kept: have[r['subject']].add(r['treatment'])
+        return [r for r in kept if {'T','R'}<=have[r['subject']]],info
     drop={r['subject'] for r in flagged}
     return [r for r in records if r['subject'] not in drop],info
 
@@ -244,15 +289,47 @@ def reference_variability(records, method='contrast', design='replicate'):
     s2=sum(sum((np.asarray(v)-np.mean(v))**2) for v in ds.values())/(2*df)
     return ReferenceVariability(float(s2),df,len(groups))
 
-def rsabe_bound(estimate,se,df_point,rv):
+def rsabe_bound(estimate,se,df_point,rv,theta=THETA_FDA):
     if not all(math.isfinite(x) for x in (estimate,se,df_point,rv.s2wr,rv.df)) or se<0 or rv.s2wr<0 or min(df_point,rv.df)<=0:
         raise InputError('invalid RSABE inputs')
     x=estimate**2-se**2
     bx=(abs(estimate)+t.ppf(.95,df_point)*se)**2
-    y=-THETA_FDA*rv.s2wr
+    y=-theta*rv.s2wr
     by=y*rv.df/chi2.ppf(.95,rv.df)
     bound=float(x+y+math.hypot(bx-x,by-y))
     return {'criterion_point_estimate':x+y,'criterion_95_upper_bound':bound,'passes_scaled_criterion':bool(bound<=0)}
+
+def test_variability(records, design='full'):
+    """Within-subject variance of the test product from ordered T-T differences,
+    centred within sequence (full replicate only), as for the reference."""
+    design,groups=validate(records,design)
+    if design!='full': raise InputError('the FDA NTI method requires a full replicate design (TRTR/RTRT)')
+    ds=defaultdict(list)
+    for g in groups.values():
+        vals=[r['logvalue'] for r in g if r['treatment']=='T']
+        ds[g[0]['sequence']].append(vals[0]-vals[1])
+    df=len(groups)-len(ds)
+    s2=sum(sum((np.asarray(v)-np.mean(v))**2) for v in ds.values())/(2*df)
+    return ReferenceVariability(float(s2),df,len(groups))
+
+def fda_nti(records, design):
+    """FDA 'Statistical Approaches to Establishing Bioequivalence' (May 2026), Appendix F:
+    (a) 95% upper bound of (muT-muR)^2 - theta*s2WR <= 0 with theta=(ln(1/0.9)/0.10)^2,
+    (b) unscaled ABE 80.00-125.00% (rounded CI), (c) upper limit of the 90% CI of
+    sWT/sWR <= 2.5. Full replicate design; subject-contrast (two-stage) estimates."""
+    design,_=validate(records,design)
+    if design!='full': raise InputError('the FDA NTI method requires a full replicate design (TRTR/RTRT)')
+    c=contrast_analysis(records,design); rv=reference_variability(records,'contrast',design); tv=test_variability(records,design)
+    bound=rsabe_bound(c.estimate,c.se,c.df,rv,THETA_FDA_NTI)
+    ratio=math.sqrt(tv.s2wr/rv.s2wr)
+    lower=ratio/math.sqrt(f_dist.ppf(.95,tv.df,rv.df)); upper=ratio/math.sqrt(f_dist.ppf(.05,tv.df,rv.df))
+    abe=passes_ci(c,(.8,1.25),True)
+    met=bound['passes_scaled_criterion'] and abe and upper<=NTI_SD_RATIO_LIMIT
+    return dict(criterion='FDA NTI (reference-scaled, full replicate)',met=bool(met),estimate=c.estimate,se=c.se,df=c.df,
+                gmr=c.gmr,ci_low=c.ci_low,ci_high=c.ci_high,passes_unscaled_abe=bool(abe),
+                s2wr=rv.s2wr,s2wt=tv.s2wr,df_wr=rv.df,df_wt=tv.df,cvwr=rv.cvwr,
+                swt_swr=ratio,swt_swr_ci90_low=lower,swt_swr_ci90_high=upper,passes_variability_ratio=bool(upper<=NTI_SD_RATIO_LIMIT),
+                theta=THETA_FDA_NTI,**bound)
 
 def abel_limits(rv):
     if rv.cvwr<=.30: return .8,1.25,False
@@ -362,8 +439,11 @@ def load_records(args):
     plan=baseline_plan(args,rows); args.baseline_method=plan[0] if plan else None; args.baseline_rows=[]
     out=[]; nonpositive=[]
     for row in rows:
-        tr=row[args.treatment_column].upper()
-        tr={'TEST':'T','REF':'R','REFERENCE':'R'}.get(tr,tr)
+        tr=row[args.treatment_column].strip().upper()
+        if args.design=='multi':
+            if tr not in (args.test_label.upper(),args.reference_label.upper()): continue   # other treatment arms are excluded
+            tr='T' if tr==args.test_label.upper() else 'R'
+        else: tr={'TEST':'T','REF':'R','REFERENCE':'R'}.get(tr,tr)
         val=positive(row[args.value_column],'value')
         if plan:
             sub=plan[1](row); raw=val; val=raw-sub
@@ -371,6 +451,7 @@ def load_records(args):
             if val<=0: nonpositive.append(f"{row[args.subject_column].strip()} period {row.get('period','')}"); continue
         rec=dict(subject=row[args.subject_column].strip(),treatment=tr,value=val,logvalue=math.log(val),sequence=row.get('sequence','').upper(),period=row.get('period',''))
         if row.get('stage','')!='': rec['stage']=row['stage'].strip()
+        if row.get('group','')!='': rec['group']=row['group'].strip()
         if getattr(args,'predose_check',False) and row.get(args.predose_column,'')!='':
             try: pre=float(row[args.predose_column])
             except ValueError: raise InputError('pre-dose concentration must be a number')
@@ -378,6 +459,11 @@ def load_records(args):
             ref=val if args.cmax_column in ('',args.value_column) else positive(row.get(args.cmax_column),'cmax (pre-dose check)')
             rec['predose']=pre; rec['cmax_ref']=ref
         out.append(rec)
+    if args.design=='multi':
+        present={row[args.treatment_column].strip().upper() for row in rows}
+        for lab in (args.test_label,args.reference_label):
+            if lab.upper() not in present: raise InputError(f'treatment label "{lab}" not found; labels in the file: '+', '.join(sorted(present)))
+        if args.test_label.upper()==args.reference_label.upper(): raise InputError('test and reference labels must differ')
     if nonpositive:
         raise InputError('baseline correction gives zero or negative values for '+', '.join(nonpositive[:6])+(' …' if len(nonpositive)>6 else '')+
                          ': the dose did not raise exposure above baseline there; a log-scale analysis is impossible. Review the baseline method or consider a higher (supra-therapeutic) dose, as the guideline suggests')
@@ -385,7 +471,8 @@ def load_records(args):
 
 def build_parser():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('-i','--input'); p.add_argument('--design',choices=(*DESIGNS,'replicate','parallel'),default='2x2')
+    p.add_argument('-i','--input'); p.add_argument('--design',choices=(*DESIGNS,'replicate','parallel','multi'),default='2x2',help='multi: crossover with several tests/comparators (e.g. Williams); one comparison per run, see --test-label/--reference-label')
+    p.add_argument('--test-label',default='T'); p.add_argument('--reference-label',default='R')
     p.add_argument('--analysis',choices=('contrast','ema'),default=None,help='default: contrast; ema (fixed-effects ANOVA) under --profile sfda')
     p.add_argument('--profile',choices=('none','sfda'),default='none',help='sfda: GCC/SFDA BE guideline DS-G-010 V3.1 rules (see README)')
     p.add_argument('--ci-level',type=float,default=90.0,help='confidence level in percent, e.g. 94.12 for a pre-specified two-stage design')
@@ -397,7 +484,7 @@ def build_parser():
     p.add_argument('--baseline-auc-column',default=None,help='pre-dose (baseline) AUC over the same interval, for AUC metrics')
     p.add_argument('--auc-hours',type=float,help='AUC interval length in hours; baseline concentration x hours is subtracted from AUC')
     p.add_argument('--baseline-corrected',action='store_true',help='confirm values are already baseline-corrected, or that the protocol justifies no correction')
-    p.add_argument('--metric',default=''); p.add_argument('--scaling',choices=('none','abel','rsabe','both'),default='none')
+    p.add_argument('--metric',default=''); p.add_argument('--scaling',choices=('none','abel','rsabe','both','fda-nti'),default='none',help='fda-nti: FDA NTI method (full replicate)')
     p.add_argument('--limits',default='0.80,1.25'); p.add_argument('--nti',action='store_true',help='fixed 90.00-111.11%% limits only; NOT a full NTI methodology')
     p.add_argument('--ema-rounding',action='store_true',help='compare CI endpoints as percentages rounded to 2 decimals')
     p.add_argument('--abel-justified',action='store_true',help='acknowledge clinical justification and prospective protocol specification')
@@ -412,9 +499,11 @@ def apply_profile(a):
     if not 50<a.ci_level<100: raise InputError('--ci-level must be between 50 and 100')
     if a.profile!='sfda':
         # ICH M13A 2.2.3.3: in single-dose studies exclude a period with pre-dose > 5% of Cmax.
-        a.analysis=a.analysis or 'contrast'; a.predose_check=not (a.endogenous or a.multiple_dose); return
+        if a.design=='multi' and a.analysis=='contrast': raise InputError('multi-treatment designs are analysed with the fixed-effects model; --analysis contrast is not available')
+        a.analysis=a.analysis or ('ema' if a.design=='multi' else 'contrast'); a.predose_check=not (a.endogenous or a.multiple_dose); return
     if a.analysis=='contrast': raise InputError('SFDA profile: the guideline requires a fixed-effects ANOVA (sequence, subject within sequence, period, formulation); use --analysis ema or omit it')
     if a.scaling in ('rsabe','both'): raise InputError('SFDA profile: reference-scaled ABE (RSABE) is not an SFDA method; the guideline provides ABEL (widened limits for Cmax) only')
+    if a.scaling=='fda-nti': raise InputError('SFDA profile: the FDA NTI method is not an SFDA method; the guideline tightens the limits to 90.00-111.11% (use --nti)')
     if a.welch: raise InputError('SFDA profile: the guideline requires the ANOVA model; Welch is not provided for')
     a.analysis='ema'; a.ema_rounding=True; a.anova=True; a.predose_check=not (a.endogenous or a.multiple_dose)
 
@@ -441,8 +530,9 @@ def run(argv=None):
         return report.emit(a.format)
     if not a.input: raise InputError('provide --input or --power')
     records=load_records(a); design,_=validate(records,a.design)
-    if any(r.get('stage') for r in records) and a.analysis!='ema' and design!='parallel':
-        raise InputError('a stage column requires the fixed-effects model (--analysis ema or --profile sfda)')
+    if any(nest(r) for r in records) and a.analysis!='ema' and design!='parallel':
+        raise InputError('a stage or group column requires the fixed-effects model (--analysis ema or --profile sfda)')
+    if a.scaling=='fda-nti' and design!='full': raise InputError('the FDA NTI method requires a full replicate design (TRTR/RTRT)')
     excluded=[]
     if a.predose_check:
         records,excluded=predose_screen(records,design)
@@ -473,6 +563,13 @@ def run(argv=None):
         report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (ICH M13A 2.2.3.3; EMA and GCC/SFDA guidelines, carry-over).')
     if a.predose_check and any('predose' in r for r in records):
         report.note('Pre-dose rule applied as for single-dose studies. For steady-state (multiple-dose) studies use --multiple-dose, because pre-dose concentrations are expected there.')
+    if design=='multi':
+        report.note(f'Multiple-treatment study: comparison {a.test_label} (test) vs {a.reference_label} (reference); data of the other treatments excluded, original periods kept (ICH M13A 2.2.3.1; GCC 3.1.8). Run once per comparison.')
+    if any(r.get('group') for r in records):
+        gi=group_interaction(records)
+        if gi:
+            report.table('group interaction',[gi])
+            report.note('Multi-group study: groups modelled as in ICH M13A 2.2.3.5 (group, sequence×group, subject(sequence×group), period(group), formulation); group×formulation is tested only as a supportive analysis.')
     if a.anova:
         at=anova_table(records,design); report.table('anova',at)
         res=next(r for r in at if r['source']=='residual')
@@ -497,6 +594,9 @@ def run(argv=None):
         ema=ema_analysis(records,design,a.ci_level); rv=reference_variability(records,'ema',design); low,high,widened=abel_limits(rv)
         met=passes_ci(ema,(low,high),True) and .8<=ema.gmr<=1.25
         rows.append(dict(criterion='EMA ABEL (fixed-effects model)',met=bool(met),gmr=ema.gmr,ci_low=ema.ci_low,ci_high=ema.ci_high,df=ema.df,cvwr=rv.cvwr,s2wr=rv.s2wr,df_wr=rv.df,low=low,high=high,widened=widened))
+    if a.scaling=='fda-nti':
+        rows.append(fda_nti(records,design))
+        report.note('FDA NTI method (Statistical Approaches to Establishing BE, May 2026, Appendix F): all three conditions must hold — scaled bound ≤ 0, unscaled ABE 80.00-125.00%, and 90% upper limit of sWT/sWR ≤ 2.5. FDA expects both AUC and Cmax to be tested.')
     if a.scaling in ('rsabe','both'):
         contrast=contrast_analysis(records,design); rv=reference_variability(records,'contrast',design)
         if rv.swr<.294: raise InputError('sWR < 0.294: FDA unscaled heterogeneous mixed-model fallback is not implemented; no FDA decision produced')
@@ -508,6 +608,7 @@ def run(argv=None):
         for row in rows:
             if not row['met']:report.finding(row['criterion']+': criterion not met')
     elif not passed: report.finding('Fixed-limit average BE criterion not met')
+    if design=='multi' and a.scaling!='none': raise InputError('scaled criteria are not available for multi-treatment designs')
     report.note('Research implementation, not regulatory certification. Complete canonical designs only; see README for assumptions, unsupported cases and references.')
     return report.emit(a.format)
 

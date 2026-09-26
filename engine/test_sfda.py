@@ -171,7 +171,7 @@ class CiLevelAndStageTests(unittest.TestCase):
         self.assertIn('period(stage)', [r['source'] for r in table(p, 'anova')])
         self.assertEqual(p['scalars']['ci_level'], 94.12)
         code, _, err = run_cli(rows, '--design', '2x2', extra=('stage',))
-        self.assertEqual(code, 2); self.assertIn('stage column', err)
+        self.assertEqual(code, 2); self.assertIn('stage or group column', err)
 
     def test_stage_terms_in_anova(self):
         rows = fixture('2x2', [12, 12])

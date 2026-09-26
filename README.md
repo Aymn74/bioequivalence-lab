@@ -34,15 +34,15 @@ Reviewed against the full text of each document (September 2026). "—" = the do
 | **Potency / assay-content correction** | batches within 5%; exceptional pre-specified correction, report **both** uncorrected and corrected | exceptional, pre-specified | *not reviewed* | as EMA | not implemented |
 | **Endogenous substances** | pre-specified, period-specific baseline correction; negative concentrations set to 0; analyse **both** corrected and uncorrected, decide on corrected | baseline correction, subtractive method preferred | *not reviewed* | as EMA | `--endogenous`: subtraction of a baseline column, or explicit confirmation; parameter ≤ 0 → error |
 | **Highly variable drugs** | out of scope (→ M13C) | **ABEL**: Cmax only, CVwR > 30%, k = 0.760, max 69.84–143.19%, GMR 80–125, replicate, pre-specified | **RSABE**: CVwR ≥ 30% (sWR ≥ 0.294), θ = (ln 1.25 / 0.25)², GMR 80–125, partial or full replicate | as EMA (ABEL only) | ABEL and RSABE (ICH framework); ABEL only (SFDA) |
-| **Narrow therapeutic index** | out of scope (→ M13C) | 90.00–111.11% for AUC (and Cmax where important) | full replicate; RSABE with Δ = 1/0.9, σW0 = 0.10, **plus** ABE 80–125, **plus** σWT/σWR ≤ 2.5 | as EMA | fixed 90.00–111.11% only (EMA / GCC); FDA NTI method **not implemented** |
+| **Narrow therapeutic index** | out of scope (→ M13C) | 90.00–111.11% for AUC (and Cmax where important) | full replicate; RSABE with Δ = 1/0.9, σW0 = 0.10, **plus** ABE 80–125, **plus** σWT/σWR ≤ 2.5 | as EMA | fixed 90.00–111.11% (EMA / GCC, `--nti`); **FDA NTI method** `--scaling fda-nti` (full replicate; scaled bound, unscaled ABE and σWT/σWR ≤ 2.5; not under SFDA) |
 | **Two-stage / adaptive** | out of scope (→ M13C) | allowed; adjusted CI (e.g. 94.12%); stage term in ANOVA | adaptive designs allowed if fully pre-specified | as EMA | `--ci-level`; `stage` column adds stage terms |
-| **Multiple comparators / tests** | analyse each comparison without the other arms | *not reviewed* | *not reviewed* | same as M13A | **not supported** (non-canonical sequences) |
-| **Multi-group / multi-site** | model with group, sequence×group, subject(sequence×group), period(group); no group×treatment | *not reviewed* | *not reviewed* | — | not implemented (the two-stage `stage` term has the same structure) |
+| **Multiple comparators / tests** | analyse each comparison without the other arms | *not reviewed* | *not reviewed* | same as M13A | `--design multi` with `--test-label` / `--reference-label`: one comparison per run, other treatment removed, original periods, fixed-effects ANOVA (e.g. Williams T / R-GCC / R-US) |
+| **Multi-group / multi-site** | model with group, sequence×group, subject(sequence×group), period(group); no group×treatment | *not reviewed* | *not reviewed* | — | optional `group` column: group, sequence×group, subject(sequence×group), period(group), formulation; group×formulation reported as a supportive F-test |
 | **Missing data** | *not reviewed* | subjects without both T and R excluded | GLM (complete cases) or MIXED (all data), pre-specified | as EMA | complete, canonical data only |
 
 **Why they differ.** ICH M13A (2024) harmonises only the basics of average BE for immediate-release oral products and explicitly defers highly variable drugs, NTI drugs and adaptive designs to M13C; until then each region keeps its own method. The GCC guideline V3.1 (2022) predates M13A and reproduces the EMA guideline almost word for word, adding stricter regional requirements (minimum 18 subjects, subject selection criteria). The FDA follows a different statistical tradition: mixed-effects or two-stage models for replicate designs and reference scaling (RSABE) for both highly variable and NTI drugs. We found no evidence that the SFDA has adopted M13A.
 
-**Remaining gaps in this app:** the FDA NTI method (full replicate, reference scaling, σWT/σWR ≤ 2.5), multiple-comparator studies, multi-group models, potency correction and M13A's parallel analysis of baseline-uncorrected data for endogenous substances (possible manually with the confirmation option). The minimum-12 rule, the pre-dose rule and the test-product low-AUC flag of M13A were added to the ICH framework after this review.
+**Remaining gaps in this app:** potency (assay-content) correction, and M13A's parallel analysis of baseline-uncorrected data for endogenous substances (possible manually with the confirmation option). Added after this review: the minimum-12 rule, pre-dose rule and test-product low-AUC flag of M13A; the FDA NTI method; multiple-comparator studies; multi-group models.
 
 Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/download) · [EMA CPMP/EWP/QWP/1401/98 Rev.1](https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf) · [FDA Statistical Approaches to Establishing BE (May 2026)](https://www.fda.gov/media/163638/download) · [GCC DS-G-010 V3.1](https://www.sfda.gov.sa/sites/default/files/2022-08/GCC_Guidelines_Bioequivalence31_0.pdf)
 
@@ -56,7 +56,7 @@ Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/dow
 - **ضيقة المؤشر:** الأوروبي والخليجي يضيّقان الحدود إلى 90.00–111.11%؛ FDA يطلب تصميمًا مكرّرًا كاملًا مع معيار متدرج وحدود 80–125 ومقارنة تباين الاختبار بالمرجع (≤ 2.5).
 - **المواد داخلية المنشأ:** الجميع يشترط تصحيح خط الأساس؛ ICH M13A يطلب التحليل بالقيم المصححة وغير المصححة معًا.
 - **لماذا الاختلاف؟** ICH M13A وحّد الأساسيات فقط، والدليل الخليجي (2022) سبقه ونقل الدليل الأوروبي تقريبًا حرفيًا مع متطلبات أشد، وFDA له منهج إحصائي مختلف.
-- **ما أُضيف بعد المقارنة:** إطار ICH يطبّق الآن الحد الأدنى 12 مشاركًا وقاعدة ما قبل الجرعة 5%، ويعرض المساحة المنخفضة للمستحضرين. **ما بقي ناقصًا:** طريقة FDA للأدوية ضيقة المؤشر، ودراسات أكثر من مرجع، ونماذج تعدد المجموعات، وتصحيح المحتوى.
+- **ما أُضيف بعد المقارنة:** الحد الأدنى 12 مشاركًا وقاعدة ما قبل الجرعة في إطار ICH، وطريقة FDA للأدوية ضيقة المؤشر، ودراسات أكثر من مرجع (مثل Williams بمرجع خليجي وأمريكي)، ونماذج تعدد المجموعات. **ما بقي ناقصًا:** تصحيح المحتوى.
 
 </details>
 
@@ -85,10 +85,11 @@ All screenshots use simulated data from `engine/example_partial.csv`, `test_data
 
 ## Features
 
-- **Designs:** 2×2 (TR/RT), partial replicate (TRR/RTR/RRT), full replicate (TRTR/RTRT), auto-detected replicate, parallel.
+- **Designs:** 2×2 (TR/RT), partial replicate (TRR/RTR/RRT), full replicate (TRTR/RTRT), auto-detected replicate, parallel, and multi-treatment crossovers (e.g. Williams with two references), one comparison per run; optional `stage` (two-stage) and `group` (multi-group) columns.
 - **Models:** equal-sequence subject contrasts (default) or EMA fixed effects (subject + period + treatment); Welch for parallel.
 - **Limits:** 80.00–125.00%, NTI 90.00–111.11% (fixed limits only), or custom; optional half-up CI rounding.
 - **Highly variable drugs:** EMA ABEL (Cmax, capped at CV 50%, point-estimate constraint) and FDA RSABE (Howe bound, sWR ≥ 0.294).
+- **Narrow therapeutic index:** fixed 90.00–111.11% limits (EMA / GCC) or the FDA method (full replicate: reference-scaled bound with θ = (ln(1/0.9)/0.10)², unscaled ABE, and upper 90% limit of σWT/σWR ≤ 2.5).
 - **Power & sample size:** fixed-limit TOST power by numerical integration, with a power-vs-N curve.
 - **Output:** verdict with exit code (0 pass · 1 not met · 2 invalid/unsupported), CI chart, scaled-criteria cards, JSON / CSV download.
 - Arabic (RTL) and English UI, light and dark themes; engine messages are translated with the English original preserved.

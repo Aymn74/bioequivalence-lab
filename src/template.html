@@ -310,8 +310,13 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <button data-v="full" data-i18n="d_full">كامل 4P</button>
                 <button data-v="replicate" data-i18n="d_auto">مكرّر (تلقائي)</button>
                 <button data-v="parallel" data-i18n="d_parallel">متوازي</button>
+                <button data-v="multi" data-i18n="d_multi">متعدد المعالجات</button>
               </div>
               <div class="hint" id="designHint"></div>
+              <div class="row2" id="multiPanel" style="display:none;margin-top:10px">
+                <div class="field"><label data-i18n="f_test_lab">المستحضر الاختباري</label><select id="testLabel"></select></div>
+                <div class="field"><label data-i18n="f_ref_lab">المرجع</label><select id="refLabel"></select></div>
+              </div>
             </div>
             <div class="field" id="analysisField">
               <span class="lbl" data-i18n="f_analysis">نموذج ABE الأساسي</span>
@@ -365,6 +370,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <button data-v="abel">EMA ABEL</button>
                 <button data-v="rsabe">FDA RSABE</button>
                 <button data-v="both" data-i18n="sc_both">كلاهما</button>
+                <button data-v="fda-nti" data-i18n="sc_nti">FDA NTI</button>
               </div>
               <div class="hint" data-i18n="scaling_hint">يتطلب تصميمًا مكرّرًا وحدود 80–125%.</div>
             </div>
@@ -495,7 +501,9 @@ ar:{
  c_abel:"أُقرّ بوجود مبرر سريري ومواصفة مسبقة في البروتوكول لـ ABEL",c_abel_s:"البرنامج لا يستطيع التحقق من هذه الوثائق — مطلوب لـ ABEL (Cmax فقط).",
  c_round:"تقريب حدود فترة الثقة (منزلتان عشريتان، نصف لأعلى)",c_welch:"اختبار Welch لتباينات غير متساوية",c_welch_s:"للتصميم المتوازي فقط",
  adv_cols:"ربط الأعمدة",run:"تشغيل التحليل",preview:"معاينة البيانات",empty:"ارفع بيانات أو حمّل المثال، ثم اضغط «تشغيل التحليل».",
- h_2x2:"تسلسلان TR / RT، فترتان.",h_partial:"ثلاثة تسلسلات TRR / RTR / RRT — المرجع مكرّر.",h_full:"تسلسلان TRTR / RTRT — الاختبار والمرجع مكرّران.",h_replicate:"يستنتج التصميم الجزئي أو الكامل من التسلسلات الموجودة.",h_parallel:"مجموعتان مستقلتان، سجل واحد لكل مشارك.",
+ h_multi:"أكثر من مستحضر (مثل تصميم Williams بمرجع خليجي وآخر أمريكي): تُحلَّل كل مقارنة وحدها بعد استبعاد بيانات المعالجة الأخرى. اختر الاختبار والمرجع.",d_multi:"متعدد المعالجات",f_test_lab:"المستحضر الاختباري",f_ref_lab:"المرجع",sc_nti:"FDA NTI",
+ nti_t:"FDA — الأدوية ضيقة المؤشر (تصميم مكرّر كامل)",nti_scaled:"الشرط 1: الحد الأعلى للمعيار المتدرج ⁦≤ 0⁩",nti_abe:"الشرط 2: ABE غير متدرج ⁦80.00–125.00%⁩",nti_ratio:"الشرط 3: الحد الأعلى لفترة الثقة 90% لـ ⁦sWT/sWR ≤ 2.5⁩",nti_swt:"s²wT (الاختبار)",nti_rat:"sWT/sWR (فترة ثقة 90%)",
+ gi_t:"تحليل داعم: تفاعل المجموعة × المستحضر",h_2x2:"تسلسلان TR / RT، فترتان.",h_partial:"ثلاثة تسلسلات TRR / RTR / RRT — المرجع مكرّر.",h_full:"تسلسلان TRTR / RTRT — الاختبار والمرجع مكرّران.",h_replicate:"يستنتج التصميم الجزئي أو الكامل من التسلسلات الموجودة.",h_parallel:"مجموعتان مستقلتان، سجل واحد لكل مشارك.",
  v_pass:"تحقّق التكافؤ الحيوي",v_fail:"لم يتحقق معيار التكافؤ",v_err:"مدخلات غير صالحة أو حالة غير مدعومة",
  v_pass_s:"فترة الثقة 90% ضمن حدود القبول لجميع المعايير المطلوبة.",v_fail_s:"معيار واحد على الأقل من المعايير المطلوبة لم يتحقق — راجع التفاصيل أدناه.",v_err_s:"البرنامج يرفض الحالات غير المدعومة صراحة بدل إعطاء حكم مضلل.",
  k_gmr:"نسبة المتوسط الهندسي",k_ci:"فترة الثقة 90%",k_n:"عدد المشاركين",k_df:"درجات الحرية",k_se:"الخطأ المعياري (log)",
@@ -543,7 +551,9 @@ en:{
  c_abel:"I confirm clinical justification and prospective protocol specification for ABEL",c_abel_s:"The software cannot verify these documents — required for ABEL (Cmax only).",
  c_round:"Round CI endpoints (2 decimals, half-up)",c_welch:"Welch unequal-variance test",c_welch_s:"Parallel design only",
  adv_cols:"Column mapping",run:"Run analysis",preview:"Data preview",empty:"Upload data or load the example, then press “Run analysis”.",
- h_2x2:"Two sequences TR / RT, two periods.",h_partial:"Three sequences TRR / RTR / RRT — reference replicated.",h_full:"Two sequences TRTR / RTRT — test and reference replicated.",h_replicate:"Infers partial or full from the sequences present.",h_parallel:"Two independent arms, one record per subject.",
+ h_multi:"Several products (e.g. a Williams design with a GCC and a US reference): each comparison is analysed alone after removing the other treatment's data. Choose the test and the reference.",d_multi:"Multi-treatment",f_test_lab:"Test product",f_ref_lab:"Reference",sc_nti:"FDA NTI",
+ nti_t:"FDA — narrow therapeutic index (full replicate)",nti_scaled:"Condition 1: scaled-criterion upper bound ≤ 0",nti_abe:"Condition 2: unscaled ABE 80.00–125.00%",nti_ratio:"Condition 3: 90% upper limit of sWT/sWR ≤ 2.5",nti_swt:"s²wT (test)",nti_rat:"sWT/sWR (90% CI)",
+ gi_t:"Supportive analysis: group × formulation interaction",h_2x2:"Two sequences TR / RT, two periods.",h_partial:"Three sequences TRR / RTR / RRT — reference replicated.",h_full:"Two sequences TRTR / RTRT — test and reference replicated.",h_replicate:"Infers partial or full from the sequences present.",h_parallel:"Two independent arms, one record per subject.",
  v_pass:"Bioequivalence demonstrated",v_fail:"BE criterion not met",v_err:"Invalid input or unsupported case",
  v_pass_s:"The 90% CI lies within the acceptance limits for every requested criterion.",v_fail_s:"At least one requested criterion was not met — see details below.",v_err_s:"The engine rejects unsupported cases explicitly instead of producing a misleading decision.",
  k_gmr:"Geometric mean ratio",k_ci:"90% confidence interval",k_n:"Subjects",k_df:"Degrees of freedom",k_se:"SE (log scale)",
@@ -658,6 +668,19 @@ const MSG_AR=[
  [/ICH M13A: minimum 12 evaluable subjects/,"ICH M13A: الحد الأدنى 12 مشاركًا قابلًا للتقييم (لكل ذراع في المتوازي)، ويبدأ البحث عن حجم العينة منه. خطّط للانسحابات بشكل منفصل."],
  [/AUC < 5% of that product's geometric mean/,"مساحة أقل من 5% من المتوسط الهندسي للمستحضر نفسه: للعرض فقط. تسمح الأدلة بالاستبعاد في حالات استثنائية محددة مسبقًا في البروتوكول، والبرنامج لا يستبعدها."],
  [/For steady-state \(multiple-dose\) studies use --multiple-dose/,"طُبّقت قاعدة ما قبل الجرعة كما في الدراسات أحادية الجرعة. لدراسات الحالة المستقرة (متعددة الجرعات) فعّل خيار «دراسة متعددة الجرعات»."],
+ [/treatment label ".*" not found/,"رمز المعالجة المختار غير موجود في الملف؛ اختر الاختبار والمرجع من القائمة."],
+ [/test and reference labels must differ/,"يجب أن يختلف المستحضر الاختباري عن المرجع."],
+ [/both the test and the reference treatment are required for this comparison/,"يجب أن يتلقى كل مشارك المستحضر الاختباري والمرجع المختارين في هذه المقارنة."],
+ [/multi-treatment designs are analysed with the fixed-effects model/,"التصاميم متعددة المعالجات تُحلَّل بنموذج ANOVA بتأثيرات ثابتة فقط."],
+ [/scaled criteria are not available for multi-treatment designs/,"المعايير المتدرجة غير متاحة للتصاميم متعددة المعالجات."],
+ [/at least three complete subjects required/,"يلزم ثلاثة مشاركين مكتملين على الأقل."],
+ [/the FDA NTI method requires a full replicate design/,"طريقة FDA للأدوية ضيقة المؤشر تتطلب تصميمًا مكرّرًا كاملًا (TRTR / RTRT)."],
+ [/the FDA NTI method is not an SFDA method/,"إطار SFDA: طريقة FDA للأدوية ضيقة المؤشر ليست من طرق الهيئة؛ الدليل يضيّق الحدود إلى 90.00–111.11% (خيار NTI في حدود القبول)."],
+ [/a stage or group column requires the fixed-effects model/,"عمود المرحلة (stage) أو المجموعة (group) يتطلب نموذج ANOVA بتأثيرات ثابتة."],
+ [/Multiple-treatment study: comparison/,"دراسة متعددة المعالجات: حُلّلت المقارنة المختارة بعد استبعاد بيانات المعالجات الأخرى مع الإبقاء على الفترات الأصلية (ICH M13A 2.2.3.1؛ الدليل الخليجي 3.1.8). شغّل التحليل مرة لكل مقارنة."],
+ [/Multi-group study: groups modelled as in ICH M13A/,"دراسة متعددة المجموعات: نُمذجت المجموعات كما في ICH M13A 2.2.3.5 (المجموعة، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر)؛ تفاعل المجموعة × المستحضر يُختبر كتحليل داعم فقط."],
+ [/FDA NTI method \(Statistical Approaches/,"طريقة FDA للأدوية ضيقة المؤشر (الملحق F): يجب تحقق الشروط الثلاثة معًا — الحد الأعلى للمعيار المتدرج ≤ 0، وABE غير متدرج 80.00–125.00%، والحد الأعلى 90% لـ sWT/sWR ≤ 2.5. تطلب FDA اختبار AUC وCmax كليهما."],
+ [/FDA NTI \(reference-scaled, full replicate\): criterion not met/,"لم يتحقق معيار FDA للأدوية ضيقة المؤشر."],
  [/Research implementation, not regulatory certification/,"تنفيذ بحثي وليس اعتمادًا تنظيميًا. تصاميم قياسية كاملة فقط؛ راجع README للافتراضات والحالات غير المدعومة والمراجع."],
  [/NTI flag changes fixed limits only/,"خيار NTI يغيّر الحدود الثابتة فقط، ولا ينفّذ منهجية FDA للأدوية ضيقة المؤشر العلاجي."],
  [/Numerical integration of fixed-limit TOST power/,I18N.ar.p_note],
@@ -671,6 +694,8 @@ ar:`<div class="card"><div class="card-b"><h4>ABE — فروق الأفراد (�
 <div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>الدراسات غير المكتملة أو تسلسلات أخرى.</li><li>نماذج الأثر المتبقي (carryover).</li><li>منهجية FDA لـ NTI.</li><li>قوة ABEL/RSABE وقوة Welch.</li><li>تحقق تنظيمي مستقل مع SAS/R.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>تنسيق البيانات</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>القيم موجبة، لا حذف أو تعويض صامت. يُقبل Test/Ref/Reference للمعالجة.</p></div></div>
 <div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. خارج النطاق: استبعاد القيء، فحص تغطية AUC(0-t) لـ 80%، تصحيح المحتوى، f2 للذوبان، وتصاميم أكثر من مرجع.</p></div></div>
+<div class="card"><div class="card-b"><h4>FDA — الأدوية ضيقة المؤشر</h4><p>تصميم مكرّر كامل (TRTR/RTRT)، ويجب تحقق ثلاثة شروط معًا (الملحق F، 2026):</p><ul><li>معيار متدرج: (μT−μR)² − θ·s²wR ≤ 0، حيث θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>ABE غير متدرج ضمن 80.00–125.00%.</li><li>الحد الأعلى لفترة ثقة 90% لـ sWT/sWR ≤ 2.5.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>أكثر من مرجع ومتعدد المجموعات</h4><ul><li><b>متعدد المعالجات:</b> تُحلّل كل مقارنة وحدها بعد حذف المعالجة الثالثة، بالفترات الأصلية وبنموذج ANOVA.</li><li><b>متعدد المجموعات:</b> عمود <span class="mono">group</span> اختياري؛ النموذج كما في ICH M13A: المجموعة، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر. تفاعل المجموعة×المستحضر تحليل داعم فقط.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>رموز الخروج</h4><ul><li><b>0</b> — كل المعايير متحققة</li><li><b>1</b> — معيار غير متحقق</li><li><b>2</b> — مدخلات غير صالحة/غير مدعومة</li></ul><p>المراجع: مثال FDA 2011 للبروجستيرون، إرشادات EMA للتكافؤ الحيوي (4.1.8–4.1.10).</p></div></div>`,
 en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences (FDA approach, default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
 <div class="card"><div class="card-b"><h4>ABE — fixed-effects ANOVA (EMA / GCC)</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
@@ -680,6 +705,8 @@ en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences
 <div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete studies or other sequence sets.</li><li>Carryover models.</li><li>FDA NTI methodology.</li><li>ABEL/RSABE power and Welch power.</li><li>Independent regulatory validation against SAS/R.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>Data format</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>Positive values only; no silent dropping or imputation. Test/Ref/Reference are accepted as treatment labels.</p></div></div>
 <div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Endogenous substances: baseline subtraction (concentration for Cmax; baseline AUC or concentration × hours for AUC), or an explicit confirmation that values are already corrected.</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Out of scope: emesis exclusion, 80% AUC(0-t) coverage check, content correction, dissolution f2, and multiple-reference designs.</p></div></div>
+<div class="card"><div class="card-b"><h4>FDA — narrow therapeutic index</h4><p>Full replicate design (TRTR/RTRT); all three conditions must hold (Appendix F, 2026):</p><ul><li>Scaled criterion: (μT−μR)² − θ·s²wR ≤ 0, θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>Unscaled ABE within 80.00–125.00%.</li><li>Upper 90% confidence limit of sWT/sWR ≤ 2.5.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>Multiple comparators & multi-group</h4><ul><li><b>Multi-treatment:</b> each comparison is analysed alone after removing the third treatment, with the original periods and the ANOVA model.</li><li><b>Multi-group:</b> optional <span class="mono">group</span> column; model per ICH M13A: group, sequence×group, subject(sequence×group), period(group), formulation. Group×formulation is a supportive analysis only.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>Exit codes</h4><ul><li><b>0</b> — all criteria met</li><li><b>1</b> — a criterion not met</li><li><b>2</b> — invalid / unsupported input</li></ul><p>References: FDA 2011 progesterone example; EMA BE guideline §4.1.8–4.1.10.</p></div></div>`};
 
 /* ================= state ================= */
@@ -724,7 +751,7 @@ function seg(id,cb){const root=$(id);root.addEventListener('click',e=>{const b=e
 function setSeg(id,v){$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v));}
 seg('#designSeg',v=>{S.design=v;syncForm();});
 seg('#analysisSeg',v=>{S.analysis=v;});
-seg('#profileSeg',v=>{S.profile=v;syncForm();});
+seg('#profileSeg',v=>{if(v==='sfda'&&S.profile!=='sfda')S._roundBefore=$('#emaRound').checked;if(v!=='sfda'&&S.profile==='sfda')$('#emaRound').checked=!!S._roundBefore;S.profile=v;syncForm();});
 function syncEndo(){const on=$('#endogenous').checked;$('#endoPanel').style.display=on?'':'none';
   $('#aucHoursF').style.display=/auc/.test($('#metric').value)?'':'none';
   const c=$('#baseConfirmed').checked;$('#colBaseline').disabled=c;$('#colBaselineAuc').disabled=c;$('#aucHours').disabled=c;}
@@ -744,11 +771,14 @@ function syncForm(){
   if(sf&&(S.scaling==='rsabe'||S.scaling==='both')){S.scaling=S.scaling==='both'?'abel':'none';setSeg('#scalingSeg',S.scaling);}
   if(sf){$('#emaRound').checked=true;$('#welch').checked=false;}
   $('#emaRound').disabled=sf;
-  const rep=['partial','full','replicate'].includes(S.design), par=S.design==='parallel';
+  const rep=['partial','full','replicate'].includes(S.design), par=S.design==='parallel', multi=S.design==='multi';
+  $('#multiPanel').style.display=multi?'':'none';
+  if(multi&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
   $('#designHint').textContent=t('h_'+S.design);
-  $$('#scalingSeg button').forEach(b=>{if(b.dataset.v!=='none')b.disabled=!rep||$('#limits').value!=='std';});
+  $$('#scalingSeg button').forEach(b=>{if(b.dataset.v!=='none')b.disabled=!rep||$('#limits').value!=='std'||(b.dataset.v==='fda-nti'&&(S.design==='partial'||sf));});
   if((!rep||$('#limits').value!=='std')&&S.scaling!=='none'){S.scaling='none';setSeg('#scalingSeg','none');}
-  $('#analysisField').style.opacity=par?.45:1; $$('#analysisSeg button').forEach(b=>b.disabled=par);
+  if(S.scaling==='fda-nti'&&(S.design==='partial'||sf)){S.scaling='none';setSeg('#scalingSeg','none');}
+  $('#analysisField').style.opacity=par?.45:1; $$('#analysisSeg button').forEach(b=>b.disabled=par||(multi&&b.dataset.v==='contrast'));
   $('#welchRow').style.display=par?'':'none'; if(!par)$('#welch').checked=false;
   $('#abelJustRow').style.display=(S.scaling==='abel'||S.scaling==='both')?'':'none';
   $('#customLimits').style.display=$('#limits').value==='custom'?'':'none';
@@ -792,10 +822,16 @@ function setData(text,name){
     const sel=$(id);sel.innerHTML='<option value="">—</option>'+headers.map(h=>`<option ${h===def?'selected':''}>${esc(h)}</option>`).join('');
     if(!headers.includes(def))sel.value='';
   }
+  { const trCol=$('#colTreatment').value; const labs=[...new Set(parseCSV(text,name).rows.map(r=>String(r[trCol]||'').trim().toUpperCase()).filter(Boolean))].sort();
+    const std=labs.every(l=>['T','R','TEST','REF','REFERENCE'].includes(l));
+    $('#testLabel').innerHTML=labs.map(l=>`<option>${esc(l)}</option>`).join('');$('#refLabel').innerHTML=$('#testLabel').innerHTML;
+    $('#testLabel').value=labs.find(l=>/^T/.test(l))||labs[0]||''; $('#refLabel').value=labs.find(l=>l!==$('#testLabel').value&&/^R/.test(l))||labs.find(l=>l!==$('#testLabel').value)||'';
+    S._multiDetected=!std&&labs.length>2; }
   // auto-guess design from sequences
   const {rows}=parseCSV(text,name);const seqs=[...new Set(rows.map(r=>(r.sequence||'').toUpperCase()).filter(Boolean))].sort().join(',');
   const guess={'RT,TR':'2x2','RRT,RTR,TRR':'partial','RTRT,TRTR':'full'}[seqs]||(!headers.includes('sequence')&&rows.length&&new Set(rows.map(r=>r[$('#colSubject').value])).size===rows.length?'parallel':null);
-  if(guess){S.design=guess;setSeg('#designSeg',guess);syncForm();}
+  if(S._multiDetected){S.design='multi';setSeg('#designSeg','multi');syncForm();}
+  else if(guess){S.design=guess;setSeg('#designSeg',guess);syncForm();}
   $('#fileChip').innerHTML=`<div class="file-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="name">${esc(name)}</span><button aria-label="remove" id="rmFile">×</button></div>`;
   $('#rmFile').onclick=()=>{S.csv=null;S.fname=null;$('#fileChip').innerHTML='';$('#previewCard').style.display='none';updateRun();};
   renderPreview();updateRun();
@@ -893,6 +929,7 @@ $('#runBtn').onclick=async()=>{
     if($('#emaRound').checked)argv.push('--ema-rounding');
     if($('#welch').checked)argv.push('--welch');
     if(S.profile==='sfda')argv.push('--profile','sfda');
+    else if(S.design!=='parallel'&&S.analysis==='ema')argv.push('--anova');
     if($('#endogenous').checked){argv.push('--endogenous');
       if($('#baseConfirmed').checked)argv.push('--baseline-corrected');
       else{argv.push('--baseline-column',$('#colBaseline').value||'__none__','--baseline-auc-column',$('#colBaselineAuc').value||'__none__');
@@ -900,6 +937,7 @@ $('#runBtn').onclick=async()=>{
     if($('#ciLevel').value!=='90')argv.push('--ci-level',$('#ciLevel').value);
     if($('#colPredose').value)argv.push('--predose-column',$('#colPredose').value);
     if($('#multiDose').checked)argv.push('--multiple-dose');
+    if(S.design==='multi')argv.push('--test-label',$('#testLabel').value,'--reference-label',$('#refLabel').value);
     if($('#colCmax').value&&$('#metric').value!=='cmax')argv.push('--cmax-column',$('#colCmax').value);
     const r=await cli(argv); r.argv=argv; S.last=r; renderResult(r);
   }catch(e){S.last={code:2,stdout:'',stderr:'error: '+e.message,argv:[]};renderResult(S.last);}
@@ -934,11 +972,12 @@ function renderResult(r){
   const rows=[{label:t('ci_abe'),lo:s.ci90_low_pct/100,hi:s.ci90_high_pct/100,pe:s.gmr_pct/100,L:lim[0],U:lim[1],ok:s.average_be_met}];
   const tab=(j.tables||[]).find(x=>x.title==='scaled criteria');
   const abel=tab&&tab.rows.find(x=>x.criterion.startsWith('EMA'));
-  const rs=tab&&tab.rows.find(x=>x.criterion.startsWith('FDA'));
+  const rs=tab&&tab.rows.find(x=>x.criterion.startsWith('FDA HVD'));
+  const nti=tab&&tab.rows.find(x=>x.criterion.startsWith('FDA NTI'));
   if(abel)rows.push({label:t('ci_abel'),lo:abel.ci_low,hi:abel.ci_high,pe:abel.gmr,L:abel.low,U:abel.high,ok:abel.met,alt:true});
   h+=`<div class="section-t">${t('ci_title')}</div>${ciChart(rows)}`;
   h+=`<div class="hint" style="margin-top:2px">${t('method')}: <span class="en" style="display:inline">${esc(s.method)}</span> · CI rounding: ${esc(s.ci_rounding)}</div>`;
-  if(abel||rs){
+  if(abel||rs||nti){
     h+=`<div class="section-t">${t('crit_t')}</div><div class="crit">`;
     if(abel)h+=`<div class="card"><div class="card-b"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:14px">${t('abel_t')}</b>${badge(abel.met)}</div>
       <dl class="kv"><dt>${t('r_cvwr')}</dt><dd>${P(abel.cvwr)}%</dd><dt>${t('r_swr')}</dt><dd>${abel.s2wr.toFixed(5)}</dd><dt>${t('r_dfwr')}</dt><dd>${abel.df_wr}</dd>
@@ -950,12 +989,23 @@ function renderResult(r){
       <dl class="kv"><dt>${t('r_cvwr')}</dt><dd>${P(rs.cvwr)}%</dd><dt>${t('r_swr')}</dt><dd>${rs.s2wr.toFixed(5)}</dd><dt>${t('r_dfwr')}</dt><dd>${rs.df_wr}</dd>
       <dt>${t('r_crit')}</dt><dd>${rs.criterion_point_estimate.toFixed(5)}</dd><dt>${t('r_ub')}</dt><dd>${rs.criterion_95_upper_bound.toFixed(5)}</dd>
       <dt>${t('r_gmr')}</dt><dd>${P(Math.exp(rs.estimate))}%</dd><dt>${t('r_pe')}</dt><dd>${Math.exp(rs.estimate)>=.8&&Math.exp(rs.estimate)<=1.25?'✓':'✗'}</dd></dl></div></div>`;
+    const ck=ok=>ok?'✓':'✗';
+    if(nti)h+=`<div class="card"><div class="card-b"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:14px">${t('nti_t')}</b>${badge(nti.met)}</div>
+      ${rsGauge(nti)}
+      <dl class="kv"><dt>${t('nti_scaled')}</dt><dd>${ck(nti.passes_scaled_criterion)} <span class="num">${nti.criterion_95_upper_bound.toFixed(5)}</span></dd>
+      <dt>${t('nti_abe')}</dt><dd>${ck(nti.passes_unscaled_abe)} <span class="num">${P(nti.ci_low)} – ${P(nti.ci_high)}%</span></dd>
+      <dt>${t('nti_ratio')}</dt><dd>${ck(nti.passes_variability_ratio)} <span class="num">${nti.swt_swr_ci90_high.toFixed(3)}</span></dd>
+      <dt>${t('nti_rat')}</dt><dd>${nti.swt_swr.toFixed(3)} (${nti.swt_swr_ci90_low.toFixed(3)} – ${nti.swt_swr_ci90_high.toFixed(3)})</dd>
+      <dt>${t('r_swr')}</dt><dd>${nti.s2wr.toFixed(5)}</dd><dt>${t('nti_swt')}</dt><dd>${nti.s2wt.toFixed(5)}</dd>
+      <dt>${t('r_gmr')}</dt><dd>${P(nti.gmr)}%</dd><dt>θ</dt><dd>${nti.theta.toFixed(4)}</dd></dl></div></div>`;
     h+=`</div>`;
   }
   const ex=(j.tables||[]).find(x=>x.title==='pre-dose exclusions');
   if(ex)h+=`<div class="section-t">${t('excl_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>pre-dose</th><th>Cmax</th><th>%</th></tr></thead><tbody>${ex.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.predose)}</td><td>${fmtN(x.cmax)}</td><td>${x.ratio_pct.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const bc=(j.tables||[]).find(x=>x.title==='baseline correction');
   if(bc){const mn=Math.min(...bc.rows.map(x=>x.pct_remaining));h+=`<div class="section-t">${t('base_t')}</div><div class="hint" style="margin-bottom:6px">${esc(s.baseline_correction||'')} · ${t('base_min')}: <span class="num">${mn.toFixed(1)}%</span></div><details><summary class="hint" style="cursor:pointer">${t('base_rows')} (${bc.rows.length})</summary><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>before</th><th>baseline</th><th>after</th><th>%</th></tr></thead><tbody>${bc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.uncorrected)}</td><td>${fmtN(x.subtracted)}</td><td>${fmtN(x.corrected)}</td><td>${x.pct_remaining.toFixed(1)}</td></tr>`).join('')}</tbody></table></div></details>`;}
+  const gi=(j.tables||[]).find(x=>x.title==='group interaction');
+  if(gi){const g=gi.rows[0];h+=`<div class="section-t">${t('gi_t')}</div><div class="hint" style="margin-bottom:8px"><span class="num">F(${g.df}, ${g.df_residual}) = ${g.f.toFixed(3)} · p = ${fmtP(g.p)}</span></div>`;}
   const la=(j.tables||[]).find(x=>x.title==='low AUC');
   if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>AUC</th><th>GM</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.auc)}</td><td>${fmtN(x.product_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const an=(j.tables||[]).find(x=>x.title==='anova');
@@ -1002,7 +1052,7 @@ function ciChart(rows){
 }
 function rsGauge(rs){
   const W=320,H=54,ub=rs.criterion_95_upper_bound,pe=rs.criterion_point_estimate;
-  const ext=Math.max(Math.abs(ub),Math.abs(pe),0.05)*1.3;const x=v=>16+(v+ext)/(2*ext)*(W-32);
+  const ext=Math.max(Math.abs(ub),Math.abs(pe),1e-4)*1.3;const x=v=>16+(v+ext)/(2*ext)*(W-32);
   const c=ub<=0?css('--pass'):css('--fail');
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" direction="ltr" style="margin-top:10px">
    <rect x="16" y="14" width="${x(0)-16}" height="14" rx="4" fill="${css('--chart-zone')}"/>
@@ -1010,7 +1060,7 @@ function rsGauge(rs){
    <line x1="${x(pe)}" x2="${x(ub)}" y1="21" y2="21" stroke="${c}" stroke-width="4" stroke-linecap="round"/>
    <circle cx="${x(pe)}" cy="21" r="5" fill="${css('--panel')}" stroke="${c}" stroke-width="2.5"/>
    <line x1="${x(ub)}" x2="${x(ub)}" y1="12" y2="30" stroke="${c}" stroke-width="3"/>
-   <text x="${x(ub)}" y="48" text-anchor="middle" style="fill:${c}">UB ${ub.toFixed(3)}</text></svg>
+   <text x="${ub<=0?Math.min(x(ub),x(0)-10):Math.max(x(ub),x(0)+10)}" y="48" text-anchor="${ub<=0?'end':'start'}" style="fill:${c}">UB ${ub.toPrecision(3)}</text></svg>
    <div class="hint">${t('r_rule')}</div>`;
 }
 

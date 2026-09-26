@@ -10,8 +10,8 @@
 ![Privacy](https://img.shields.io/badge/data-stays%20in%20browser-177245?style=flat-square)
 ![Status](https://img.shields.io/badge/status-research%20use%20only-orange?style=flat-square)
 
-A bilingual (Arabic / English) web interface for average bioequivalence analysis — ABE, EMA ABEL, FDA RSABE, and power / sample size.
-The page runs the Python engine (`engine/bioequivalence.py`) **in the browser** via [Pyodide](https://pyodide.org). No data leaves the user's device.
+A bilingual (Arabic / English) web interface for bioequivalence studies — non-compartmental analysis (NCA) of concentration-time data, average BE (ABE, EMA ABEL, FDA RSABE), and power / sample size.
+The page runs the Python engines (`engine/nca.py`, `engine/bioequivalence.py`) **in the browser** via [Pyodide](https://pyodide.org). No data leaves the user's device.
 
 > ⚠️ **Research implementation, not regulatory certification.** Complete canonical designs only. It does not replace a statistical analysis plan or product-specific guidance. See [`engine/README.md`](engine/README.md) for model assumptions, unsupported cases and references.
 
@@ -85,6 +85,7 @@ All screenshots use simulated data from `engine/example_partial.csv`, `test_data
 
 ## Features
 
+- **NCA (tab 01):** Cmax, tmax, AUC(0-t), AUC(0-∞), kel, t½, AUC(0-72h), partial AUCs, and steady-state AUC(0-τ), Cmax,ss, Cmin,ss, Cτ,ss, Cav,ss, fluctuation, swing; ICH M13A BLQ and 80/20 coverage rules, missed-sample deviations, pre-dose > 5% flag, baseline correction, GCC emesis rule and Annex 1 table; one click sends the parameters to the BE analysis. Details and sources: [`engine/README.md`](engine/README.md#nca-module-ncapy).
 - **Designs:** 2×2 (TR/RT), partial replicate (TRR/RTR/RRT), full replicate (TRTR/RTRT), auto-detected replicate, parallel, and multi-treatment crossovers (e.g. Williams with two references), one comparison per run; optional `stage` (two-stage) and `group` (multi-group) columns.
 - **Models:** equal-sequence subject contrasts (default) or EMA fixed effects (subject + period + treatment); Welch for parallel.
 - **Limits:** 80.00–125.00%, NTI 90.00–111.11% (fixed limits only), or custom; optional half-up CI rounding.
@@ -120,7 +121,7 @@ Selecting **SFDA / GCC** in the UI (CLI: `--profile sfda`) applies the GCC bioeq
 
 ![SFDA results](docs/screenshots/08-sfda-results-ar.png)
 
-Not implemented: emesis-based exclusion (before 2 × median tmax for immediate release; apply it to the data beforehand as pre-specified); the check that AUC(0-t) covers ≥ 80% of AUC(0-∞) in at least 80% of observations; assay-content correction; dissolution similarity f2; product-specific guidance lookup. **Multiple-reference studies** (e.g. a three-period study with a GCC and a US reference) cannot be analysed yet: the guideline analyses each comparison after removing the other treatment's data, which leaves non-canonical sequences (such as T–R with periods 1 and 3) that this engine does not accept.
+The emesis rule (at or before 2 × median tmax for immediate release) and the 80/20 AUC(0-t) coverage check are applied in the NCA tab (`engine/nca.py`). Multiple-reference studies are analysed one comparison at a time (design "multi"). Not implemented: assay-content correction; dissolution similarity f2; product-specific guidance lookup.
 
 Sources re-checked against the full text of DS-G-010 V3.1 (sections 3.1.1–3.1.10): the widened-limit table (CVwR 30/35/40/45/≥50% → 80.00–125.00 / 77.23–129.48 / 74.62–134.02 / 72.15–138.59 / 69.84–143.19%) is reproduced exactly.
 
@@ -158,7 +159,7 @@ Sample files: [`test_data/`](test_data) (two simulated studies) and [`test_cases
 |---|---|
 | `index.html` | Built, self-contained app (deploy this) |
 | `src/template.html`, `src/build.js` | UI source; `node src/build.js` regenerates `index.html` after editing the template or engine |
-| `engine/` | Corrected Python engine, tests, simulation validation, provenance and the original upstream script |
+| `engine/` | Corrected Python engines (`nca.py`, `bioequivalence.py`), tests, simulation validation, provenance and the original upstream scripts |
 | `test_data/`, `test_cases/` | Simulated CSV files for trying the app |
 
 ## Engine verification
@@ -170,19 +171,23 @@ python -m unittest -v
 python validate_simulation.py
 ```
 
+`python -m unittest test_nca -v` runs the 19 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
+
 The web UI was checked against the engine's reference output (`engine/example_results.json`) and against an independent 2×2 computation (identical to 4 decimals).
 
 ---
 
 ## بالعربية
 
-واجهة ويب ثنائية اللغة لتحليل التكافؤ الحيوي: ABE وEMA ABEL وFDA RSABE، وحساب القوة وحجم العينة. تشغّل الواجهة ملف `engine/bioequivalence.py` كما هو داخل المتصفح عبر Pyodide، ولا تُرسل البيانات إلى أي خادم.
+واجهة ويب ثنائية اللغة لدراسات التكافؤ الحيوي: التحليل غير الحجيري (NCA) لبيانات التركيز والزمن، وABE وEMA ABEL وFDA RSABE، وحساب القوة وحجم العينة. تشغّل الواجهة الملفين `engine/nca.py` و`engine/bioequivalence.py` داخل المتصفح عبر Pyodide، ولا تُرسل البيانات إلى أي خادم.
 
 > ⚠️ **تنفيذ بحثي وليس اعتمادًا تنظيميًا.** يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. راجع [`engine/اقرأني.md`](engine/اقرأني.md).
 
 **الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى، وجميعها ببيانات مُحاكاة.
 
-**إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا يتضمن حدّ المرحلة، وعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. قاعدة ما قبل الجرعة للدراسات أحادية الجرعة فقط. وللمواد داخلية المنشأ يطرح البرنامج خط الأساس (عمود `baseline`) أو يشترط تأكيدًا صريحًا بأن القيم مصححة، وإلا يرفض التحليل. غير منفّذ: استبعاد القيء، وفحص تغطية AUC(0-t) لـ 80%، وتصحيح المحتوى، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات، ودراسات أكثر من مرجع (تحليلها يترك تسلسلات غير قياسية لا يقبلها المحرك).
+**إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا يتضمن حدّ المرحلة، وعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. قاعدة ما قبل الجرعة للدراسات أحادية الجرعة فقط. وللمواد داخلية المنشأ يطرح البرنامج خط الأساس (عمود `baseline`) أو يشترط تأكيدًا صريحًا بأن القيم مصححة، وإلا يرفض التحليل. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. غير منفّذ: تصحيح المحتوى، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات.
+
+**التحليل غير الحجيري (NCA):** التبويب الأول يحسب من ملف التركيزات (`subject, time, conc` واختياريًا `period, treatment, emesis_time`) المعايير الدوائية وفق ICH M13A: القيم تحت حد القياس = صفر وتُستبعد من kel، والخانة الفارغة عينة مفقودة تُوثَّق ولا تصبح صفرًا، واختيار نافذة kel بقاعدة PKNCA، وطريقة شبه المنحرف محددة مسبقًا ومُبلَّغ عنها، وقاعدة التغطية 80/20، وAUC(0-72h)، ومعايير الحالة المستقرة. ومع إطار SFDA تُضاف قاعدة القيء وجدول الملحق 1. زر «إرسال» ينقل المعايير إلى تحليل التكافؤ مع ضبط الأعمدة. التفاصيل والمراجع في [`engine/README.md`](engine/README.md#nca-module-ncapy).
 
 **التشغيل:** انشر المجلد كموقع ثابت (Vercel أو GitHub Pages)، أو شغّل `run.bat` محليًا وافتح http://localhost:8765. أول زيارة تحمّل Python وNumPy وSciPy (نحو 20 ميغابايت).
 

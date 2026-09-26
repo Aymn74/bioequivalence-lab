@@ -74,3 +74,37 @@ This copy of the engine extends the corrected package above (the `provenance.jso
 - `sample_size(..., min_n=)`: minimum total N (18 under the SFDA profile).
 
 Default behaviour without these options is unchanged (reference output in `example_results.json` reproduced to floating-point precision). New tests: `test_sfda.py`.
+
+## NCA module (`nca.py`)
+
+`nca.py` derives concentration-time parameters for BE studies and feeds `bioequivalence.py`. It is derived from upstream `skills/pkpd-modeling/scripts/nca.py`; `original_nca.py` is the file as fetched on 2026-09-26 (SHA-256 `a97bbc4a…23b11`, byte-identical to upstream commit `4c90a52`).
+
+Fixes against the upstream file, each reproduced before the change:
+
+1. **kel window:** upstream kept the *shorter* window when adjusted r² values were within 1e-4. `nca.py` follows PKNCA `pk.calc.half.life` (checked in its source, `R/half.life.R`, 2026-09-26): best adjusted r² over all terminal windows after tmax, then among windows with kel > 0 and adjusted r² > best − 1e-4 the one with the most points. The same rule is commonly attributed to Phoenix WinNonlin; that was not checked here.
+2. **Missed samples:** upstream turned a blank cell into a BLQ zero (AUC 5.8% low in the test case). A blank / `NA` is now a missed sample: dropped, listed in `missed samples`, and flagged as a protocol deviation. Only BLQ tokens or values below `--lloq` become zero (ICH M13A 2.2.2.2).
+3. **Trapezoidal rule:** upstream called linear-up/log-down "the usual regulatory choice". ICH M13A 2.2.2.2 gives the linear rule as its example and asks for the method to be reported. Default is `linear`; `--auc-method linup-logdown` is available; the method is always reported.
+4. **Missing rules added:** study-level 80/20 coverage rule; AUC(0-72h) (`--truncate-72`); steady-state CtauSS, CminSS, CavSS, fluctuation and swing per the ICH M13A glossary (`--tau`, CtauSS needs a sample within 10 min of tau, 2.1.8).
+
+Rules implemented, with sources checked in the guideline text:
+
+| Rule | Source |
+|---|---|
+| BLQ = 0 in PK calculations; BLQ omitted from kel and t½ | ICH M13A 2.2.2.2 |
+| Actual sampling times | ICH M13A 2.2.2.2; GCC 3.1.5 |
+| kel from ≥ 3 terminal points; number of points reported | ICH M13A 2.1.8, 2.2.2.2; GCC 3.1.4, 3.1.8 |
+| AUC(0-t)/AUC(0-inf) < 80% in > 20% of observations → validity may need discussion | ICH M13A 2.2.2.2; GCC 3.1.8 |
+| AUC(0-72h) replaces AUC(0-t); AUC(0-inf), kel, t½ not required | ICH M13A 2.2.2.2 (GCC 3.1.5 adds: only when C(72 h) is quantifiable — flagged under `--profile sfda`) |
+| Pre-dose > 5% of Cmax → exclude the period (single dose) | ICH M13A 2.2.3.3; GCC 3.1.8 |
+| Baseline correction per period, negatives set to zero; analyse uncorrected data too | ICH M13A 2.1.5; GCC 3.1.5 (mean pre-dose subtraction preferred) |
+| Emesis at or before 2 × median tmax (IR) / during the dosing interval (MR) → exclude | GCC 3.1.8 (`--profile sfda` only; ICH M13A has no such rule, so emesis is only flagged) |
+| Summary statistics: n, geometric mean, CV, median, arithmetic mean, SD, min, max | ICH M13A 2.2.2.2; GCC 3.1.8 |
+| Annex 1 section 5 table (arithmetic mean and CV% for T and R) | GCC DS-G-010 V3.1 Annex 1 |
+
+Interpretation, not stated by the guideline: the median tmax for the emesis rule is taken per product over periods without emesis. The pre-dose value is the highest sample at time ≤ 0.
+
+`be input` table: one row per included subject-period (subject, sequence, period, treatment, primary parameters, pre-dose), ready for `bioequivalence.py`. A subject with an excluded period is left out, because the BE engine requires complete subjects; pre-dose > 5% periods stay in so that `bioequivalence.py` applies and reports that rule itself. Sequences are derived from the treatment order when no `sequence` column is present.
+
+Verification (`test_nca.py`, 19 tests): 297 random profiles with BLQ values (296 with an estimable kel) match an independent implementation (`scipy.stats.linregress` over every terminal window, `scipy.integrate.trapezoid`) to 1e-9; closed-form one-compartment profiles (AUC(0-inf), AUC(0-72h), lambda_z); each upstream fix; steady-state parameters against hand calculation; baseline, emesis, coverage and 72 h rules; hand-off into `bioequivalence.py` (GMR equals the geometric mean of within-subject ratios). The browser engine reproduces the local Python output for the example study (SHA-256 over 2,338 values at 10 significant digits).
+
+Not implemented: intravenous routes, manual kel windows, mean curves on nominal times, urinary data. No comparison against PKNCA or Phoenix WinNonlin output has been made; the kel rule is implemented from the PKNCA source, and the independent reference in the tests re-implements it separately.

@@ -34,6 +34,12 @@ test_stage_must_be_constant_within_a_subject (test_launch_review.HandOff.test_st
 test_williams_drop_out_is_left_out_of_that_comparison_only (test_launch_review.HandOff.test_williams_drop_out_is_left_out_of_that_comparison_only) ... ok
 test_2x2_fixed_effects_leaves_out_subjects_with_one_period (test_launch_review.OneProductSubjects.test_2x2_fixed_effects_leaves_out_subjects_with_one_period) ... ok
 test_uncorrected_data_get_the_same_scaled_criterion (test_launch_review.PotencyWithScaledCriteria.test_uncorrected_data_get_the_same_scaled_criterion) ... ok
+test_2x2_coding_error_is_reported_not_excluded (test_launch_review.ReviewRound2.test_2x2_coding_error_is_reported_not_excluded) ... ok
+test_gcc_annex_for_multi_treatment_with_named_labels (test_launch_review.ReviewRound2.test_gcc_annex_for_multi_treatment_with_named_labels) ... ok
+test_parallel_with_stage_is_refused_not_ignored (test_launch_review.ReviewRound2.test_parallel_with_stage_is_refused_not_ignored) ... ok
+test_sequence_whose_subjects_all_dropped_out_is_fitted (test_launch_review.ReviewRound2.test_sequence_whose_subjects_all_dropped_out_is_fitted) ... ok
+test_stage_conflict_within_a_profile_and_blank_stage_column (test_launch_review.ReviewRound2.test_stage_conflict_within_a_profile_and_blank_stage_column) ... ok
+test_swapped_test_and_reference_labels (test_launch_review.ReviewRound2.test_swapped_test_and_reference_labels) ... ok
 test_be_input_feeds_bioequivalence (test_nca.BeHandoff.test_be_input_feeds_bioequivalence) ... ok
 test_excluded_period_drops_subject_from_be_input (test_nca.BeHandoff.test_excluded_period_drops_subject_from_be_input) ... ok
 test_steady_state_be_input_offers_ss_parameters_only (test_nca.BeHandoff.test_steady_state_be_input_offers_ss_parameters_only) ... ok
@@ -108,7 +114,7 @@ test_profile_rejects_non_sfda_methods (test_sfda.SfdaProfileTests.test_profile_r
 test_profile_uses_anova_rounding_and_table (test_sfda.SfdaProfileTests.test_profile_uses_anova_rounding_and_table) ... ok
 
 ----------------------------------------------------------------------
-Ran 108 tests in 7.042s
+Ran 114 tests in 8.743s
 
 OK
  [297 random profiles, 296 with lambda_z] 

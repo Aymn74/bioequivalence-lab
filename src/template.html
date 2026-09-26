@@ -643,7 +643,7 @@ ar:{
  p_n:"N الإجمالي المطلوب",p_pow:"القوة المحققة",p_per:"لكل تسلسل",p_curve:"منحنى القوة مقابل حجم العينة",p_target:"الهدف",
  p_note:"تكامل عددي لقوة TOST بحدود ثابتة؛ تصميم متوازن كامل، بيانات لوغاريتمية طبيعية، تباين متساوٍ لـ T/R، بلا تفاعل فرد×معالجة. لا يشمل هامش الانسحاب ولا قوة ABEL/RSABE.",
  foot:"المحرك: nca.py وbioequivalence.py (نسختان مصححتان من K-Dense) عبر Pyodide · جميع الحسابات محلية في متصفحك",lic:"الترخيص (MIT)",
- c_rnd:"تقريب فترة الثقة",th_sub:"المشارك",th_per:"الفترة",th_pre:"ما قبل الجرعة",th_trt:"المستحضر",th_seq:"التسلسل",th_before:"قبل",th_base:"خط الأساس",th_after:"بعد",th_obs:"المشاهدات",th_prod:"المستحضرات",
+ c_rnd:"تقريب فترة الثقة",stale_run:"تغيّرت البيانات أو الإعدادات أثناء الحساب، فلم تُعرض النتيجة. أعد التشغيل.",ci_set:"مستوى الثقة",th_sub:"المشارك",th_per:"الفترة",th_pre:"ما قبل الجرعة",th_trt:"المستحضر",th_seq:"التسلسل",th_before:"قبل",th_base:"خط الأساس",th_after:"بعد",th_obs:"المشاهدات",th_prod:"المستحضرات",
  th_crit:"المعيار",th_lims:"الحدود %",rows_w:"صف",subj_w:"مشارك",lone_t:"مشاركون بلا بيانات للمستحضرين معًا (خارج هذه المقارنة)",pot_num:"محتوى الدفعة يجب أن يكون رقمًا بين 0 و200 (% من المعلن)",num_bad:"قيمة غير رقمية في أحد الحقول",
  loaded:"تم تحميل الملف",
  f_profile:"الإطار التنظيمي",pr_none:"ICH M13A · EMA · FDA",
@@ -716,7 +716,7 @@ en:{
  p_n:"Required total N",p_pow:"Achieved power",p_per:"per sequence",p_curve:"Power vs. sample size",p_target:"target",
  p_note:"Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. No dropout allowance; no ABEL/RSABE power.",
  foot:"Engine: nca.py and bioequivalence.py (corrected derivatives of K-Dense) via Pyodide · all computation runs locally in your browser",lic:"License (MIT)",
- c_rnd:"CI rounding",th_sub:"subject",th_per:"period",th_pre:"pre-dose",th_trt:"product",th_seq:"sequence",th_before:"before",th_base:"baseline",th_after:"after",th_obs:"observations",th_prod:"products",
+ c_rnd:"CI rounding",stale_run:"Data or settings changed during the run; the result was discarded. Run again.",ci_set:"confidence level",th_sub:"subject",th_per:"period",th_pre:"pre-dose",th_trt:"product",th_seq:"sequence",th_before:"before",th_base:"baseline",th_after:"after",th_obs:"observations",th_prod:"products",
  th_crit:"criterion",th_lims:"limits %",rows_w:"rows",subj_w:"subjects",lone_t:"Subjects without data for both products (left out of this comparison)",pot_num:"Batch content must be a number between 0 and 200 (% of label claim)",num_bad:"A field contains a non-numeric value",
  loaded:"File loaded",
  f_profile:"Regulatory framework",pr_none:"ICH M13A · EMA · FDA",
@@ -757,6 +757,9 @@ const MSG_AR=[
  [/^value \((.+?)\) for subject (.+?) period (\S+): expected a finite positive number/,m=>`قيمة ${m[1]} للمشارك ${m[2]}، الفترة ${m[3]}: مفقودة أو غير موجبة؛ يلزم رقم موجب.`],
  [/ABEL requires --abel-justified/,"يتطلب ABEL الإقرار بوجود مبرر سريري ومواصفة مسبقة في البروتوكول، وبأن تباين المرجع تقدير موثوق وليس ناتجًا عن قيم شاذة (EMA 4.1.10؛ الدليل الخليجي 3.1.10). فعّل خيار الإقرار."],
  [/^ABEL: the applicant should justify/,"ABEL: على مقدم الطلب أن يبرر أن تباين المرجع المحسوب تقدير موثوق وليس ناتجًا عن قيم شاذة (EMA 4.1.10؛ الدليل الخليجي 3.1.10). البرنامج لا يختبر القيم الشاذة: راجع بيانات المرجع قبل الاعتماد على الحدود الموسّعة."],
+ [/parallel BE model has no stage or group term/,"مدخلات التكافؤ تحتفظ بعمود المرحلة أو المجموعة، لكن نموذج التصميم المتوازي بلا حدّ لهما: سيرفض تحليل التكافؤ هذه المدخلات؛ حلّل كل مرحلة أو مجموعة وحدها أو احذف العمود."],
+ [/not supported for a parallel design/,"عمود المرحلة أو المجموعة غير مدعوم في التصميم المتوازي (لا يتضمن نموذجه حدًّا لهما)؛ حلّل كل مرحلة أو مجموعة وحدها أو احذف العمود."],
+ [/two (stage|group) values in one profile/,m=>`قيمتان مختلفتان ${m[1]==='stage'?'للمرحلة (stage)':'للمجموعة (group)'} في ملف تركيز واحد؛ كل مشارك يحتاج قيمة واحدة في كل صفوفه.`],
  [/^(\d+) subject\(s\) without data for both the test and the reference product/,m=>`${m[1]} مشارك/مشاركين بلا بيانات للمستحضرين الاختباري والمرجع معًا استُبعدوا من هذه المقارنة (ICH M13A 2.2.3.2؛ الدليل الخليجي 3.1.8).`],
  [/^BE input: treatment codes (.+)$/,m=>`مدخلات التكافؤ: رموز المعالجة ${m[1]}`],
  [/^BE input: the treatment codes are not T and R/,"مدخلات التكافؤ: رموز المعالجة ليست T وR؛ اختر المستحضر الاختباري والمرجع قبل الإرسال إلى تحليل التكافؤ."],
@@ -999,8 +1002,9 @@ function seg(id,cb){const root=$(id);root.addEventListener('click',e=>{const b=e
   root.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));cb(b.dataset.v);});}
 function setSeg(id,v){$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v));}
 /* a result or an NCA table stays on screen only while it matches the data and settings it came from */
-function clearResult(){if(!S.last)return;S.last=null;$('#resBody').style.display='none';$('#resBody').innerHTML='';$('#resEmpty').style.display='';}
-function clearNca(){if(!N.last)return;N.last=null;N.json=null;$('#ncaBody').style.display='none';$('#ncaBody').innerHTML='';$('#ncaEmpty').style.display='';}
+function clearResult(){S.gen=(S.gen||0)+1;if(!S.last)return;S.last=null;$('#resBody').style.display='none';$('#resBody').innerHTML='';$('#resEmpty').style.display='';}
+function clearNca(){N.gen=(N.gen||0)+1;if(!N.last)return;N.last=null;N.json=null;$('#ncaBody').style.display='none';$('#ncaBody').innerHTML='';$('#ncaEmpty').style.display='';}
+function clearPower(){S.pgen=(S.pgen||0)+1;if(!S.plast)return;S.plast=null;$('#pOut').innerHTML=P_EMPTY;$$('#pOut [data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));}
 function watchStale(sel,clear){const root=$(sel);root.addEventListener('change',clear);root.addEventListener('input',clear);
   root.addEventListener('click',e=>{const b=e.target.closest('.seg button');if(b&&!b.disabled&&b.getAttribute('aria-pressed')!=='true')clear();},true);}
 seg('#designSeg',v=>{S.design=v;syncForm();});
@@ -1180,6 +1184,7 @@ const cli=argv=>call('cli',argv);
 $('#runBtn').onclick=async()=>{
   const btn=$('#runBtn');btn.classList.add('busy');btn.disabled=true;setEngine('run');
   await new Promise(r=>setTimeout(r,30));
+  const gen=S.gen||0;
   try{
     const ext=/\.(tsv|tab)$/i.test(S.fname||'')?'.tsv':/\.csv$/i.test(S.fname||'')?'.csv':'.txt';
     await call('write',{path:'/be/input'+ext,text:S.csv});
@@ -1202,14 +1207,15 @@ $('#runBtn').onclick=async()=>{
     if($('#ciLevel').value!=='90')argv.push('--ci-level',$('#ciLevel').value);
     // potency: pass only the fields that are filled; the engine asks for the missing one
     for(const [id,opt] of [['#potT','--potency-test'],['#potR','--potency-reference']]){const v=$(id).value.trim();
-      if(v){if(!/^\d+(\.\d+)?$/.test(v))throw new Error(t('pot_num'));argv.push(opt,v);}}
+      if(v){if(!/^\d*\.?\d+$|^\d+\.$/.test(v)||!(Number(v)>0&&Number(v)<=200))throw new Error(t('pot_num'));argv.push(opt,String(Number(v)));}}
     if($('#potCorr').checked)argv.push('--potency-correction');
     argv.push('--predose-column',$('#colPredose').value||'__none__');
     if($('#multiDose').checked)argv.push('--multiple-dose');
     if(S.design==='multi')argv.push('--test-label',$('#testLabel').value,'--reference-label',$('#refLabel').value);
     if($('#colCmax').value&&$('#metric').value!=='cmax')argv.push('--cmax-column',$('#colCmax').value);
-    const r=await cli(argv); r.argv=argv; S.last=r; renderResult(r);
-  }catch(e){S.last={code:2,stdout:'',stderr:'error: '+e.message,argv:[]};renderResult(S.last);}
+    const r=await cli(argv); r.argv=argv;
+    if(gen!==(S.gen||0))toast(t('stale_run')); else {S.last=r; renderResult(r);}
+  }catch(e){if(gen===(S.gen||0)){S.last={code:2,stdout:'',stderr:'error: '+e.message,argv:[]};renderResult(S.last);}}
   btn.classList.remove('busy');btn.disabled=false;setEngine(ready?'ok':'err');
   if(innerWidth<920)$('#resCard').scrollIntoView({behavior:'smooth'});
 };
@@ -1220,7 +1226,7 @@ function msgLi(m,cls){const ar=trMsg(m);return `<li class="${cls}"><span>${ar?es
 
 /* engine errors: with an argparse usage dump keep only the error line */
 function cliErrors(stderr){const ls=String(stderr||'').split('\n').filter(Boolean);
-  const pick=/^usage:/m.test(stderr||'')?ls.filter(l=>/error:/.test(l)):ls;return pick.map(l=>l.replace(/^.*?error:\s*/,''));}
+  return /^usage:/m.test(stderr||'')?ls.filter(l=>/error:/.test(l)).map(l=>l.replace(/^.*?error:\s*/,'')):ls.map(l=>l.replace(/^error:\s*/,''));}
 function renderResult(r){
   $('#resEmpty').style.display='none';const body=$('#resBody');body.style.display='';
   let j=null;try{j=r.stdout.trim()?JSON.parse(r.stdout):null;}catch(e){}
@@ -1299,13 +1305,13 @@ function toolbar(r){return `<div class="toolbar"><button class="btn btn-ghost bt
  <pre class="json" id="rawBox" style="display:none"></pre>`;}
 /* CSV cell: quoted when needed; text starting with = + - @ is prefixed with ' so spreadsheets do not run it as a formula */
 function csvCell(v){if(v==null)return '';if(typeof v==='number')return String(v);v=String(v);
-  if(/^[=+\-@\t\r]/.test(v)&&!/^-?\d+(\.\d+)?(e[+-]?\d+)?$/i.test(v))v="'"+v;
+  if(v.length>1&&/^[=+\-@\t\r]/.test(v)&&!/^-?\d+(\.\d+)?(e[+-]?\d+)?$/i.test(v))v="'"+v;
   return /[",\r\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;}
 const csvRow=a=>a.map(csvCell).join(',');
 /* provenance written into every export */
 function provenance(){return {tool:'Bioequivalence Lab',version:APP_VERSION,url:APP_URL,generated_utc:new Date().toISOString(),runtime:'Pyodide 0.25.1 (NumPy, SciPy)',
   disclaimer:'Research and teaching implementation, provided as is without warranty; not validated for regulatory submission (no GAMP 5 validation, not tested on real study data). Verify results with validated software.'};}
-function provenanceCsv(){return Object.entries(provenance()).map(([k,v])=>'# '+k+': '+v);}
+function provenanceCsv(){return Object.entries(provenance()).map(([k,v])=>csvRow(['# '+k+': '+v]));}
 function bindToolbar(r,j){
   const raw=JSON.stringify({...provenance(),argv:['bioequivalence.py',...(r.argv||[])],exit_code:r.code,result:j,stderr:r.stderr||undefined},null,2);
   $('#tbRaw').onclick=()=>{const b=$('#rawBox');b.textContent=raw;b.style.display=b.style.display==='none'?'':'none';};
@@ -1357,6 +1363,7 @@ function rsGauge(rs){
 /* ================= power ================= */
 $('#pRun').onclick=async()=>{
   const btn=$('#pRun');btn.classList.add('busy');btn.disabled=true;setEngine('run');await new Promise(r=>setTimeout(r,30));
+  const gen=S.pgen||0;
   const d=S.p.design,cv=Number($('#pCV').value)/100,gmr=Number($('#pGMR').value),nti=$('#pLimits').value==='nti';
   const argv=['--power','--design',d,'--analysis',S.p.analysis,'--cv',String(cv),'--gmr',String(gmr),'--format','json'];
   if(S.p.profile==='sfda')argv.push('--profile','sfda');
@@ -1364,6 +1371,7 @@ $('#pRun').onclick=async()=>{
   if(S.p.mode==='n')argv.push('--target-power',String(Number($('#pTarget').value)/100)); else argv.push('--n',String(parseInt($('#pN').value)));
   let r;try{r=await cli(argv);}catch(e){r={code:2,stdout:'',stderr:'error: '+e.message};}
   r.argv=argv;r.cv=cv;r.gmr=gmr;r.lim=nti?[.9,1.1111]:[.8,1.25];r.target=S.p.mode==='n'?Number($('#pTarget').value)/100:null;
+  if(gen!==(S.pgen||0)){toast(t('stale_run'));btn.classList.remove('busy');btn.disabled=false;setEngine('ok');return;}
   S.plast=r;renderPower(r);
   if(r.code!==2){try{const j=JSON.parse(r.stdout);const n=j.scalars.n_total;const m=d==='partial'?3:2;
       const nmax=Math.min(Math.max(Math.ceil(n*2/m)*m,12*m),600);
@@ -1448,6 +1456,7 @@ $('#ncaColTreatment').addEventListener('change',ncaLabels);
 
 $('#ncaRun').onclick=async()=>{
   const btn=$('#ncaRun');N.running=true;btn.classList.add('busy');btn.disabled=true;setEngine('run');await new Promise(r=>setTimeout(r,30));
+  const gen=N.gen||0;
   try{
   const ext=/\.(tsv|tab)$/i.test(N.fname||'')?'.tsv':/\.csv$/i.test(N.fname||'')?'.csv':'.txt',path='/be/nca_input'+ext;
   const argv=['-i',path,'--format','json','--auc-method',N.auc,'--subject-column',ncol('#ncaColSubject'),'--time-column',ncol('#ncaColTime'),'--conc-column',ncol('#ncaColConc'),
@@ -1463,6 +1472,7 @@ $('#ncaRun').onclick=async()=>{
   let r;try{await call('write',{path,text:N.csv});r=await call('nca',argv);}catch(e){r={code:2,stdout:'',stderr:'error: '+e.message};}
   r.argv=argv;r.study=N.study;r.endo=$('#ncaEndo').checked;r.profile=N.profile;
   r.data={csv:N.csv,fname:N.fname,cols:['#ncaColSubject','#ncaColTime','#ncaColConc','#ncaColPeriod','#ncaColTreatment'].map(ncol),lloq:Number($('#ncaLloq').value)||0};
+  if(gen!==(N.gen||0)){toast(t('stale_run'));return;}
   N.last=r;renderNca(r);
   if(innerWidth<920)$('#ncaResCard').scrollIntoView({behavior:'smooth'});
   }catch(e){console.error(e);toast(t('v_err'));}
@@ -1578,7 +1588,8 @@ function ncaToBe(){
   // incomplete replicate subjects, and stage / group columns, need the fixed-effects model
   const nested=cols.includes('stage')||cols.includes('group');
   if(((maxRows>2&&Object.values(counts).some(n=>n<maxRows))||nested)&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
-  if(cols.includes('stage'))$('#ciLevel').value='94.12';
+  const ci0=$('#ciLevel').value;$('#ciLevel').value=cols.includes('stage')?'94.12':'90';const ciChanged=ci0!==$('#ciLevel').value;
+  const needEma=(maxRows>2&&Object.values(counts).some(n=>n<maxRows))||nested;
   $('#colValue').value=colName;
   const m=colName==='auc_0_inf'?'aucinf':colName.startsWith('auc')?'auc':'cmax';$('#metric').value=m;
   $('#colPredose').value=!ss&&!endo?'predose':'';
@@ -1586,20 +1597,24 @@ function ncaToBe(){
   $('#multiDose').checked=ss;
   $('#endogenous').checked=endo;$('#baseConfirmed').checked=endo;syncEndo();
   if(S.profile!==r.profile){if(r.profile==='sfda')S._roundBefore=$('#emaRound').checked;else $('#emaRound').checked=!!S._roundBefore;S.profile=r.profile;setSeg('#profileSeg',r.profile);}
-  syncForm();renderPreview();
+  syncForm();
+  if(needEma){S._anBefore=null;if(S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}}
+  renderPreview();
   document.querySelector('.tab[data-tab="analysis"]').click();scrollTo({top:0,behavior:'smooth'});
-  toast(gaps.size?`${t('nca_sent')} — ${t(periodwise?'nca_gap_p':'nca_gap')}: ${[...gaps].join(', ')}`:t('nca_sent'));
+  toast((gaps.size?`${t('nca_sent')} — ${t(periodwise?'nca_gap_p':'nca_gap')}: ${[...gaps].join(', ')}`:t('nca_sent'))+(ciChanged?` · ${t('ci_set')} ${$('#ciLevel').value}%`:''));
 }
 
 /* Latin digits in numeric fields: convert Arabic-Indic / Persian digits and separators as the user types */
 document.addEventListener('input',e=>{const el=e.target;if(!el.classList||!el.classList.contains('numin'))return;
-  const v=el.value.replace(/[٠-٩]/g,d=>d.charCodeAt(0)-0x660).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-0x6F0).replace(/٫/g,'.');
+  let v=el.value.replace(/[٠-٩]/g,d=>d.charCodeAt(0)-0x660).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-0x6F0).replace(/٫/g,'.');
+  if(!v.includes('.')&&(v.match(/,/g)||[]).length===1)v=v.replace(',','.');   // decimal comma, e.g. 98,5
   if(v!==el.value)el.value=v;
   const bad=v.trim()!==''&&!/^\d*\.?\d+$|^\d+\.$/.test(v.trim());el.classList.toggle('bad',bad);el.title=bad?t('num_bad'):'';});
 /* init */
 $('#colSubject').onchange=()=>S.csv&&renderPreview();
 $('#appVer').textContent='v'+APP_VERSION;
-watchStale('#pane-analysis .side',clearResult);watchStale('#pane-nca .side',clearNca);
+const P_EMPTY=$('#pOut').innerHTML;
+watchStale('#pane-analysis .side',clearResult);watchStale('#pane-nca .side',clearNca);watchStale('#pane-power .side',clearPower);
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(document.documentElement.dataset.theme)return;
   if(S.last)renderResult(S.last);if(S.plast)renderPower(S.plast);if(N.last)renderNca(N.last);});}catch(e){}
 syncForm();syncPN();syncNca();applyLang();boot();

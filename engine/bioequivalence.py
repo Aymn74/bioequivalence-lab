@@ -607,13 +607,16 @@ def run(argv=None):
     # ICH M13A 2.2.3.2 / GCC 3.1.8: the primary analysis includes the subjects with evaluable data for both
     # the test and the comparator product. In a 2x2 or a multi-treatment comparison a subject without both
     # contributes nothing to the formulation contrast, so it is left out and listed (replicate designs keep
-    # such subjects for the period effects and CVwR, EMA Method A).
+    # such subjects for the period effects and CVwR, EMA Method A). In a 2x2 only a subject with a single
+    # observation is left out: two records of the same product are a coding error that validate() reports.
     lone=[]
     if a.design=='multi' or (a.design=='2x2' and fixed_only):
-        lone=one_product_subjects(records)
+        lone=[x for x in one_product_subjects(records) if a.design=='multi' or x['observations']<2]
         drop={x['subject'] for x in lone}
         records=[r for r in records if r['subject'] not in drop]
     design,_=validate(records,a.design,fixed_only)
+    if any(nest(r) for r in records) and design=='parallel':
+        raise InputError('a stage or group column is not supported for a parallel design (the parallel model has no stage or group term); analyse each stage or group separately or remove the column')
     if any(nest(r) for r in records) and a.analysis!='ema' and design!='parallel':
         raise InputError('a stage or group column requires the fixed-effects model (--analysis ema or --profile sfda)')
     if a.scaling=='fda-nti' and design!='full': raise InputError('the FDA NTI method requires a full replicate design (TRTR/RTRT)')

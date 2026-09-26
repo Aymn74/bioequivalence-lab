@@ -130,5 +130,60 @@ class AbelPointEstimate(unittest.TestCase):
         self.assertTrue(any('not the result of outliers' in n for n in q['notes']))
 
 
+class ReviewRound2(unittest.TestCase):
+    """Independent review of the pre-launch fixes (2026-09-26, second round)."""
+
+    def test_parallel_with_stage_is_refused_not_ignored(self):
+        rows = [[f"S{s:02d}", "T" if s % 2 else "R", x, conc(x) * (1 + s / 100), "1" if s < 12 else "2"] for s in range(24) for x in TIMES[:-1]]
+        code, p, _ = run(rows, cols=("subject", "treatment", "time", "conc", "stage"))
+        self.assertTrue(any("parallel BE model has no stage or group term" in n for n in p["notes"]))
+        code, res, err = be_run(nca_table(p, "be input"), "--design", "parallel", "--value-column", "cmax", "--metric", "cmax")
+        self.assertEqual(code, 2)
+        self.assertIn("not supported for a parallel design", err)
+
+    def test_2x2_coding_error_is_reported_not_excluded(self):
+        rows = fixture('2x2', [12, 12])
+        for r in rows:
+            if r['subject'] == 'TR-1' and r['period'] == '2':
+                r['treatment'] = 'T'
+        code, _, err = run_cli(rows, '--analysis', 'ema')
+        self.assertEqual(code, 2)
+        self.assertIn('treatment conflicts with sequence/period', err)
+
+    def test_swapped_test_and_reference_labels(self):
+        _, p0, _ = run(crossover(12), cols=COLS)
+        _, p1, _ = run(crossover(12), "--test-label", "R", "--reference-label", "T", cols=COLS)
+        argv = ("--value-column", "cmax", "--metric", "cmax")
+        _, a, _ = be_run(nca_table(p0, "be input"), *argv)
+        code, b_, err = be_run(nca_table(p1, "be input"), *argv)
+        self.assertIn(code, (0, 1), err)
+        self.assertAlmostEqual(a["scalars"]["gmr_pct"] * b_["scalars"]["gmr_pct"], 1e4, places=6)
+        _, p2, _ = run(crossover(12, labels={"T": "Test", "R": "Ref"}), "--test-label", "Ref", "--reference-label", "Test", cols=COLS)
+        code, c, err = be_run(nca_table(p2, "be input"), *argv)
+        self.assertIn(code, (0, 1), err)
+        self.assertAlmostEqual(c["scalars"]["gmr_pct"], b_["scalars"]["gmr_pct"], places=9)
+
+    def test_gcc_annex_for_multi_treatment_with_named_labels(self):
+        seqs = ("TRX", "RXT", "XTR", "TXR", "RTX", "XRT")
+        rows = crossover(18, seqs=seqs, labels={"T": "A", "R": "B", "X": "C"})
+        code, p, _ = run(rows, "--profile", "sfda", "--test-label", "A", "--reference-label", "B", cols=COLS)
+        self.assertTrue(nca_table(p, "gcc annex 1"))
+
+    def test_stage_conflict_within_a_profile_and_blank_stage_column(self):
+        rows = [r + ["1" if r[3] < 4 else "2"] for r in crossover(4)]
+        code, _, err = run(rows, cols=COLS + ("stage",))
+        self.assertEqual(code, 2)
+        self.assertIn("two stage values in one profile", err)
+        code, p, _ = run([r + [""] for r in crossover(4)], cols=COLS + ("stage",))
+        self.assertNotIn("stage", nca_table(p, "be input")[0])
+
+    def test_sequence_whose_subjects_all_dropped_out_is_fitted(self):
+        rows = [r for r in crossover(12, seqs=("TRR", "RTR", "RRT")) if not (int(r[0][1:]) % 3 == 2 and r[1] == 3)]
+        code, p, _ = run(rows, cols=COLS)
+        bi = nca_table(p, "be input")
+        self.assertEqual({r["sequence"] for r in bi if int(r["subject"][1:]) % 3 == 2}, {"RRT"})
+        code, res, err = be_run(bi, "--design", "partial", "--value-column", "cmax", "--metric", "cmax", "--analysis", "ema")
+        self.assertIn(code, (0, 1), err)
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

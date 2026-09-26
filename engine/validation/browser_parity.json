@@ -1,0 +1,194 @@
+{
+ "base": "http://localhost:8766",
+ "date": "2026-09-26T11:11:55.349Z",
+ "tolerance": 1e-8,
+ "cases": 20,
+ "values": 24146,
+ "max_rel_diff": 4.62824093169812e-9,
+ "nca_values": 23507,
+ "nca_fingerprint_python": "9bb928c1d3e8c7c43f39ea4a0b746c9d2bfbc1ac1aee8a32f7f8488e95bc57a9",
+ "nca_fingerprint_browser": "9bb928c1d3e8c7c43f39ea4a0b746c9d2bfbc1ac1aee8a32f7f8488e95bc57a9",
+ "nca_fingerprints_equal": true,
+ "results": [
+  {
+   "case": "nca engine/example_nca.csv --profile sfda",
+   "exit_code": 1,
+   "values": 1587,
+   "max_rel_diff": 1.755358190594236e-16,
+   "at": "$.tables[2].rows[0].geo_cv_pct",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "nca engine/example_nca.csv --auc-method linup-logdown --partial-auc 0-2 --lloq 0.5",
+   "exit_code": 1,
+   "values": 1688,
+   "max_rel_diff": 2.6391982259281155e-16,
+   "at": "$.tables[2].rows[5].geo_cv_pct",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "nca engine/validation/single_dose.csv --subject-column id",
+   "exit_code": 1,
+   "values": 9118,
+   "max_rel_diff": 2.6271158826346895e-16,
+   "at": "$.tables[2].rows[4].geo_cv_pct",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "nca engine/validation/single_dose.csv --subject-column id --auc-method linup-logdown --truncate-72",
+   "exit_code": 1,
+   "values": 9134,
+   "max_rel_diff": 0,
+   "at": "",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "nca engine/validation/steady_state.csv --subject-column id --tau 12",
+   "exit_code": 0,
+   "values": 1980,
+   "max_rel_diff": 1.3459301362293515e-16,
+   "at": "$.tables[2].rows[4].geo_cv_pct",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be engine/example_partial.csv --design partial --metric cmax --scaling both --abel-justified",
+   "exit_code": 0,
+   "values": 27,
+   "max_rel_diff": 6.948408339687161e-10,
+   "at": "$.tables[0].rows[1].criterion_95_upper_bound",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be engine/example_partial.csv --design partial --metric cmax --profile sfda --scaling abel --abel-justified",
+   "exit_code": 0,
+   "values": 45,
+   "max_rel_diff": 1.1874866775051493e-11,
+   "at": "$.scalars.ci90_high_pct",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be engine/example_partial.csv --design partial --metric cmax --scaling both --abel-justified --potency-test 94 --potency-reference 101 --potency-correction",
+   "exit_code": 0,
+   "values": 56,
+   "max_rel_diff": 4.521068046672835e-10,
+   "at": "$.tables[1].rows[1].criterion_95_upper_bound",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_2x2_AUC.csv --metric auc --anova",
+   "exit_code": 0,
+   "values": 36,
+   "max_rel_diff": 1.1773952447530655e-14,
+   "at": "$.tables[0].rows[0].p",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_2x2_AUC.csv --metric auc --analysis ema --anova --ema-rounding",
+   "exit_code": 0,
+   "values": 36,
+   "max_rel_diff": 1.2496834497152052e-14,
+   "at": "$.scalars.estimate",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_endogenous_2x2_Cmax_baseline.csv --metric cmax --endogenous --profile sfda",
+   "exit_code": 1,
+   "values": 228,
+   "max_rel_diff": 8.072438947271123e-11,
+   "at": "$.tables[1].rows[2].f",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_full_replicate_Cmax.csv --design full --metric cmax --scaling both --abel-justified",
+   "exit_code": 0,
+   "values": 27,
+   "max_rel_diff": 4.62824093169812e-9,
+   "at": "$.tables[0].rows[1].criterion_95_upper_bound",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_multigroup_2x2_Cmax.csv --metric cmax --analysis ema --anova",
+   "exit_code": 0,
+   "values": 50,
+   "max_rel_diff": 3.512191204142407e-14,
+   "at": "$.tables[0].rows[0].f",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_nti_full_replicate_AUC.csv --design full --metric auc --scaling fda-nti",
+   "exit_code": 0,
+   "values": 27,
+   "max_rel_diff": 1.3475880874417035e-16,
+   "at": "$.tables[0].rows[0].cvwr",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_sfda_2x2_Cmax_predose.csv --metric cmax --profile sfda",
+   "exit_code": 0,
+   "values": 39,
+   "max_rel_diff": 3.7561965624122956e-13,
+   "at": "$.tables[1].rows[0].f",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_williams_T_vs_GCC_US.csv --design multi --test-label T --reference-label R_GCC --metric cmax",
+   "exit_code": 0,
+   "values": 10,
+   "max_rel_diff": 1.3913829233511323e-14,
+   "at": "$.scalars.estimate",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_data/study_williams_T_vs_GCC_US.csv --design multi --test-label T --reference-label R_US --metric cmax --profile sfda",
+   "exit_code": 0,
+   "values": 36,
+   "max_rel_diff": 5.574646288493166e-15,
+   "at": "$.tables[0].rows[3].p",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be test_cases/04_parallel.csv --design parallel --welch",
+   "exit_code": 1,
+   "values": 10,
+   "max_rel_diff": 0,
+   "at": "",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be (no input) --power --design partial --cv 0.3 --gmr 0.95",
+   "exit_code": 0,
+   "values": 6,
+   "max_rel_diff": 0,
+   "at": "",
+   "ok": true,
+   "mismatches": []
+  },
+  {
+   "case": "be (no input) --power --design full --cv 0.35 --gmr 0.95 --n 24 --profile sfda",
+   "exit_code": 0,
+   "values": 6,
+   "max_rel_diff": 5.529352155839351e-11,
+   "at": "$.scalars.power",
+   "ok": true,
+   "mismatches": []
+  }
+ ]
+}

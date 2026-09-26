@@ -51,6 +51,15 @@ Steady-state differences, all in S50–S59 (trough sample at 12.05 h) and all by
 
 36 of the 348 profiles have a BLQ value between quantifiable ones. With PKNCA's default (`middle = "drop"`), AUC(0-t) changes in 33 of them, by up to 21.1%. A study analysed with PKNCA defaults would therefore not follow ICH M13A 2.2.2.2 for these profiles unless `conc.blq` is set.
 
+## Browser engine against local Python
+
+```bash
+python -m http.server 8766            # from the repository root
+node engine/validation/browser_parity.mjs http://localhost:8766 python
+```
+
+**Browser engine against local Python** : 20 command lines (5 NCA runs including the 348 single-dose and 60 steady-state validation profiles, 15 BE runs covering every design, framework, scaled criterion, potency correction and power) run through the page's Pyodide worker and through the local engines; 24,146 values compared. Exit codes, text, decisions and table structure are identical; NCA values agree to 2.6 × 10⁻¹⁶ and their SHA-256 fingerprint at 10 significant digits (23,507 values) is equal; the largest BE difference is 4.6 × 10⁻⁹ (relative), in the RSABE upper bound near zero, where Pyodide's SciPy and the local SciPy differ in the last digits. The script exits 1 on any difference above 1 × 10⁻⁸ or a different NCA fingerprint; the result of the last run is in `browser_parity.json`.
+
 ## Not covered
 
 AUC(0-72h) (the random profiles end before 72 h), baseline correction, the emesis and coverage rules (rule logic, tested in `test_nca.py`), and Phoenix WinNonlin.

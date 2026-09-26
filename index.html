@@ -316,8 +316,8 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
             <div class="field" id="analysisField">
               <span class="lbl" data-i18n="f_analysis">نموذج ABE الأساسي</span>
               <div class="seg" id="analysisSeg">
-                <button data-v="contrast" aria-pressed="true" data-i18n="a_contrast">تباينات الأفراد</button>
-                <button data-v="ema" data-i18n="a_ema">EMA ثابت التأثيرات</button>
+                <button data-v="contrast" aria-pressed="true" data-i18n="a_contrast">فروق الأفراد (نهج FDA)</button>
+                <button data-v="ema" data-i18n="a_ema">ANOVA بتأثيرات ثابتة (EMA / الخليجي)</button>
               </div>
             </div>
             <div class="row2">
@@ -429,8 +429,8 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
             <div class="field">
               <span class="lbl" data-i18n="f_analysis">نموذج ABE الأساسي</span>
               <div class="seg" id="pAnalysisSeg">
-                <button data-v="contrast" aria-pressed="true" data-i18n="a_contrast">تباينات الأفراد</button>
-                <button data-v="ema" data-i18n="a_ema">EMA ثابت التأثيرات</button>
+                <button data-v="contrast" aria-pressed="true" data-i18n="a_contrast">فروق الأفراد (نهج FDA)</button>
+                <button data-v="ema" data-i18n="a_ema">ANOVA بتأثيرات ثابتة (EMA / الخليجي)</button>
               </div>
             </div>
             <div class="row2">
@@ -488,7 +488,7 @@ ar:{
  s_data:"البيانات",drop_t:"اسحب ملف CSV هنا أو اضغط للاختيار",drop_s:"الأعمدة: subject, sequence, period, treatment, value",or:"أو",
  load_ex:"تحميل مثال: تصميم جزئي TRR/RTR/RRT (مُحاكى)",
  s_design:"التصميم والنموذج",f_design:"تصميم الدراسة",d_partial:"جزئي 3P",d_full:"كامل 4P",d_auto:"مكرّر (تلقائي)",d_parallel:"متوازي",
- f_analysis:"نموذج ABE الأساسي",a_contrast:"تباينات الأفراد",a_ema:"EMA ثابت التأثيرات",f_metric:"المؤشر الدوائي",f_limits:"حدود القبول",
+ f_analysis:"نموذج ABE الأساسي",a_contrast:"فروق الأفراد (نهج FDA)",a_ema:"ANOVA بتأثيرات ثابتة (EMA / الخليجي)",f_metric:"المؤشر الدوائي",f_limits:"حدود القبول",
  l_std:"80.00–125.00%",l_nti:"NTI 90.00–111.11%",l_custom:"مخصّصة…",f_lo:"الحد الأدنى",f_hi:"الحد الأعلى",
  s_hvd:"الأدوية عالية التباين (HVD)",f_scaling:"المعيار المتدرج",sc_none:"بدون",sc_both:"كلاهما",scaling_hint:"يتطلب تصميمًا مكرّرًا وحدود 80–125%.",
  c_abel:"أُقرّ بوجود مبرر سريري ومواصفة مسبقة في البروتوكول لـ ABEL",c_abel_s:"البرنامج لا يستطيع التحقق من هذه الوثائق — مطلوب لـ ABEL (Cmax فقط).",
@@ -536,7 +536,7 @@ en:{
  s_data:"Data",drop_t:"Drop a CSV here or click to browse",drop_s:"Columns: subject, sequence, period, treatment, value",or:"or",
  load_ex:"Load example: partial replicate TRR/RTR/RRT (simulated)",
  s_design:"Design & model",f_design:"Study design",d_partial:"Partial 3P",d_full:"Full 4P",d_auto:"Replicate (auto)",d_parallel:"Parallel",
- f_analysis:"Primary ABE model",a_contrast:"Subject contrasts",a_ema:"EMA fixed effects",f_metric:"PK metric",f_limits:"Acceptance limits",
+ f_analysis:"Primary ABE model",a_contrast:"Within-subject differences (FDA approach)",a_ema:"Fixed-effects ANOVA (EMA / GCC)",f_metric:"PK metric",f_limits:"Acceptance limits",
  l_std:"80.00–125.00%",l_nti:"NTI 90.00–111.11%",l_custom:"Custom…",f_lo:"Lower",f_hi:"Upper",
  s_hvd:"Highly variable drugs (HVD)",f_scaling:"Scaled criterion",sc_none:"None",sc_both:"Both",scaling_hint:"Requires a replicate design and 80–125% limits.",
  c_abel:"I confirm clinical justification and prospective protocol specification for ABEL",c_abel_s:"The software cannot verify these documents — required for ABEL (Cmax only).",
@@ -656,8 +656,8 @@ const MSG_AR=[
  [/Numerical integration of fixed-limit TOST power/,I18N.ar.p_note],
 ];
 const METHODS={
-ar:`<div class="card"><div class="card-b"><h4>ABE — تحليل التباينات (افتراضي)</h4><p>لكل مشارك: متوسط log(T) − متوسط log(R). التقدير = متوسط متساوي الوزن لمتوسطات التسلسلات، والتباين المشترك للتباينات بدرجات حرية N − m.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>يطابق التحليل العادي لـ 2×2 الكامل.</p></div></div>
-<div class="card"><div class="card-b"><h4>ABE — نموذج EMA ثابت التأثيرات</h4><p>انحدار OLS: فرد + فترة + معالجة (التسلسل مستوعب في الفرد)، تباين متبقٍ مشترك. يُستخدم دائمًا لـ ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
+ar:`<div class="card"><div class="card-b"><h4>ABE — فروق الأفراد (نهج FDA، افتراضي)</h4><p>لكل مشارك: متوسط log(T) − متوسط log(R). التقدير = متوسط متساوي الوزن لمتوسطات التسلسلات، والتباين المشترك للتباينات بدرجات حرية N − m.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>يطابق التحليل العادي لـ 2×2 الكامل.</p></div></div>
+<div class="card"><div class="card-b"><h4>ABE — ANOVA بتأثيرات ثابتة (EMA / الخليجي)</h4><p>انحدار OLS: فرد + فترة + معالجة (التسلسل مستوعب في الفرد)، تباين متبقٍ مشترك. يُستخدم دائمًا لـ ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
 <div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax فقط، مع إقرار بالمبرر السريري.</li><li>التوسيع إذا CVwR &gt; 30%، بحد أقصى CV = 50%.</li><li>قيد التقدير النقطي 80.00–125.00%.</li><li>مقارنة بنسب مئوية مقربة لمنزلتين.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
 <div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>تقدير تباين المرجع من فروق R المرتبة داخل التسلسل، ثم حد أعلى 95% بطريقة Howe:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>يُرفض القرار إذا sWR &lt; 0.294 لأن المسار البديل غير منفّذ.</p></div></div>
 <div class="card"><div class="card-b"><h4>القوة وحجم العينة</h4><p>تكامل عددي على توزيع χ² لقوة TOST بحدود ثابتة. عوامل التباين: 2/N (2×2)، 1.5/N (جزئي)، 1/N (كامل)، 4/N (متوازي).</p></div></div>
@@ -665,8 +665,8 @@ ar:`<div class="card"><div class="card-b"><h4>ABE — تحليل التباين�
 <div class="card"><div class="card-b"><h4>تنسيق البيانات</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>القيم موجبة، لا حذف أو تعويض صامت. يُقبل Test/Ref/Reference للمعالجة.</p></div></div>
 <div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. خارج النطاق: استبعاد القيء، فحص تغطية AUC(0-t) لـ 80%، تصحيح المحتوى، f2 للذوبان، وتصاميم أكثر من مرجع.</p></div></div>
 <div class="card"><div class="card-b"><h4>رموز الخروج</h4><ul><li><b>0</b> — كل المعايير متحققة</li><li><b>1</b> — معيار غير متحقق</li><li><b>2</b> — مدخلات غير صالحة/غير مدعومة</li></ul><p>المراجع: مثال FDA 2011 للبروجستيرون، إرشادات EMA للتكافؤ الحيوي (4.1.8–4.1.10).</p></div></div>`,
-en:`<div class="card"><div class="card-b"><h4>ABE — subject contrasts (default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
-<div class="card"><div class="card-b"><h4>ABE — EMA fixed effects</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
+en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences (FDA approach, default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
+<div class="card"><div class="card-b"><h4>ABE — fixed-effects ANOVA (EMA / GCC)</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
 <div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax only, with acknowledged clinical justification.</li><li>Widening when CVwR &gt; 30%, capped at CV = 50%.</li><li>80.00–125.00% point-estimate constraint.</li><li>CI compared as percentages rounded to 2 decimals.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
 <div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>Reference variance from ordered R differences centred within sequence, then Howe's 95% upper bound:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>Rejected when sWR &lt; 0.294, because the unscaled fallback is not implemented.</p></div></div>
 <div class="card"><div class="card-b"><h4>Power & sample size</h4><p>Numerical integration over χ² for fixed-limit TOST power. Variance factors: 2/N (2×2), 1.5/N (partial), 1/N (full), 4/N (parallel).</p></div></div>

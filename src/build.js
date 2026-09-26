@@ -7,7 +7,7 @@ const read=f=>fs.readFileSync(p.join(eng,f),'utf8').replace(/\r\n/g,'\n');
 // MIT licence notice carried by every embedded engine file (the page can be saved and shared on its own)
 const NOTICE='# Bioequivalence Lab - https://bioequivalence-lab.vercel.app\n'+
   '# Copyright (c) 2025 K-Dense Inc. (original pkpd-modeling scripts, https://github.com/K-Dense-AI/scientific-agent-skills)\n'+
-  '# Copyright (c) 2026 Aymn74 (corrected engines)\n'+
+  '# Copyright (c) 2026 Ayman Mohammed ALQasem (Aymn74) (corrected engines)\n'+
   '# MIT License: permission is granted free of charge to use, copy, modify, merge, publish, distribute, sublicense and/or\n'+
   '# sell copies, provided this notice is included. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Full text: LICENSE\n';
 const py=f=>()=>esc(NOTICE+read(f));

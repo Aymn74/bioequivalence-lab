@@ -15,7 +15,9 @@ license: MIT
 url: "https://bioequivalence-lab.vercel.app"
 repository-code: "https://github.com/Aymn74/bioequivalence-lab"
 authors:
-  - alias: Aymn74
+  - given-names: "Ayman Mohammed"
+    family-names: "ALQasem"
+    alias: Aymn74
 keywords:
   - bioequivalence
   - non-compartmental analysis

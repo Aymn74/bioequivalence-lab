@@ -236,7 +236,7 @@ A review of 26 September 2026 (engines, regulatory citations, UI, NCA → BE int
 
 ## Citation
 
-See [`CITATION.cff`](CITATION.cff). Suggested: *Aymn74. Bioequivalence Lab (version 1.0.0) [software]. 2026. https://bioequivalence-lab.vercel.app*. Please also cite the methods it reproduces (ICH M13A; EMA CPMP/EWP/QWP/1401/98 Rev.1; FDA Statistical Approaches to Establishing Bioequivalence; SFDA DS-G-010 V3.1) and the validation references (PKNCA; replicateBE).
+See [`CITATION.cff`](CITATION.cff). Suggested: *ALQasem, Ayman Mohammed. Bioequivalence Lab (version 1.0.0) [software]. 2026. https://bioequivalence-lab.vercel.app*. Please also cite the methods it reproduces (ICH M13A; EMA CPMP/EWP/QWP/1401/98 Rev.1; FDA Statistical Approaches to Establishing Bioequivalence; SFDA DS-G-010 V3.1) and the validation references (PKNCA; replicateBE).
 
 ## License
 

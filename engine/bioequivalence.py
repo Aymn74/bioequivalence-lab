@@ -17,6 +17,7 @@ from _common import InputError, Report, read_table, require_columns, add_format_
 DESIGNS = {'2x2': ('TR', 'RT'), 'partial': ('TRR', 'RTR', 'RRT'), 'full': ('TRTR', 'RTRT')}
 THETA_FDA = (math.log(1.25)/0.25)**2
 SFDA_MIN_SUBJECTS = 18
+ICH_MIN_SUBJECTS = 12  # ICH M13A: crossover, or per arm in a parallel design
 
 @dataclass
 class AverageBE:
@@ -202,16 +203,19 @@ def anova_table(records, design):
     rows.append(dict(source='total (corrected)',df=n-1,ss=float(np.sum((y-y.mean())**2)),ms=None,f=None,p=None))
     return rows
 
-def low_reference_auc(records):
-    """GCC/SFDA guideline exception: a reference AUC below 5% of the reference
-    geometric mean (computed without that subject). Flagged, never excluded
-    automatically: exclusion is exceptional and must be pre-specified."""
-    ref=[r for r in records if r['treatment']=='R']; out=[]
-    for r in ref:
-        others=[x['logvalue'] for x in ref if x['subject']!=r['subject']]
-        if not others: continue
-        gm=math.exp(float(np.mean(others)))
-        if r['value']<0.05*gm: out.append(dict(subject=r['subject'],period=r['period'],reference_auc=r['value'],reference_gm=gm,pct_of_gm=100*r['value']/gm))
+def low_auc(records, treatments=('R',)):
+    """Exceptional exclusion: a period AUC below 5% of the geometric mean AUC of the
+    same product, computed without that subject. GCC/SFDA and EMA: reference only;
+    ICH M13A: test or comparator. Flagged, never excluded automatically:
+    exclusion is exceptional and must be pre-specified."""
+    out=[]
+    for tr in treatments:
+        same=[r for r in records if r['treatment']==tr]
+        for r in same:
+            others=[x['logvalue'] for x in same if x['subject']!=r['subject']]
+            if not others: continue
+            gm=math.exp(float(np.mean(others)))
+            if r['value']<0.05*gm: out.append(dict(subject=r['subject'],period=r['period'],treatment=tr,auc=r['value'],product_gm=gm,pct_of_gm=100*r['value']/gm))
     return out
 
 def predose_screen(records, design):
@@ -387,6 +391,7 @@ def build_parser():
     p.add_argument('--ci-level',type=float,default=90.0,help='confidence level in percent, e.g. 94.12 for a pre-specified two-stage design')
     p.add_argument('--anova',action='store_true',help='add the fixed-effects ANOVA table (always on with --profile sfda)')
     p.add_argument('--predose-column',default='predose'); p.add_argument('--cmax-column',default='',help='Cmax column for the pre-dose check when the analysed value is not Cmax')
+    p.add_argument('--multiple-dose',action='store_true',help='steady-state (multiple-dose) study: the single-dose pre-dose > 5%% of Cmax rule does not apply')
     p.add_argument('--endogenous',action='store_true',help='endogenous substance: requires baseline correction (see --baseline-column / --baseline-corrected); skips the pre-dose exclusion rule')
     p.add_argument('--baseline-column',default=None,help='mean pre-dose endogenous concentration per subject and period')
     p.add_argument('--baseline-auc-column',default=None,help='pre-dose (baseline) AUC over the same interval, for AUC metrics')
@@ -406,11 +411,12 @@ def apply_profile(a):
     """Resolve defaults and enforce the GCC/SFDA guideline (DS-G-010 V3.1) under --profile sfda."""
     if not 50<a.ci_level<100: raise InputError('--ci-level must be between 50 and 100')
     if a.profile!='sfda':
-        a.analysis=a.analysis or 'contrast'; a.predose_check=False; return
+        # ICH M13A 2.2.3.3: in single-dose studies exclude a period with pre-dose > 5% of Cmax.
+        a.analysis=a.analysis or 'contrast'; a.predose_check=not (a.endogenous or a.multiple_dose); return
     if a.analysis=='contrast': raise InputError('SFDA profile: the guideline requires a fixed-effects ANOVA (sequence, subject within sequence, period, formulation); use --analysis ema or omit it')
     if a.scaling in ('rsabe','both'): raise InputError('SFDA profile: reference-scaled ABE (RSABE) is not an SFDA method; the guideline provides ABEL (widened limits for Cmax) only')
     if a.welch: raise InputError('SFDA profile: the guideline requires the ANOVA model; Welch is not provided for')
-    a.analysis='ema'; a.ema_rounding=True; a.anova=True; a.predose_check=not a.endogenous
+    a.analysis='ema'; a.ema_rounding=True; a.anova=True; a.predose_check=not (a.endogenous or a.multiple_dose)
 
 def run(argv=None):
     a=build_parser().parse_args(argv); report=Report(); apply_profile(a)
@@ -423,12 +429,14 @@ def run(argv=None):
         # The SFDA profile turns CI rounding on for analyses; prospective power ignores rounding (see README).
         if a.scaling!='none' or a.welch or (a.ema_rounding and a.profile!='sfda'): raise InputError('power supports unrounded fixed-limit ABE with equal variances only; no ABEL/RSABE/Welch power')
         if a.cv is None: raise InputError('--power requires --cv')
-        min_n=SFDA_MIN_SUBJECTS if a.profile=='sfda' else 0
-        if a.n is not None and a.n<min_n: raise InputError(f'SFDA profile: at least {min_n} evaluable subjects are required')
+        if a.profile=='sfda': min_n,who=SFDA_MIN_SUBJECTS,'SFDA profile'
+        else: min_n,who=(2*ICH_MIN_SUBJECTS if a.design=='parallel' else ICH_MIN_SUBJECTS),'ICH M13A'
+        if a.n is not None and a.n<min_n: raise InputError(f'{who}: at least {min_n} evaluable subjects are required'+(' (12 per arm)' if who=='ICH M13A' and a.design=='parallel' else ''))
         n,p=(a.n,tost_power(a.n,a.cv,a.gmr,a.design,limits,a.analysis)) if a.n is not None else sample_size(a.cv,a.gmr,a.target_power,a.design,limits,a.analysis,min_n)
         report.scalar('n_total',n); report.scalar('power',p); report.scalar('design',a.design); report.scalar('analysis',a.analysis)
         report.scalar('assumed_cv',a.cv); report.scalar('assumed_gmr',a.gmr); report.scalar('limits',limits); report.scalar('profile',a.profile)
         if a.profile=='sfda': report.note(f'SFDA profile: fixed-effects ANOVA degrees of freedom; minimum {SFDA_MIN_SUBJECTS} evaluable subjects (24 generally recommended). Plan for drop-outs separately.')
+        else: report.note(f'ICH M13A: minimum {ICH_MIN_SUBJECTS} evaluable subjects'+(' per arm' if a.design=='parallel' else '')+'; the sample-size search starts there. Plan for drop-outs separately.')
         report.note('Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. Parallel CV is between-subject. No dropout allowance.')
         return report.emit(a.format)
     if not a.input: raise InputError('provide --input or --power')
@@ -462,19 +470,24 @@ def run(argv=None):
     if a.ci_level!=90: report.note(f'{a.ci_level:g}% confidence interval (the ci90_* fields hold this interval). Adjusted levels are for a pre-specified two-stage design.')
     if excluded:
         report.table('pre-dose exclusions',excluded)
-        report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (GCC/SFDA BE guideline, carry-over).')
+        report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (ICH M13A 2.2.3.3; EMA and GCC/SFDA guidelines, carry-over).')
     if a.predose_check and any('predose' in r for r in records):
-        report.note('Pre-dose rule applied as for single-dose studies. Do not supply a pre-dose column for steady-state (multiple-dose) studies, where pre-dose concentrations are expected.')
+        report.note('Pre-dose rule applied as for single-dose studies. For steady-state (multiple-dose) studies use --multiple-dose, because pre-dose concentrations are expected there.')
     if a.anova:
         at=anova_table(records,design); report.table('anova',at)
         res=next(r for r in at if r['source']=='residual')
         if design!='parallel': report.scalar('cv_intra_pct',100*math.sqrt(math.expm1(res['ms'])))
+    if 'auc' in (a.metric or '').lower():
+        low=low_auc(records,('R',) if a.profile=='sfda' else ('T','R'))
+        if low:
+            report.table('low AUC',low)
+            report.note(('Reference' if a.profile=='sfda' else 'Test or reference')+' AUC < 5% of that product\'s geometric mean: listed only. The guidelines allow exclusion in exceptional cases, pre-specified in the protocol; this program does not exclude them.')
+    if a.profile!='sfda':
+        if design=='parallel':
+            arms={tr:sum(r['treatment']==tr for r in records) for tr in ('T','R')}
+            if min(arms.values())<ICH_MIN_SUBJECTS: report.finding(f"ICH M13A: {arms['T']} test / {arms['R']} reference evaluable subjects; at least {ICH_MIN_SUBJECTS} per arm are required")
+        elif result.n_subjects<ICH_MIN_SUBJECTS: report.finding(f'ICH M13A: {result.n_subjects} evaluable subjects; at least {ICH_MIN_SUBJECTS} are required for a crossover study')
     if a.profile=='sfda':
-        if 'auc' in (a.metric or '').lower():
-            low=low_reference_auc(records)
-            if low:
-                report.table('low reference AUC',low)
-                report.note('Reference AUC < 5% of the reference geometric mean: listed only. The guideline allows exclusion in exceptional cases, pre-specified in the protocol; this program does not exclude them.')
         if result.n_subjects<SFDA_MIN_SUBJECTS: report.finding(f'SFDA: {result.n_subjects} evaluable subjects; the guideline requires at least {SFDA_MIN_SUBJECTS}')
         report.note('SFDA profile (GCC BE guideline DS-G-010 V3.1): fixed-effects ANOVA, CI bounds rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 evaluable subjects, pre-dose > 5% of Cmax exclusion'+(' (skipped: endogenous)' if a.endogenous else '')+'.')
     rows=[]

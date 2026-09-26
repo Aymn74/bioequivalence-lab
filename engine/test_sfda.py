@@ -195,11 +195,11 @@ class ExclusionFlagTests(unittest.TestCase):
         rows = fixture('2x2', [10, 10])
         low = next(r for r in rows if r['treatment'] == 'R'); low['value'] = 1e-3; low['logvalue'] = math.log(1e-3)
         code, p, err = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--profile', 'sfda')
-        flagged = table(p, 'low reference AUC')
+        flagged = table(p, 'low AUC')
         self.assertEqual([f['subject'] for f in flagged], [low['subject']])
         self.assertEqual(p['scalars']['n_subjects'], 20)  # not excluded
         code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'cmax', '--profile', 'sfda')
-        self.assertFalse(any(t['title'] == 'low reference AUC' for t in p['tables']))
+        self.assertFalse(any(t['title'] == 'low AUC' for t in p['tables']))
 
     def test_endogenous_and_predose_notes(self):
         rows = fixture('2x2', [10, 10])
@@ -208,6 +208,53 @@ class ExclusionFlagTests(unittest.TestCase):
         self.assertTrue(any('single-dose' in n for n in p['notes']))
         _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--endogenous', '--baseline-corrected', extra=('predose',))
         self.assertTrue(any('already baseline-corrected' in n for n in p['notes']))
+
+
+class IchM13aTests(unittest.TestCase):
+    """Default (ICH M13A / EMA / FDA) framework: minimum 12 evaluable subjects,
+    pre-dose > 5% of Cmax exclusion (single dose), low-AUC flag for T and R."""
+    def test_minimum_12_crossover(self):
+        code, p, _ = run_cli(fixture('2x2', [5, 5], cv=.05), '--design', '2x2')
+        self.assertEqual(code, 1); self.assertTrue(any('at least 12' in f for f in p['findings']))
+        code, p, _ = run_cli(fixture('2x2', [6, 6], cv=.05), '--design', '2x2')
+        self.assertFalse(any('at least 12' in f for f in p['findings']))
+
+    def test_minimum_12_per_arm_parallel(self):
+        rng = np.random.default_rng(1)
+        rows = [dict(subject=f'P{i}', treatment=tr, value=math.exp(rng.normal(4, .05))) for i, tr in enumerate('T' * 11 + 'R' * 14)]
+        code, p, _ = run_cli(rows, '--design', 'parallel')
+        self.assertEqual(code, 1); self.assertTrue(any('per arm' in f for f in p['findings']))
+
+    def test_predose_rule_and_multiple_dose(self):
+        rows = fixture('2x2', [12, 12])
+        for r in rows: r['predose'] = 0.0
+        bad = next(r for r in rows if r['period'] == '2'); bad['predose'] = 0.06 * bad['value']
+        _, p, _ = run_cli(rows, '--design', '2x2', extra=('predose',))
+        self.assertEqual(p['scalars']['n_subjects'], 23)
+        self.assertTrue(any('ICH M13A' in n for n in p['notes']))
+        _, p, _ = run_cli(rows, '--design', '2x2', '--multiple-dose', extra=('predose',))
+        self.assertEqual(p['scalars']['n_subjects'], 24)
+        _, p, _ = run_cli(rows, '--design', '2x2', '--profile', 'sfda', '--multiple-dose', extra=('predose',))
+        self.assertEqual(p['scalars']['n_subjects'], 24)
+
+    def test_low_auc_covers_test_under_ich_reference_only_under_sfda(self):
+        rows = fixture('2x2', [10, 10])
+        low = next(r for r in rows if r['treatment'] == 'T'); low['value'] = 1e-3; low['logvalue'] = math.log(1e-3)
+        _, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'auc')
+        self.assertEqual([(f['subject'], f['treatment']) for f in table(p, 'low AUC')], [(low['subject'], 'T')])
+        _, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--profile', 'sfda')
+        self.assertFalse(any(t['title'] == 'low AUC' for t in p['tables']))
+
+    def test_power_floor_12(self):
+        out = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(io.StringIO()):
+            b.run(['--power', '--cv', '.10', '--gmr', '.97', '--format', 'json'])
+        self.assertEqual(json.loads(out.getvalue())['scalars']['n_total'], 12)
+        with self.assertRaises(b.InputError): b.run(['--power', '--cv', '.2', '--n', '10'])
+        out = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(io.StringIO()):
+            b.run(['--power', '--design', 'parallel', '--cv', '.05', '--gmr', '.97', '--format', 'json'])
+        self.assertEqual(json.loads(out.getvalue())['scalars']['n_total'], 24)
 
 
 def endogenous_rows(added_t=35.0, added_r=50.0, baseline=100.0, n=12, seed=9):

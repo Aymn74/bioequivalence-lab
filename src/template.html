@@ -299,7 +299,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <button data-v="none" aria-pressed="true" data-i18n="pr_none">ICH M13A · EMA · FDA</button>
                 <button data-v="sfda" data-i18n="pr_sfda">SFDA / الخليجي</button>
               </div>
-              <div class="profile-note on" id="profileNoteIch" data-i18n="pr_note_ich">ABE وفق ICH M13A (الدليل المنسّق دوليًا، ساري منذ يناير 2025) كما في المستودع الأصلي K-Dense، مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA. المعايير المتدرجة لم تُنسَّق دوليًا بعد (ICH M13C).</div>
+              <div class="profile-note on" id="profileNoteIch" data-i18n="pr_note_ich">ABE وفق ICH M13A (الدليل المنسّق دوليًا) كما في المستودع الأصلي K-Dense: حد أدنى 12 مشاركًا قابلًا للتقييم (12 لكل ذراع في المتوازي)، واستبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax. مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA؛ لم تُنسَّق دوليًا بعد (ICH M13C).</div>
               <div class="profile-note" id="profileNote" data-i18n="pr_note">يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة &gt; 5% من Cmax.</div>
             </div>
             <div class="field">
@@ -382,6 +382,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <div class="field"><label>predose <small style="color:var(--muted)" data-i18n="opt">(اختياري، جرعة مفردة)</small></label><select id="colPredose"></select></div>
                 <div class="field"><label>cmax <small style="color:var(--muted)" data-i18n="opt_cmax">(لفحص ما قبل الجرعة)</small></label><select id="colCmax"></select></div>
               </div>
+              <label class="check"><input type="checkbox" id="multiDose"><span><span data-i18n="c_multi">دراسة متعددة الجرعات (حالة مستقرة)</span><small data-i18n="c_multi_s">قاعدة ما قبل الجرعة 5% لا تنطبق عليها.</small></span></label>
 
             </details>
           </div>
@@ -513,15 +514,15 @@ ar:{
  foot:"المحرك: bioequivalence.py (النسخة المصححة) عبر Pyodide · جميع الحسابات محلية في متصفحك",
  loaded:"تم تحميل الملف",
  f_profile:"الإطار التنظيمي",pr_none:"ICH M13A · EMA · FDA",
- pr_note_ich:"ABE وفق ICH M13A (الدليل المنسّق دوليًا، ساري منذ يناير 2025) كما في المستودع الأصلي K-Dense، مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA. المعايير المتدرجة لم تُنسَّق دوليًا بعد (ICH M13C).",pr_sfda:"SFDA / الخليجي",
+ pr_note_ich:"ABE وفق ICH M13A (الدليل المنسّق دوليًا) كما في المستودع الأصلي K-Dense: حد أدنى 12 مشاركًا قابلًا للتقييم (12 لكل ذراع في المتوازي)، واستبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax. مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA؛ لم تُنسَّق دوليًا بعد (ICH M13C).",pr_sfda:"SFDA / الخليجي",
  pr_note:"يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة > 5% من Cmax.",
  f_cilevel:"مستوى فترة الثقة",cl_90:"90% (قياسي)",cl_94:"94.12% (تصميم على مرحلتين، محدد مسبقًا)",
- opt:"(اختياري، جرعة مفردة)",opt_cmax:"(لفحص ما قبل الجرعة)",c_endo:"مادة داخلية المنشأ (هرمونات، بوتاسيوم، حديد…)",c_endo_s:"موجودة طبيعيًا في الجسم: يلزم تصحيح خط الأساس قبل التحليل.",
+ opt:"(اختياري، جرعة مفردة)",opt_cmax:"(لفحص ما قبل الجرعة)",c_multi:"دراسة متعددة الجرعات (حالة مستقرة)",c_multi_s:"قاعدة ما قبل الجرعة 5% لا تنطبق عليها.",c_endo:"مادة داخلية المنشأ (هرمونات، بوتاسيوم، حديد…)",c_endo_s:"موجودة طبيعيًا في الجسم: يلزم تصحيح خط الأساس قبل التحليل.",
  f_base:"عمود خط الأساس (تركيز)",f_base_auc:"عمود مساحة خط الأساس",f_auc_h:"مدة AUC بالساعات (خط الأساس × الساعات)",
  c_base_ok:"القيم مصححة مسبقًا، أو البروتوكول يبرر عدم التصحيح",c_base_ok_s:"بديل عن عمود خط الأساس؛ لا يستطيع البرنامج التحقق منه.",
  endo_hint:"يطرح البرنامج خط الأساس من كل قيمة (الطريقة المفضلة في الدليل الخليجي 3.1.5). بدون عمود خط أساس أو تأكيد، لن يُجرى التحليل.",
  base_t:"تصحيح خط الأساس",base_rows:"عرض القيم قبل التصحيح وبعده",base_min:"أقل نسبة متبقية بعد الطرح",
- anova_t:"جدول تحليل التباين ANOVA (تأثيرات ثابتة)",a_src:"المصدر",cv_intra:"CV داخل الفرد",excl_t:"استبعادات ما قبل الجرعة (> 5% من Cmax)",lowauc_t:"مساحة مرجع منخفضة جدًا (< 5% من المتوسط الهندسي) — للعرض فقط",
+ anova_t:"جدول تحليل التباين ANOVA (تأثيرات ثابتة)",a_src:"المصدر",cv_intra:"CV داخل الفرد",excl_t:"استبعادات ما قبل الجرعة (> 5% من Cmax)",lowauc_t:"مساحة منخفضة جدًا (< 5% من المتوسط الهندسي للمستحضر نفسه) — للعرض فقط",
  k_ci_lvl:"فترة الثقة",sfda_badge:"SFDA",err_read:"تعذّرت قراءة الملف",ex_loaded:"تم تحميل بيانات المثال",
 },
 en:{
@@ -561,15 +562,15 @@ en:{
  foot:"Engine: bioequivalence.py (corrected) via Pyodide · all computation runs locally in your browser",
  loaded:"File loaded",
  f_profile:"Regulatory framework",pr_none:"ICH M13A · EMA · FDA",
- pr_note_ich:"Average BE per ICH M13A (the harmonised guideline, in effect since January 2025), as in the original K-Dense repository, with two regional options for highly variable drugs: ABEL from the EMA guideline and RSABE from the FDA. Scaled criteria are not yet harmonised (ICH M13C).",pr_sfda:"SFDA / GCC",
+ pr_note_ich:"Average BE per ICH M13A (the harmonised guideline), as in the original K-Dense repository: at least 12 evaluable subjects (12 per arm in a parallel design) and exclusion of a period whose pre-dose concentration exceeds 5% of Cmax. Two regional options for highly variable drugs: ABEL from the EMA guideline and RSABE from the FDA; not yet harmonised (ICH M13C).",pr_sfda:"SFDA / GCC",
  pr_note:"Applies the GCC bioequivalence guideline DS-G-010 V3.1: fixed-effects ANOVA, limits rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 subjects, and exclusion of pre-dose concentrations > 5% of Cmax.",
  f_cilevel:"Confidence level",cl_90:"90% (standard)",cl_94:"94.12% (two-stage, pre-specified)",
- opt:"(optional, single dose)",opt_cmax:"(for pre-dose check)",c_endo:"Endogenous substance (hormones, potassium, iron…)",c_endo_s:"Naturally present in the body: baseline correction is required before analysis.",
+ opt:"(optional, single dose)",opt_cmax:"(for pre-dose check)",c_multi:"Multiple-dose (steady-state) study",c_multi_s:"The 5% pre-dose rule does not apply.",c_endo:"Endogenous substance (hormones, potassium, iron…)",c_endo_s:"Naturally present in the body: baseline correction is required before analysis.",
  f_base:"Baseline column (concentration)",f_base_auc:"Baseline AUC column",f_auc_h:"AUC interval in hours (baseline × hours)",
  c_base_ok:"Values already corrected, or the protocol justifies no correction",c_base_ok_s:"Alternative to a baseline column; the program cannot verify it.",
  endo_hint:"The program subtracts the baseline from each value (the preferred method in GCC guideline 3.1.5). Without a baseline column or confirmation, the analysis will not run.",
  base_t:"Baseline correction",base_rows:"Show values before and after correction",base_min:"lowest share remaining after subtraction",
- anova_t:"ANOVA table (fixed effects)",a_src:"Source",cv_intra:"Intra-subject CV",excl_t:"Pre-dose exclusions (> 5% of Cmax)",lowauc_t:"Very low reference AUC (< 5% of GM) — listed only",
+ anova_t:"ANOVA table (fixed effects)",a_src:"Source",cv_intra:"Intra-subject CV",excl_t:"Pre-dose exclusions (> 5% of Cmax)",lowauc_t:"Very low AUC (< 5% of the same product's GM) — listed only",
  k_ci_lvl:"confidence interval",sfda_badge:"SFDA",err_read:"Could not read file",ex_loaded:"Example data loaded",
 }};
 /* Arabic translations of known engine messages (English original is always shown too) */
@@ -651,6 +652,12 @@ const MSG_AR=[
  [/: missing$/," قيمة مفقودة."],
  [/is not a number|: not a number/,"قيمة ليست رقمًا."],
  [/must be greater than zero/,"القيمة يجب أن تكون أكبر من صفر."],
+ [/ICH M13A: \d+ evaluable subjects; at least 12 are required/,"ICH M13A: عدد المشاركين القابلين للتقييم أقل من 12، وهو الحد الأدنى للدراسة التبادلية."],
+ [/ICH M13A: \d+ test \/ \d+ reference evaluable subjects/,"ICH M13A: يلزم 12 مشاركًا قابلًا للتقييم على الأقل في كل ذراع من الدراسة المتوازية."],
+ [/ICH M13A: at least \d+ evaluable subjects are required/,"ICH M13A: يلزم 12 مشاركًا قابلًا للتقييم على الأقل (12 لكل ذراع في التصميم المتوازي)."],
+ [/ICH M13A: minimum 12 evaluable subjects/,"ICH M13A: الحد الأدنى 12 مشاركًا قابلًا للتقييم (لكل ذراع في المتوازي)، ويبدأ البحث عن حجم العينة منه. خطّط للانسحابات بشكل منفصل."],
+ [/AUC < 5% of that product's geometric mean/,"مساحة أقل من 5% من المتوسط الهندسي للمستحضر نفسه: للعرض فقط. تسمح الأدلة بالاستبعاد في حالات استثنائية محددة مسبقًا في البروتوكول، والبرنامج لا يستبعدها."],
+ [/For steady-state \(multiple-dose\) studies use --multiple-dose/,"طُبّقت قاعدة ما قبل الجرعة كما في الدراسات أحادية الجرعة. لدراسات الحالة المستقرة (متعددة الجرعات) فعّل خيار «دراسة متعددة الجرعات»."],
  [/Research implementation, not regulatory certification/,"تنفيذ بحثي وليس اعتمادًا تنظيميًا. تصاميم قياسية كاملة فقط؛ راجع README للافتراضات والحالات غير المدعومة والمراجع."],
  [/NTI flag changes fixed limits only/,"خيار NTI يغيّر الحدود الثابتة فقط، ولا ينفّذ منهجية FDA للأدوية ضيقة المؤشر العلاجي."],
  [/Numerical integration of fixed-limit TOST power/,I18N.ar.p_note],
@@ -892,6 +899,7 @@ $('#runBtn').onclick=async()=>{
         if(/auc/.test($('#metric').value)&&$('#aucHours').value)argv.push('--auc-hours',$('#aucHours').value);}}
     if($('#ciLevel').value!=='90')argv.push('--ci-level',$('#ciLevel').value);
     if($('#colPredose').value)argv.push('--predose-column',$('#colPredose').value);
+    if($('#multiDose').checked)argv.push('--multiple-dose');
     if($('#colCmax').value&&$('#metric').value!=='cmax')argv.push('--cmax-column',$('#colCmax').value);
     const r=await cli(argv); r.argv=argv; S.last=r; renderResult(r);
   }catch(e){S.last={code:2,stdout:'',stderr:'error: '+e.message,argv:[]};renderResult(S.last);}
@@ -948,8 +956,8 @@ function renderResult(r){
   if(ex)h+=`<div class="section-t">${t('excl_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>pre-dose</th><th>Cmax</th><th>%</th></tr></thead><tbody>${ex.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.predose)}</td><td>${fmtN(x.cmax)}</td><td>${x.ratio_pct.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const bc=(j.tables||[]).find(x=>x.title==='baseline correction');
   if(bc){const mn=Math.min(...bc.rows.map(x=>x.pct_remaining));h+=`<div class="section-t">${t('base_t')}</div><div class="hint" style="margin-bottom:6px">${esc(s.baseline_correction||'')} · ${t('base_min')}: <span class="num">${mn.toFixed(1)}%</span></div><details><summary class="hint" style="cursor:pointer">${t('base_rows')} (${bc.rows.length})</summary><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>before</th><th>baseline</th><th>after</th><th>%</th></tr></thead><tbody>${bc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.uncorrected)}</td><td>${fmtN(x.subtracted)}</td><td>${fmtN(x.corrected)}</td><td>${x.pct_remaining.toFixed(1)}</td></tr>`).join('')}</tbody></table></div></details>`;}
-  const la=(j.tables||[]).find(x=>x.title==='low reference AUC');
-  if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>AUC (R)</th><th>GM (R)</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.reference_auc)}</td><td>${fmtN(x.reference_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
+  const la=(j.tables||[]).find(x=>x.title==='low AUC');
+  if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>AUC</th><th>GM</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.auc)}</td><td>${fmtN(x.product_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const an=(j.tables||[]).find(x=>x.title==='anova');
   if(an)h+=`<div class="section-t">${t('anova_t')}${s.cv_intra_pct!=null?` · ${t('cv_intra')} <span class="num">${s.cv_intra_pct.toFixed(2)}%</span>`:''}</div><div class="tbl-wrap" style="max-height:none"><table class="anova"><thead><tr><th>${t('a_src')}</th><th>df</th><th>SS</th><th>MS</th><th>F</th><th>p</th></tr></thead><tbody>${an.rows.map(x=>`<tr class="${x.source==='formulation'?'form':x.source.startsWith('total')?'tot':''}"><td>${esc(x.source)}</td><td>${x.df}</td><td>${fmtN(x.ss)}</td><td>${fmtN(x.ms)}</td><td>${x.f==null?'':fmtN(x.f)}</td><td>${x.p==null?'':fmtP(x.p)}</td></tr>`).join('')}</tbody></table></div>`;
   if(j.findings.length)h+=`<div class="section-t">${t('findings')}</div><ul class="list">${j.findings.map(m=>msgLi(m,'f')).join('')}</ul>`;

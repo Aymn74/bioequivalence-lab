@@ -27,9 +27,9 @@ Reviewed against the full text of each document (September 2026). "—" = the do
 | **Rounding to 2 decimals** | not stated | ≥ 80.00 / ≤ 125.00 after rounding | rounded CI ≥ 80.00 and ≤ 125.00 | as EMA | ICH framework: optional · SFDA: always |
 | **Model, crossover** | "appropriate parametric method, e.g. general linear model or mixed model" | ANOVA, **fixed** effects: sequence, subject(sequence), period, formulation | replicate designs: "mixed-effects or two-stage linear model" | as EMA (same wording) | *Within-subject differences (FDA)* = two-stage model; *Fixed-effects ANOVA (EMA / GCC)*; SFDA forces ANOVA |
 | **ANOVA / effect tables in report** | required (sequence, subject(sequence), period, formulation) | required | *not reviewed* | required | `--anova`; always under SFDA |
-| **Minimum evaluable subjects** | 12 (crossover); 12 per arm (parallel) | 12 | *not reviewed* | **18** (24 recommended) | SFDA: 18 enforced · ICH framework: **not enforced** |
-| **Pre-dose > 5% of Cmax** (single dose) | exclude that period | exclude | *not reviewed* | exclude | SFDA only (optional `predose` column) · **not applied in ICH framework** |
-| **Very low AUC (< 5% of GM)** | exceptional exclusion, **test or comparator** period | exceptional, **reference** only | *not reviewed* | as EMA (reference) | SFDA: reference AUC flagged, never excluded |
+| **Minimum evaluable subjects** | 12 (crossover); 12 per arm (parallel) | 12 | *not reviewed* | **18** (24 recommended) | SFDA: 18 · ICH framework: 12 (12 per arm, parallel); finding if fewer; power search starts there |
+| **Pre-dose > 5% of Cmax** (single dose) | exclude that period | exclude | *not reviewed* | exclude | both frameworks (optional `predose` column); `--multiple-dose` / endogenous skip it |
+| **Very low AUC (< 5% of GM)** | exceptional exclusion, **test or comparator** period | exceptional, **reference** only | *not reviewed* | as EMA (reference) | flagged, never excluded: T and R (ICH framework), R only (SFDA) |
 | **Carry-over test** | not relevant | not relevant | *not reviewed* | not relevant | not performed |
 | **Potency / assay-content correction** | batches within 5%; exceptional pre-specified correction, report **both** uncorrected and corrected | exceptional, pre-specified | *not reviewed* | as EMA | not implemented |
 | **Endogenous substances** | pre-specified, period-specific baseline correction; negative concentrations set to 0; analyse **both** corrected and uncorrected, decide on corrected | baseline correction, subtractive method preferred | *not reviewed* | as EMA | `--endogenous`: subtraction of a baseline column, or explicit confirmation; parameter ≤ 0 → error |
@@ -42,7 +42,7 @@ Reviewed against the full text of each document (September 2026). "—" = the do
 
 **Why they differ.** ICH M13A (2024) harmonises only the basics of average BE for immediate-release oral products and explicitly defers highly variable drugs, NTI drugs and adaptive designs to M13C; until then each region keeps its own method. The GCC guideline V3.1 (2022) predates M13A and reproduces the EMA guideline almost word for word, adding stricter regional requirements (minimum 18 subjects, subject selection criteria). The FDA follows a different statistical tradition: mixed-effects or two-stage models for replicate designs and reference scaling (RSABE) for both highly variable and NTI drugs. We found no evidence that the SFDA has adopted M13A.
 
-**Gaps in this app that the table reveals:** in the *ICH M13A · EMA · FDA* framework the minimum of 12 subjects and the pre-dose > 5% rule are not applied (both are M13A / EMA requirements); M13A's low-AUC exception also covers the test product; the FDA NTI method and multiple-comparator studies are not implemented.
+**Remaining gaps in this app:** the FDA NTI method (full replicate, reference scaling, σWT/σWR ≤ 2.5), multiple-comparator studies, multi-group models, potency correction and M13A's parallel analysis of baseline-uncorrected data for endogenous substances (possible manually with the confirmation option). The minimum-12 rule, the pre-dose rule and the test-product low-AUC flag of M13A were added to the ICH framework after this review.
 
 Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/download) · [EMA CPMP/EWP/QWP/1401/98 Rev.1](https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf) · [FDA Statistical Approaches to Establishing BE (May 2026)](https://www.fda.gov/media/163638/download) · [GCC DS-G-010 V3.1](https://www.sfda.gov.sa/sites/default/files/2022-08/GCC_Guidelines_Bioequivalence31_0.pdf)
 
@@ -56,7 +56,7 @@ Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/dow
 - **ضيقة المؤشر:** الأوروبي والخليجي يضيّقان الحدود إلى 90.00–111.11%؛ FDA يطلب تصميمًا مكرّرًا كاملًا مع معيار متدرج وحدود 80–125 ومقارنة تباين الاختبار بالمرجع (≤ 2.5).
 - **المواد داخلية المنشأ:** الجميع يشترط تصحيح خط الأساس؛ ICH M13A يطلب التحليل بالقيم المصححة وغير المصححة معًا.
 - **لماذا الاختلاف؟** ICH M13A وحّد الأساسيات فقط، والدليل الخليجي (2022) سبقه ونقل الدليل الأوروبي تقريبًا حرفيًا مع متطلبات أشد، وFDA له منهج إحصائي مختلف.
-- **نواقص في التطبيق كشفتها المقارنة:** في إطار ICH لا يُطبَّق الحد الأدنى 12 ولا قاعدة ما قبل الجرعة 5%، وطريقة FDA للأدوية ضيقة المؤشر ودراسات أكثر من مرجع غير منفّذة.
+- **ما أُضيف بعد المقارنة:** إطار ICH يطبّق الآن الحد الأدنى 12 مشاركًا وقاعدة ما قبل الجرعة 5%، ويعرض المساحة المنخفضة للمستحضرين. **ما بقي ناقصًا:** طريقة FDA للأدوية ضيقة المؤشر، ودراسات أكثر من مرجع، ونماذج تعدد المجموعات، وتصحيح المحتوى.
 
 </details>
 

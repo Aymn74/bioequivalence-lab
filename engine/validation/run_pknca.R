@@ -22,7 +22,8 @@ single <- data.frame(start = 0, end = Inf, cmax = TRUE, tmax = TRUE, tlast = TRU
                      auclast = TRUE, lambda.z = TRUE, half.life = TRUE, lambda.z.n.points = TRUE,
                      adj.r.squared = TRUE, aucinf.obs = TRUE, aucinf.pred = TRUE)
 partial <- data.frame(start = c(0, 0), end = c(2, 24), aucint.all = TRUE, aucint.last = TRUE)
-ss <- data.frame(start = 0, end = 12, cmax = TRUE, tmax = TRUE, cmin = TRUE, aucint.last = TRUE)
+ss <- data.frame(start = 0, end = 12, cmax = TRUE, tmax = TRUE, cmin = TRUE, ctrough = TRUE, aucint.last = TRUE,
+                 cav.int.last = TRUE, swing = TRUE)
 
 for (m in c("linear", "lin up/log down")) {
   tag <- if (m == "linear") "linear" else "linlog"

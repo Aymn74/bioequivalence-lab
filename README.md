@@ -171,9 +171,9 @@ python -m unittest -v
 python validate_simulation.py
 ```
 
-`python -m unittest test_nca -v` runs the 31 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
+`python -m unittest test_nca -v` runs the 36 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
 
-**NCA against PKNCA 0.12.1 (R):** 348 single-dose and 60 steady-state profiles, both trapezoidal rules — all core parameters (Cmax, tmax, AUC(0-t), kel, t½, AUC(0-∞), AUC(0-τ), Cmin,ss) match to 4 × 10⁻¹⁴; the few partial-AUC differences after Clast are explained PKNCA conventions. PKNCA's default BLQ rule differs from ICH M13A and changed AUC(0-t) by up to 21.1%. Scripts, data and results: [`engine/validation/`](engine/validation/README.md).
+**NCA against PKNCA 0.12.1 (R):** 348 single-dose and 60 steady-state profiles, both trapezoidal rules — all core parameters (Cmax, tmax, AUC(0-t), kel, t½, AUC(0-∞), AUC(0-τ), Cav,ss, Cτ,ss, Cmin,ss, swing, fluctuation) match to 4 × 10⁻¹⁴; the few partial-AUC differences after Clast are explained PKNCA conventions. PKNCA's default BLQ rule differs from ICH M13A and changed AUC(0-t) by up to 21.1%. `compare_pknca.py` exits non-zero on any undocumented difference. Scripts, data and results: [`engine/validation/`](engine/validation/README.md).
 
 The web UI was checked against the engine's reference output (`engine/example_results.json`) and against an independent 2×2 computation (identical to 4 decimals).
 

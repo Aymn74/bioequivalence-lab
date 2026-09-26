@@ -2,7 +2,7 @@
 
 Writes, next to this file:
   single_dose.csv   example_nca.csv profiles + 300 random one-compartment profiles with BLQ values
-  steady_state.csv  60 random steady-state profiles (tau = 12 h)
+  steady_state.csv  60 random steady-state profiles (tau = 12 h; trough at 12 h, or at 12.05 h for S50-S59)
 Each file has id, time, conc (BLQ written as 0) and blq (1/0); missed samples are omitted.
 """
 import csv
@@ -43,9 +43,11 @@ with open(HERE / "single_dose.csv", "w", newline="") as fh:
 ss = []
 for k in range(60):
     ka, ke, base = rng.uniform(.5, 3), rng.uniform(.05, .3), rng.uniform(1, 5)
-    ts = [0, .5, 1, 1.5, 2, 3, 4, 6, 8, 10, round(12 + rng.uniform(-.1, .1), 3)]
+    # S00-S49: trough sample exactly at tau = 12 h; S50-S59: trough sample 3 min after tau (12.05 h), which nca.py uses (within 10 min) and PKNCA's [0, 12] interval does not
+    ts = [0, .5, 1, 1.5, 2, 3, 4, 6, 8, 10, 12 if k < 50 else 12.05]
     for x in ts:
-        c = base + 20 * ka / (ka - ke) * (math.exp(-ke * x) - math.exp(-ka * x))
+        # true steady state of a one-compartment oral model (superposition of all previous doses), so C(0) = C(tau)
+        c = base * 20 * ka / (ka - ke) * (math.exp(-ke * x) / (1 - math.exp(-ke * 12)) - math.exp(-ka * x) / (1 - math.exp(-ka * 12)))
         ss.append([f"S{k:02d}", x, round(c * math.exp(rng.normal(0, .08)), 6), 0])
 with open(HERE / "steady_state.csv", "w", newline="") as fh:
     w = csv.writer(fh)

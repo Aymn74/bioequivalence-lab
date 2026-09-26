@@ -333,12 +333,12 @@ def analyse(p, a, findings, notes_seen):
 
     if a.truncate_72:
         end = float(t[-1])
+        row["c72_quantifiable"] = tlast >= TRUNCATION_H - a.tolerance
+        if a.profile == "sfda" and end >= TRUNCATION_H - a.tolerance and not row["c72_quantifiable"]:
+            findings.append(f"{where}: concentration at 72 h is not quantifiable (last quantifiable sample at {tlast:g} h); "
+                            "GCC 3.1.5 then requires AUC(0-inf) and the residual area")
         if end >= TRUNCATION_H:
             row["auc_0_72"] = auc_between(t, c, 0.0, TRUNCATION_H, a.auc_method)
-            c72 = interpolate(t, c, TRUNCATION_H, a.auc_method)
-            near = int(np.argmin(np.abs(t - TRUNCATION_H)))
-            if a.profile == "sfda" and not quant[near]:
-                findings.append(f"{where}: concentration at 72 h is not quantifiable; GCC 3.1.5 then requires AUC(0-inf) and the residual area")
         elif end >= TRUNCATION_H - a.tolerance:
             row["auc_0_72"] = float(auc[-1])
             notes_seen.add(f"AUC(0-72h) taken to the last sample when it lies within {a.tolerance * 60:g} min before 72 h")
@@ -402,17 +402,23 @@ def apply_emesis(rows, profiles, a, findings, notes):
         notes.append("GCC 3.1.8: modified-release subjects with emesis during the labelled dosing interval are excluded"
                      + ("" if a.dosing_interval else "; no --dosing-interval given, so any recorded emesis excludes"))
         return
+    observed_used = False
     for r, p in flagged:
-        others = [x.get("tmax") for x, q in zip(rows, profiles) if q.emesis is None and q.treatment == p.treatment and x.get("tmax") is not None]
-        if not others:
-            findings.append(f"{label(p)}: emesis recorded but no median tmax available for {p.treatment or 'this product'}")
-            continue
-        med = float(np.median(others))
+        med = a.median_tmax.get(p.treatment, a.median_tmax.get("*")) if a.median_tmax else None
+        if med is None:
+            others = [x.get("tmax") for x, q in zip(rows, profiles) if q.emesis is None and q.treatment == p.treatment and x.get("tmax") is not None]
+            if not others:
+                findings.append(f"{label(p)}: emesis recorded but no median tmax available for {p.treatment or 'this product'}; give --median-tmax")
+                continue
+            med, observed_used = float(np.median(others)), True
         r["emesis_limit"] = 2 * med
         if p.emesis <= 2 * med:
             r["status"] = f"excluded: emesis at {p.emesis:g} h <= 2 x median tmax ({2 * med:g} h)"
-    notes.append("GCC 3.1.8 (immediate release): a period is excluded if emesis occurs at or before 2 x median tmax. "
-                 "Median tmax is taken per product over periods without emesis - an interpretation, the guideline does not define the reference set")
+    notes.append("GCC 3.1.8 (immediate release): a period is excluded if emesis occurs at or before 2 x median tmax")
+    if observed_used:
+        findings.append("emesis rule used the median tmax observed in this study (per product, periods without emesis): "
+                        "exclusion decisions should be made before bioanalysis (GCC 3.1.8) and ICH M13A Q&A 2.9 refers to the "
+                        "expected median tmax; give the protocol value with --median-tmax")
 
 
 def coverage_rule(rows, a, report):
@@ -420,9 +426,11 @@ def coverage_rule(rows, a, report):
         report.note("80/20 coverage rule not applied: " + ("steady-state study" if a.tau is not None else
                     "AUC(0-72h) is the primary AUC (ICH M13A 2.2.2.2, GCC 3.1.8)"))
         return
-    cov = [r["auc_coverage_pct"] for r in rows if r.get("status") == "included" and r.get("auc_coverage_pct") is not None]
+    included = [r for r in rows if r.get("status") == "included"]
+    cov = [r["auc_coverage_pct"] for r in included if r.get("auc_coverage_pct") is not None]
     below = sum(x < COVERAGE_MIN_PCT for x in cov)
     report.scalar("coverage_evaluable", len(cov))
+    report.scalar("coverage_not_evaluable", len(included) - len(cov))
     report.scalar("coverage_below_80", below)
     share = below / len(cov) if cov else None
     report.scalar("coverage_below_80_pct", 100 * share if share is not None else None)
@@ -448,12 +456,13 @@ def describe(values):
     return out
 
 
-def summary(rows, keys):
+def summary(rows, keys, left_out=()):
     out = []
     groups = sorted({r["treatment"] for r in rows})
     for g in groups:
         for key in keys:
-            vals = [r[key] for r in rows if r["treatment"] == g and r.get("status") == "included" and isinstance(r.get(key), (int, float))]
+            vals = [r[key] for r in rows if r["treatment"] == g and r.get("status") == "included" and r["subject"] not in left_out
+                    and isinstance(r.get(key), (int, float))]
             if vals:
                 out.append({"treatment": g or "-", "parameter": key, **describe(vals)})
     return out
@@ -475,6 +484,36 @@ def clean(v):
     return None if isinstance(v, float) and not math.isfinite(v) else v
 
 
+def population(rows):
+    """Who is in the BE analysis population. Returns (design info, {subject: reason left out}) or (None, {}).
+
+    Crossover and replicate designs: bioequivalence.py needs complete subjects, so a subject with an
+    excluded or missing period is left out (GCC 3.1.8: in a 2-period trial the subject is removed; in
+    replicate designs the guidelines would remove only that period, which this engine cannot analyse).
+    Designs with more than two treatments keep the other periods.
+    """
+    if not rows or not all(r["treatment"] for r in rows):
+        return None, {}
+    by_subject: dict[str, list[dict]] = {}
+    for r in rows:
+        by_subject.setdefault(r["subject"], []).append(r)
+    parallel = all(len(v) == 1 for v in by_subject.values())
+    if not parallel and not all(r["period"] for r in rows):
+        return None, {}
+    labels = {TREATMENT_ALIASES.get(r["treatment"], r["treatment"]) for r in rows}
+    info = {"parallel": parallel, "multi": len(labels) > 2, "periods": max(len(v) for v in by_subject.values())}
+    left_out: dict[str, str] = {}
+    if not parallel and not info["multi"]:
+        for subject, group in by_subject.items():
+            if any(r["status"] != "included" for r in group):
+                left_out[subject] = "a period was excluded"
+            elif len(group) < info["periods"]:
+                left_out[subject] = f"{len(group)} of {info['periods']} periods in the data"
+            elif info["periods"] > 2 and any(r.get("predose_pct_cmax") for r in group):
+                left_out[subject] = "pre-dose > 5% of Cmax in a replicate design (the guidelines remove only that period; incomplete replicate data cannot be analysed here)"
+    return info, left_out
+
+
 def be_input(rows, a, report, notes):
     """Long table for bioequivalence.py: one row per subject-period (or per subject in a parallel study).
 
@@ -484,31 +523,13 @@ def be_input(rows, a, report, notes):
     Designs with more than two treatments keep the other periods: each comparison is analysed without
     the other arms, and bioequivalence.py keeps subjects that have both products compared.
     """
-    if not all(r["treatment"] for r in rows):
+    info, left_out = population(rows)
+    if info is None:
         return
-    by_subject: dict[str, list[dict]] = {}
-    for r in rows:
-        by_subject.setdefault(r["subject"], []).append(r)
-    parallel = all(len(v) == 1 for v in by_subject.values())
-    if not parallel and not all(r["period"] for r in rows):
-        return
-    labels = {TREATMENT_ALIASES.get(r["treatment"], r["treatment"]) for r in rows}
-    multi = len(labels) > 2
-    periods = max(len(v) for v in by_subject.values())
+    parallel, multi = info["parallel"], info["multi"]
     primary = ("auc_tau", "cmax_ss") if a.tau is not None else ("cmax", "auc_0_t", "auc_0_72", "auc_0_inf")
     keys = [k for k in primary if any(k in r for r in rows)] + [f"auc_{s:g}_{e:g}" for s, e in a.partial_auc]
 
-    left_out: dict[str, str] = {}
-    for subject, group in by_subject.items():
-        excluded = [r for r in group if r["status"] != "included"]
-        if parallel or multi:
-            continue
-        if excluded:
-            left_out[subject] = "a period was excluded"
-        elif len(group) < periods:
-            left_out[subject] = f"{len(group)} of {periods} periods in the data"
-        elif periods > 2 and any(r.get("predose_pct_cmax") for r in group):
-            left_out[subject] = "pre-dose > 5% of Cmax in a replicate design (the guidelines remove only that period; incomplete replicate data cannot be analysed here)"
     table = []
     for r in rows:
         if r["subject"] in left_out or r["status"] != "included":
@@ -541,6 +562,20 @@ def _range(text):
     return lo, hi
 
 
+def _median_tmax(text):
+    out = {}
+    for part in text.split(","):
+        key, _, val = part.rpartition("=")
+        try:
+            x = float(val)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(f"expected hours, e.g. 1.5 or T=1.5,R=2, got {text!r}") from exc
+        if not math.isfinite(x) or x <= 0:
+            raise argparse.ArgumentTypeError(f"median tmax must be a positive number of hours, got {text!r}")
+        out[key.strip().upper() or "*"] = x
+    return out
+
+
 def build_parser():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("-i", "--input", required=True)
@@ -558,6 +593,8 @@ def build_parser():
                    help="endogenous: subtract the mean pre-dose concentration of the same period")
     p.add_argument("--release", choices=("ir", "mr"), default="ir", help="for the GCC emesis rule")
     p.add_argument("--dosing-interval", type=float, help="labelled dosing interval (h), MR emesis rule")
+    p.add_argument("--median-tmax", type=_median_tmax, default={},
+                   help="expected median tmax (h) from the protocol for the emesis rule: one value, or per product e.g. T=1.5,R=2")
     p.add_argument("--partial-auc", type=_range, action="append", default=[], help="e.g. 0-2 (early exposure)")
     p.add_argument("--lambda-z-points", type=int, default=3, help="minimum points in the terminal fit (ICH M13A: three or more)")
     p.add_argument("--test-label", default="T")
@@ -612,7 +649,11 @@ def run(argv=None):
     coverage_rule(rows, a, report)
 
     keys = [k for k in SUMMARY_KEYS if any(k in r for r in rows)] + [f"auc_{s:g}_{e:g}" for s, e in a.partial_auc]
-    stats = summary(rows, keys)
+    _, left_out = population(rows)
+    stats = summary(rows, keys, left_out)
+    if left_out:
+        notes.append("summary statistics leave out subject(s) " + ", ".join(sorted(left_out)) +
+                     ": drop-outs and excluded subjects are listed individually but not summarised (GCC 3.1.8)")
     report.table("per-profile parameters", [{k: clean(v) for k, v in r.items()} for r in rows])
     report.table("lambda_z diagnostics", [{k: clean(v) for k, v in d.items()} for d in diag])
     report.table("summary statistics", [{k: clean(v) for k, v in s.items()} for s in stats])

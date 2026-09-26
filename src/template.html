@@ -350,6 +350,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
                 <button data-v="mr" data-i18n="rel_mr">معدّل التحرر</button>
               </div>
             </div>
+            <div class="field" id="ncaMedTF" style="display:none"><label for="ncaMedT" data-i18n="nca_medt">وسيط tmax المتوقع من البروتوكول (ساعات)</label><input lang="en" dir="ltr" type="text" id="ncaMedT" placeholder="1.5  ·  T=1.5,R=2"><div class="hint" data-i18n="nca_medt_h"></div></div>
             <div class="field" id="ncaDosIntF" style="display:none"><label for="ncaDosInt" data-i18n="nca_dosint">فترة الجرعة المعتمدة (ساعات)</label><input lang="en" dir="ltr" type="text" inputmode="decimal" class="numin" id="ncaDosInt" placeholder="e.g. 24"></div>
           </div>
         </div>
@@ -647,6 +648,7 @@ ar:{
  nc_sum:"الإحصاءات الوصفية حسب المستحضر",nc_annex:"ملحق الدليل الخليجي 1 — البند 5: المتوسط الحسابي (CV%)",nc_params:"المعايير الدوائية لكل مشارك وفترة",nc_lz:"تشخيص kel (λz)",
  nc_excl:"الاستبعادات",nc_missed:"العينات المفقودة (انحرافات عن البروتوكول)",nc_be_t:"إرسال إلى تحليل التكافؤ الحيوي",nc_be_btn:"إرسال",
  nc_be_h:"يُنقل جدول (مشارك، تسلسل، فترة، مستحضر، المعيار، ما قبل الجرعة) إلى تبويب التحليل مع ضبط الأعمدة والإطار التنظيمي.",
+ nca_medt:"وسيط tmax المتوقع من البروتوكول (ساعات)",nca_medt_h:"لقاعدة القيء: قيمة واحدة أو لكل مستحضر (T=1.5,R=2). بدونها يُستخدم وسيط الدراسة نفسها مع تنبيه، لأن قرار الاستبعاد يُتخذ قبل التحليل الحيوي (الدليل الخليجي 3.1.8).",nk_noeval:"بلا kel",
  nca_sent:"نُقلت المعايير إلى تحليل التكافؤ",nca_gap:"استُبعد لعدم توفر القيمة",nc_addl:"معيار إضافي",nc_find:"ملاحظات للمراجعة",dl_params:"تنزيل المعايير CSV",g_test:"الاختبار",g_ref:"المرجع",nc_ratio:"النسبة وفترة الثقة: من تحليل التكافؤ",
  k_ci_lvl:"فترة الثقة",sfda_badge:"SFDA",err_read:"تعذّرت قراءة الملف",ex_loaded:"تم تحميل بيانات المثال",
 },
@@ -715,6 +717,7 @@ en:{
  nc_sum:"Descriptive statistics by product",nc_annex:"GCC Annex 1 — section 5: arithmetic mean (CV%)",nc_params:"PK parameters per subject and period",nc_lz:"kel (λz) diagnostics",
  nc_excl:"Exclusions",nc_missed:"Missed samples (protocol deviations)",nc_be_t:"Send to bioequivalence analysis",nc_be_btn:"Send",
  nc_be_h:"Moves one table (subject, sequence, period, treatment, the parameter, pre-dose) to the analysis tab and sets the columns and the framework.",
+ nca_medt:"Expected median tmax from the protocol (h)",nca_medt_h:"For the emesis rule: one value or per product (T=1.5,R=2). Without it the study's own median is used and flagged, because exclusion is decided before bioanalysis (GCC 3.1.8).",nk_noeval:"without kel",
  nca_sent:"Parameters sent to the BE analysis",nca_gap:"left out, value not available",nc_addl:"additional parameter",nc_find:"Findings to review",dl_params:"Download parameters CSV",g_test:"Test",g_ref:"Reference",nc_ratio:"Ratio and CI: from the BE analysis",
  k_ci_lvl:"confidence interval",sfda_badge:"SFDA",err_read:"Could not read file",ex_loaded:"Example data loaded",
 }};
@@ -833,7 +836,7 @@ const MSG_AR=[
  [/^(subject .+?): CminSS is zero or BLQ/,m=>`${subAr(m[1])}: Cmin,ss صفر أو تحت حد القياس؛ التأرجح (swing) غير معرّف.`],
  [/^(subject .+?): partial AUC (\S+) h extends past the last sample/,m=>`${subAr(m[1])}: المساحة الجزئية ${m[2]} ساعة تتجاوز آخر عينة.`],
  [/^(subject .+?): emesis at (\S+) h; ICH M13A Q&A 2\.9/,m=>`${subAr(m[1])}: قيء عند ${m[2]} ساعة؛ تعدّ وثيقة أسئلة وأجوبة ICH M13A (2.9) القيء خلال ضعف وسيط tmax المتوقع انحرافًا قد يبرر الاستبعاد إذا حُدّد مسبقًا في البروتوكول (تُطبَّق القاعدة الخليجية مع إطار SFDA).`],
- [/^(subject .+?): emesis recorded but no median tmax/,m=>`${subAr(m[1])}: سُجّل قيء لكن لا يتوفر وسيط tmax لهذا المستحضر.`],
+ [/^(subject .+?): emesis recorded but no median tmax/,m=>`${subAr(m[1])}: سُجّل قيء لكن لا يتوفر وسيط tmax لهذا المستحضر؛ أدخل الوسيط المتوقع من البروتوكول.`],
  [/AUC\(0-t\) covers less than 80% of AUC\(0-inf\) in (\d+) of (\d+) observations \(([\d.]+)%/,m=>`AUC(0-t) أقل من 80% من AUC(0-∞) في ${m[1]} من ${m[2]} ملاحظة (${m[3]}% أكثر من 20%)؛ قد يلزم مناقشة صلاحية الدراسة (ICH M13A 2.2.2.2، الدليل الخليجي 3.1.8).`],
  [/^trapezoidal rule: (linear|linear-up \/ log-down);/,m=>`طريقة شبه المنحرف: ${m[1]==='linear'?'الخطية':'الخطية صعودًا واللوغاريتمية نزولًا'}؛ تُحدَّد مسبقًا في البروتوكول ويُبلَّغ عنها (ICH M13A 2.2.2.2).`],
  [/^BLQ values are zero in AUC and omitted from kel/,"القيم تحت حد القياس = صفر في حساب المساحة، وتُستبعد من حساب kel (ICH M13A 2.2.2.2)؛ الخانات الفارغة عينات مفقودة تُحذف."],
@@ -845,7 +848,7 @@ const MSG_AR=[
  [/^AUC\(0-72h\) taken to the last sample/,"حُسبت AUC(0-72h) حتى آخر عينة لأنها تقع خلال 10 دقائق قبل 72 ساعة."],
  [/^AUC\(0-tau\) taken to the last sample/,"حُسبت AUC(0-τ) حتى آخر عينة لأنها تقع خلال 10 دقائق قبل τ."],
  [/^GCC 3\.1\.8: modified-release subjects with emesis/,"الدليل الخليجي 3.1.8: في المستحضرات معدّلة التحرر يُستبعد من تقيأ خلال فترة الجرعة المعتمدة."],
- [/^GCC 3\.1\.8 \(immediate release\)/,"الدليل الخليجي 3.1.8 (فوري التحرر): تُستبعد الفترة إذا حدث القيء عند ضعف وسيط tmax أو قبله. يُحسب الوسيط لكل مستحضر من الفترات الخالية من القيء، وهذا تفسير لأن الدليل لا يحدد المجموعة التي يُحسب منها."],
+ [/^GCC 3\.1\.8 \(immediate release\)/,"الدليل الخليجي 3.1.8 (فوري التحرر): تُستبعد الفترة إذا حدث القيء عند ضعف وسيط tmax أو قبله."],
  [/^GCC Annex 1 section 5/,"ملحق الدليل الخليجي 1، البند 5: نسبة المتوسطات الهندسية وفترة الثقة تأتيان من تحليل التكافؤ الحيوي."],
  [/^BE input leaves out (.+)$/,m=>`لا يدخل تحليل التكافؤ: ${m[1].replace(/subject (\S+): a period was excluded/g,'المشارك $1 (استُبعدت إحدى فتراته)').replace(/subject (\S+): (\d+) of (\d+) periods in the data/g,'المشارك $1 (له $2 من $3 فترات)').replace(/subject (\S+): pre-dose > 5% of Cmax in a replicate design.*?here\)/g,'المشارك $1 (ما قبل الجرعة أعلى من 5% من Cmax في تصميم مكرّر؛ الأدلة تستبعد تلك الفترة وحدها، والبيانات المكرّرة الناقصة لا تُحلَّل هنا)')}. تحليل التكافؤ يتطلب مشاركين مكتملين.`],
  [/^BE input keeps the other periods of subjects with an excluded period/,"مع أكثر من مستحضرين تبقى الفترات الأخرى لمن استُبعدت إحدى فتراته: كل مقارنة تستخدم المشاركين الذين لديهم المستحضران المقارنان."],
@@ -856,6 +859,9 @@ const MSG_AR=[
  [/^emesis at (\S+) h <= 2 x median tmax \((\S+) h\)/,m=>`قيء عند ${m[1]} ساعة ≤ ضعف وسيط tmax (${m[2]} ساعة)`],
  [/^emesis at (\S+) h \(modified release\)/,m=>`قيء عند ${m[1]} ساعة (معدّل التحرر)`],
  [/^no quantifiable concentration$/,"لا يوجد تركيز مقاس"],
+ [/^emesis rule used the median tmax observed in this study/,"استُخدم في قاعدة القيء وسيط tmax المرصود في هذه الدراسة (لكل مستحضر، من الفترات الخالية من القيء). قرار الاستبعاد يُتخذ قبل التحليل الحيوي (الدليل الخليجي 3.1.8)، ويشير ICH M13A (سؤال وجواب 2.9) إلى الوسيط المتوقع: أدخل قيمة البروتوكول في حقل «وسيط tmax المتوقع»."],
+ [/^summary statistics leave out subject\(s\) (.+?): drop-outs/,m=>`الإحصاءات الوصفية تستثني المشارك/المشاركين ${m[1]}: المنسحبون والمستبعدون يُدرجون في الجداول الفردية دون الإحصاءات الوصفية (الدليل الخليجي 3.1.8).`],
+ [/^(subject .+?): concentration at 72 h is not quantifiable \(last quantifiable sample at (\S+) h\)/,m=>`${subAr(m[1])}: التركيز عند 72 ساعة غير مقاس (آخر تركيز مقاس عند ${m[2]} ساعة)؛ عندها يشترط الدليل الخليجي 3.1.5 حساب AUC(0-∞) والمساحة المتبقية.`],
  [/^80\/20 coverage rule not applied: steady-state/,"قاعدة التغطية 80/20 لا تُطبّق: دراسة حالة مستقرة."],
  [/^80\/20 coverage rule not applied: AUC\(0-72h\)/,"قاعدة التغطية 80/20 لا تُطبّق: AUC(0-72h) هي المساحة الأساسية (ICH M13A 2.2.2.2، الدليل الخليجي 3.1.8)."],
  [/negative concentration .* baseline correction is done by --baseline/,"تركيز سالب في الملف؛ تصحيح خط الأساس يتم بخيار المادة داخلية المنشأ، لا في المدخلات."],
@@ -866,6 +872,7 @@ const MSG_AR=[
  [/steady-state profile needs a pre-dose or time-0 sample/,"ملف الحالة المستقرة يتطلب عينة قبل الجرعة أو عند الزمن 0."],
  [/--tau must be positive/,"فترة الجرعة τ يجب أن تكون موجبة."],
  [/expected one argument|invalid float value/,"حقل رقمي فارغ أو غير صالح في الإعدادات (مثل τ أو LLOQ)."],
+ [/expected hours, e\.g\. 1\.5|median tmax must be a positive/,"وسيط tmax يُكتب بالساعات: قيمة واحدة مثل 1.5، أو لكل مستحضر مثل T=1.5,R=2."],
  [/expected a range like/,"المساحة الجزئية تُكتب بصيغة مثل 0-2."],
  [/: empty subject$/,"يوجد صف بلا رقم مشارك."],
  [/Numerical integration of fixed-limit TOST power/,I18N.ar.p_note],
@@ -881,7 +888,7 @@ ar:`<div class="card"><div class="card-b"><h4>ABE — فروق الأفراد (�
 <div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. خارج النطاق: تصحيح المحتوى، وf2 للذوبان.</p></div></div>
 <div class="card"><div class="card-b"><h4>FDA — الأدوية ضيقة المؤشر</h4><p>تصميم مكرّر كامل (TRTR/RTRT)، ويجب تحقق ثلاثة شروط معًا (الملحق F، 2026):</p><ul><li>معيار متدرج: (μT−μR)² − θ·s²wR ≤ 0، حيث θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>ABE غير متدرج ضمن 80.00–125.00%.</li><li>الحد الأعلى لفترة ثقة 90% لـ sWT/sWR ≤ 2.5.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>أكثر من مرجع ومتعدد المجموعات</h4><ul><li><b>متعدد المعالجات:</b> تُحلّل كل مقارنة وحدها بعد حذف المعالجة الثالثة، بالفترات الأصلية وبنموذج ANOVA.</li><li><b>متعدد المجموعات:</b> عمود <span class="mono">group</span> اختياري؛ النموذج كما في ICH M13A: المجموعة، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر. تفاعل المجموعة×المستحضر تحليل داعم فقط.</li></ul></div></div>
-<div class="card"><div class="card-b"><h4>التحليل غير الحجيري (NCA)</h4><ul><li>القيم تحت حد القياس = صفر، وتُستبعد من kel؛ الخانة الفارغة عينة مفقودة تُحذف وتُوثَّق ولا تصبح صفرًا (ICH M13A 2.2.2.2).</li><li>kel: أفضل R² معدّل (3 نقاط فأكثر بعد tmax)، وعند التقارب ضمن 0.0001 النافذة ذات النقاط الأكثر (قاعدة PKNCA).</li><li>شبه المنحرف: خطية (افتراضيًا) أو خطية/لوغاريتمية، تُحدد مسبقًا ويُبلَّغ عنها. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>التغطية: مناقشة صلاحية الدراسة إذا قلّت AUC(0-t)/AUC(0-∞) عن 80% في أكثر من 20% من الملاحظات.</li><li>الحالة المستقرة: AUC(0-τ)، Cmax,ss، Cmin,ss، Cτ,ss (عينة خلال 10 دقائق من τ)، Cav,ss، التذبذب (Cmax−Cmin)/Cav، التأرجح (Cmax−Cmin)/Cmin.</li><li>الدليل الخليجي: قاعدة القيء، وAUC(0-72h) مع تركيز مقاس عند 72 ساعة، وجدول الملحق 1.</li><li>التحقق: 31 اختبارًا، منها مقارنة 297 منحنى عشوائيًا بتنفيذ مستقل (scipy)؛ ومقارنة مع PKNCA 0.12.1 على 408 منحنيات تطابقت فيها المعايير الأساسية حتى 4 × 10⁻¹⁴.</li></ul><p>خارج النطاق: الإعطاء الوريدي، وتعديل نافذة kel يدويًا، والمنحنيات المتوسطة بالأوقات الاسمية، والبيانات البولية.</p></div></div>
+<div class="card"><div class="card-b"><h4>التحليل غير الحجيري (NCA)</h4><ul><li>القيم تحت حد القياس = صفر، وتُستبعد من kel؛ الخانة الفارغة عينة مفقودة تُحذف وتُوثَّق ولا تصبح صفرًا (ICH M13A 2.2.2.2).</li><li>kel: أفضل R² معدّل (3 نقاط فأكثر بعد tmax)، وعند التقارب ضمن 0.0001 النافذة ذات النقاط الأكثر (قاعدة PKNCA).</li><li>شبه المنحرف: خطية (افتراضيًا) أو خطية/لوغاريتمية، تُحدد مسبقًا ويُبلَّغ عنها. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>التغطية: مناقشة صلاحية الدراسة إذا قلّت AUC(0-t)/AUC(0-∞) عن 80% في أكثر من 20% من الملاحظات.</li><li>الحالة المستقرة: AUC(0-τ)، Cmax,ss، Cmin,ss، Cτ,ss (عينة خلال 10 دقائق من τ)، Cav,ss، التذبذب (Cmax−Cmin)/Cav، التأرجح (Cmax−Cmin)/Cmin.</li><li>الدليل الخليجي: قاعدة القيء بوسيط tmax المتوقع من البروتوكول، وAUC(0-72h) مع تركيز مقاس عند 72 ساعة، وجدول الملحق 1. الإحصاءات الوصفية تستثني المنسحبين والمستبعدين.</li><li>التحقق: 36 اختبارًا، منها مقارنة 297 منحنى عشوائيًا بتنفيذ مستقل (scipy)؛ ومقارنة مع PKNCA 0.12.1 على 408 منحنيات تطابقت فيها المعايير الأساسية حتى 4 × 10⁻¹⁴.</li></ul><p>خارج النطاق: الإعطاء الوريدي، وتعديل نافذة kel يدويًا، والمنحنيات المتوسطة بالأوقات الاسمية، والبيانات البولية.</p></div></div>
 <div class="card"><div class="card-b"><h4>رموز الخروج</h4><ul><li><b>0</b> — كل المعايير متحققة</li><li><b>1</b> — معيار غير متحقق</li><li><b>2</b> — مدخلات غير صالحة/غير مدعومة</li></ul><p>المراجع: مثال FDA 2011 للبروجستيرون، إرشادات EMA للتكافؤ الحيوي (4.1.8–4.1.10).</p></div></div>`,
 en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences (FDA approach, default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
 <div class="card"><div class="card-b"><h4>ABE — fixed-effects ANOVA (EMA / GCC)</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
@@ -893,7 +900,7 @@ en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences
 <div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Endogenous substances: baseline subtraction (concentration for Cmax; baseline AUC or concentration × hours for AUC), or an explicit confirmation that values are already corrected.</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Emesis exclusion and the 80% AUC(0-t) coverage check are in the NCA tab. Out of scope: content correction and dissolution f2.</p></div></div>
 <div class="card"><div class="card-b"><h4>FDA — narrow therapeutic index</h4><p>Full replicate design (TRTR/RTRT); all three conditions must hold (Appendix F, 2026):</p><ul><li>Scaled criterion: (μT−μR)² − θ·s²wR ≤ 0, θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>Unscaled ABE within 80.00–125.00%.</li><li>Upper 90% confidence limit of sWT/sWR ≤ 2.5.</li></ul></div></div>
 <div class="card"><div class="card-b"><h4>Multiple comparators & multi-group</h4><ul><li><b>Multi-treatment:</b> each comparison is analysed alone after removing the third treatment, with the original periods and the ANOVA model.</li><li><b>Multi-group:</b> optional <span class="mono">group</span> column; model per ICH M13A: group, sequence×group, subject(sequence×group), period(group), formulation. Group×formulation is a supportive analysis only.</li></ul></div></div>
-<div class="card"><div class="card-b"><h4>Non-compartmental analysis (NCA)</h4><ul><li>BLQ = zero and omitted from kel; a blank cell is a missed sample, dropped and documented, never zero (ICH M13A 2.2.2.2).</li><li>kel: best adjusted R² (≥ 3 points after tmax); within 0.0001 of the best, the window with more points (PKNCA rule).</li><li>Trapezoidal rule: linear (default) or linear-up/log-down, pre-specified and reported. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>Coverage: study validity may need discussion when AUC(0-t)/AUC(0-∞) &lt; 80% in more than 20% of observations.</li><li>Steady state: AUC(0-τ), Cmax,ss, Cmin,ss, Cτ,ss (sample within 10 min of τ), Cav,ss, fluctuation (Cmax−Cmin)/Cav, swing (Cmax−Cmin)/Cmin.</li><li>GCC: emesis rule, AUC(0-72h) with a quantifiable 72 h concentration, Annex 1 table.</li><li>Verification: 31 tests, including 297 random profiles against an independent scipy implementation; comparison with PKNCA 0.12.1 on 408 profiles, core parameters equal to 4 × 10⁻¹⁴.</li></ul><p>Out of scope: intravenous dosing, manual kel windows, mean curves on nominal times, urinary data.</p></div></div>
+<div class="card"><div class="card-b"><h4>Non-compartmental analysis (NCA)</h4><ul><li>BLQ = zero and omitted from kel; a blank cell is a missed sample, dropped and documented, never zero (ICH M13A 2.2.2.2).</li><li>kel: best adjusted R² (≥ 3 points after tmax); within 0.0001 of the best, the window with more points (PKNCA rule).</li><li>Trapezoidal rule: linear (default) or linear-up/log-down, pre-specified and reported. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>Coverage: study validity may need discussion when AUC(0-t)/AUC(0-∞) &lt; 80% in more than 20% of observations.</li><li>Steady state: AUC(0-τ), Cmax,ss, Cmin,ss, Cτ,ss (sample within 10 min of τ), Cav,ss, fluctuation (Cmax−Cmin)/Cav, swing (Cmax−Cmin)/Cmin.</li><li>GCC: emesis rule with the protocol's expected median tmax, AUC(0-72h) with a quantifiable 72 h concentration, Annex 1 table. Summary statistics leave out drop-outs and excluded subjects.</li><li>Verification: 36 tests, including 297 random profiles against an independent scipy implementation; comparison with PKNCA 0.12.1 on 408 profiles, core parameters equal to 4 × 10⁻¹⁴.</li></ul><p>Out of scope: intravenous dosing, manual kel windows, mean curves on nominal times, urinary data.</p></div></div>
 <div class="card"><div class="card-b"><h4>Exit codes</h4><ul><li><b>0</b> — all criteria met</li><li><b>1</b> — a criterion not met</li><li><b>2</b> — invalid / unsupported input</li></ul><p>References: FDA 2011 progesterone example; EMA BE guideline §4.1.8–4.1.10.</p></div></div>`};
 
 /* ================= state ================= */
@@ -1322,6 +1329,7 @@ function syncNca(){
   $('#ncaT72Row').style.display=ss?'none':''; if(ss)$('#ncaT72').checked=false;
   $('#ncaReleaseF').style.display=sf?'':'none';
   $('#ncaDosIntF').style.display=sf&&N.release==='mr'?'':'none';
+  $('#ncaMedTF').style.display=sf&&N.release==='ir'?'':'none';
   $('#ncaRun').disabled=!(ready&&N.csv)||!!N.running;
 }
 const ndrop=$('#ncaDrop');
@@ -1352,7 +1360,8 @@ $('#ncaRun').onclick=async()=>{
   const ext=/\.(tsv|tab)$/i.test(N.fname||'')?'.tsv':/\.csv$/i.test(N.fname||'')?'.csv':'.txt',path='/be/nca_input'+ext;
   const argv=['-i',path,'--format','json','--auc-method',N.auc,'--subject-column',ncol('#ncaColSubject'),'--time-column',ncol('#ncaColTime'),'--conc-column',ncol('#ncaColConc'),
     '--period-column',ncol('#ncaColPeriod')||'__none__','--treatment-column',ncol('#ncaColTreatment')||'__none__','--emesis-column',ncol('#ncaColEmesis')||'__none__'];
-  if(N.profile==='sfda'){argv.push('--profile','sfda','--release',N.release);if(N.release==='mr'&&$('#ncaDosInt').value)argv.push('--dosing-interval',$('#ncaDosInt').value);}
+  if(N.profile==='sfda'){argv.push('--profile','sfda','--release',N.release);if(N.release==='mr'&&$('#ncaDosInt').value)argv.push('--dosing-interval',$('#ncaDosInt').value);
+    if(N.release==='ir'&&$('#ncaMedT').value.trim())argv.push('--median-tmax',$('#ncaMedT').value.trim().replace(/\s+/g,''));}
   if(N.study==='ss')argv.push('--tau',$('#ncaTau').value);
   else if($('#ncaT72').checked)argv.push('--truncate-72');
   if($('#ncaLloq').value)argv.push('--lloq',$('#ncaLloq').value);
@@ -1393,7 +1402,7 @@ function renderNca(r){
   h+=`<div class="kpis">
     <div class="kpi"><div class="l">${t('nk_prof')}</div><div class="v">${s.n_included}/${s.n_profiles}</div></div>
     <div class="kpi"><div class="l">${t('nk_subj')}</div><div class="v">${nsub}</div></div>
-    <div class="kpi"><div class="l">${t('nk_cov')}</div><div class="v">${cov?`${s.coverage_below_80}/${s.coverage_evaluable}`:'—'}</div><div class="s" dir="ltr" style="text-align:start">${cov?`${s.coverage_below_80_pct.toFixed(1)}% (≤ 20%)`:t('nk_cov_na')}</div></div>
+    <div class="kpi"><div class="l">${t('nk_cov')}</div><div class="v">${cov?`${s.coverage_below_80}/${s.coverage_evaluable}`:'—'}</div><div class="s" dir="ltr" style="text-align:start">${cov?`${s.coverage_below_80_pct.toFixed(1)}% (≤ 20%)${s.coverage_not_evaluable?` · ${s.coverage_not_evaluable} ${t('nk_noeval')}`:''}`:t('nk_cov_na')}</div></div>
     <div class="kpi"><div class="l">${t('nk_meth')}</div><div class="v" style="font-size:15px;padding-top:5px">${s.auc_method==='linear'?t('m_lin'):t('m_log')}</div></div></div>`;
   const bi=T['be input'];
   if(bi){const opts=bi.columns.filter(c=>!['subject','sequence','period','treatment','predose'].includes(c));

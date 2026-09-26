@@ -461,5 +461,58 @@ class ReviewFixes(unittest.TestCase):
         self.assertEqual(cols, ["subject", "sequence", "period", "treatment", "cmax", "auc_0_t", "auc_0_inf", "auc_0_2", "predose"])
 
 
+class ReviewFixesBatch2(unittest.TestCase):
+    """Second batch of review fixes: protocol median tmax, summary population, 72 h check, coverage count."""
+
+    def emesis_rows(self, emesis):
+        rows = []
+        for s in range(6):
+            rows += [[f"S{s}", 1, "T", x, conc(x), emesis if s == 0 else ""] for x in TIMES]
+        return rows, ("subject", "period", "treatment", "time", "conc", "emesis_time")
+
+    def test_protocol_median_tmax_drives_the_emesis_rule(self):
+        rows, cols = self.emesis_rows("3")             # observed tmax 2 h -> limit 4 h would exclude
+        code, p, _ = run(rows, "--profile", "sfda", "--median-tmax", "1", cols=cols)
+        r0 = table(p, "per-profile parameters")[0]
+        self.assertEqual(r0["status"], "included")      # 3 h > 2 x 1 h
+        self.assertEqual(r0["emesis_limit"], 2)
+        self.assertFalse(any("observed in this study" in f for f in p["findings"]))
+        code, p, _ = run(rows, "--profile", "sfda", "--median-tmax", "T=2,R=1", cols=cols)
+        self.assertTrue(table(p, "per-profile parameters")[0]["status"].startswith("excluded"))
+        with self.assertRaises(SystemExit):              # argparse rejects it (the web glue maps this to exit 2)
+            run(rows, "--median-tmax", "T=abc", cols=cols)
+
+    def test_observed_median_fallback_is_flagged(self):
+        rows, cols = self.emesis_rows("1.5")
+        code, p, _ = run(rows, "--profile", "sfda", cols=cols)
+        self.assertTrue(table(p, "per-profile parameters")[0]["status"].startswith("excluded"))
+        self.assertTrue(any("observed in this study" in f and "--median-tmax" in f for f in p["findings"]))
+
+    def test_drop_out_left_out_of_summary_statistics(self):
+        rows = [r for r in crossover(12) if not (r[0] == "S03" and r[1] == 2)]
+        code, p, _ = run(rows, cols=COLS)
+        n = {(x["treatment"], x["parameter"]): x["n"] for x in table(p, "summary statistics")}
+        self.assertEqual(n[("T", "cmax")] + n[("R", "cmax")], 22)
+        self.assertTrue(any("summary statistics leave out subject(s) S03" in m for m in p["notes"]))
+        self.assertIn("S03", {r["subject"] for r in table(p, "per-profile parameters")})   # still listed
+
+    def test_72h_check_uses_last_quantifiable_sample(self):
+        times = [0, .5, 1, 2, 4, 8, 12, 24, 48, 96]
+        rows = [["S", x, conc(x) if x <= 48 else "BLQ"] for x in times]
+        code, p, _ = run(rows, "--truncate-72", "--profile", "sfda")
+        self.assertTrue(any("72 h is not quantifiable (last quantifiable sample at 48 h)" in f for f in p["findings"]))
+        self.assertFalse(first(p)["c72_quantifiable"])
+        rows = [["S", x, conc(x)] for x in times]
+        code, p, _ = run(rows, "--truncate-72", "--profile", "sfda")
+        self.assertFalse(any("72 h is not quantifiable" in f for f in p["findings"]))
+        self.assertTrue(first(p)["c72_quantifiable"])
+
+    def test_coverage_reports_profiles_without_kel(self):
+        rows = [["A", x, conc(x)] for x in TIMES] + [["B", x, conc(x)] for x in (0, .5, 1, 2, 3)]
+        code, p, _ = run(rows)
+        self.assertEqual(p["scalars"]["coverage_evaluable"], 1)
+        self.assertEqual(p["scalars"]["coverage_not_evaluable"], 1)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

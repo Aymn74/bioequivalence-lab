@@ -16,6 +16,7 @@ from _common import InputError, Report, read_table, require_columns, add_format_
 
 DESIGNS = {'2x2': ('TR', 'RT'), 'partial': ('TRR', 'RTR', 'RRT'), 'full': ('TRTR', 'RTRT')}
 MISSING_VALUES = {'', '.', 'na', 'n/a', 'nan', 'missing'}
+POTENCY_MAX_DIFF = 5.0   # percentage points of label claim (ICH M13A 2.2.2.3; GCC 3.1.2 / 3.1.8)
 THETA_FDA = (math.log(1.25)/0.25)**2
 THETA_FDA_NTI = (math.log(1/0.9)/0.10)**2   # FDA Statistical Approaches (2026), Appendix F
 NTI_SD_RATIO_LIMIT = 2.5
@@ -361,6 +362,34 @@ def fda_nti(records, design):
                 swt_swr=ratio,swt_swr_ci90_low=lower,swt_swr_ci90_high=upper,passes_variability_ratio=bool(upper<=NTI_SD_RATIO_LIMIT),
                 theta=THETA_FDA_NTI,**bound)
 
+def potency_plan(a):
+    """Potency (assay content) of the test and reference batches, % of label claim.
+
+    Returns None when not given, else a dict with the difference and whether correction applies.
+    Correction applies only when it is declared pre-specified (--potency-correction) and the batches
+    differ by more than 5 percentage points (ICH M13A 2.2.2.3; GCC 3.1.8: parameters are in general
+    not adjusted, content correction only in exceptional cases).
+    """
+    given=[x is not None for x in (a.potency_test,a.potency_reference)]
+    if not any(given):
+        if a.potency_correction: raise InputError('--potency-correction needs --potency-test and --potency-reference (assay content, % of label claim)')
+        return None
+    if not all(given): raise InputError('give both --potency-test and --potency-reference (assay content, % of label claim)')
+    for name,x in (('--potency-test',a.potency_test),('--potency-reference',a.potency_reference)):
+        if not math.isfinite(x) or not 0<x<=200: raise InputError(f'{name} must be the assayed content in % of label claim (0-200)')
+    diff=a.potency_test-a.potency_reference
+    return dict(test=a.potency_test,reference=a.potency_reference,difference_points=diff,ratio=a.potency_test/a.potency_reference,
+                exceeds=abs(diff)>POTENCY_MAX_DIFF,apply=bool(a.potency_correction and abs(diff)>POTENCY_MAX_DIFF))
+
+def potency_corrected(records, plan):
+    """Dose-normalised values: value x 100 / potency of that batch. The guidelines do not give a formula;
+    this is the usual convention and assumes exposure proportional to the dose (linear PK)."""
+    out=[]
+    for r in records:
+        f=100.0/(plan['test'] if r['treatment']=='T' else plan['reference'])
+        c=dict(r); c['value']=r['value']*f; c['logvalue']=r['logvalue']+math.log(f); out.append(c)
+    return out
+
 def abel_limits(rv):
     if rv.cvwr<=.30: return .8,1.25,False
     s=min(rv.swr,math.sqrt(math.log1p(.5**2)))
@@ -522,6 +551,9 @@ def build_parser():
     p.add_argument('--limits',default='0.80,1.25'); p.add_argument('--nti',action='store_true',help='fixed 90.00-111.11%% limits only; NOT a full NTI methodology')
     p.add_argument('--ema-rounding',action='store_true',help='compare CI endpoints as percentages rounded to 2 decimals')
     p.add_argument('--abel-justified',action='store_true',help='acknowledge clinical justification and prospective protocol specification')
+    p.add_argument('--potency-test',type=float,help='assayed content of the test batch, %% of label claim')
+    p.add_argument('--potency-reference',type=float,help='assayed content of the reference batch, %% of label claim')
+    p.add_argument('--potency-correction',action='store_true',help='potency correction pre-specified in the protocol and justified (applied only when the batches differ by > 5%%)')
     p.add_argument('--welch',action='store_true')
     for c in ('subject','treatment','value'): p.add_argument('--'+c+'-column',default=c)
     p.add_argument('--power',action='store_true'); p.add_argument('--cv',type=float); p.add_argument('--gmr',type=float,default=.95)
@@ -574,8 +606,15 @@ def run(argv=None):
     if a.predose_check:
         records,excluded=predose_screen(records,design,fixed_only)
         if excluded: design,_=validate(records,design,fixed_only)
-    if design=='parallel': result=parallel_design(records,a.welch)
-    else: result=ema_analysis(records,design,a.ci_level,fixed_only) if a.analysis=='ema' else contrast_analysis(records,design)
+    pot=potency_plan(a)
+    def primary(recs):
+        if design=='parallel': return parallel_design(recs,a.welch)
+        return ema_analysis(recs,design,a.ci_level,fixed_only) if a.analysis=='ema' else contrast_analysis(recs,design)
+    uncorrected=None
+    if pot and pot['apply']:
+        uncorrected=primary(records); uncorrected.ci_level=a.ci_level
+        records=potency_corrected(records,pot)   # the pre-dose rule above used the measured values
+    result=primary(records)
     result.ci_level=a.ci_level
     report.scalar('design',design); report.scalar('metric',a.metric or a.value_column)
     for key,val in asdict(result).items(): report.scalar(key,val)
@@ -584,6 +623,23 @@ def run(argv=None):
     passed=passes_ci(result,limits,a.ema_rounding)
     report.scalar('average_be_met',passed); report.scalar('limits',limits)
     report.scalar('ci_rounding','percent, 2 decimal places, half-up' if a.ema_rounding else 'none')
+    if pot:
+        report.scalar('potency_test',pot['test']); report.scalar('potency_reference',pot['reference'])
+        report.scalar('potency_difference_points',pot['difference_points']); report.scalar('potency_corrected',pot['apply'])
+        if pot['apply']:
+            both=[dict(data='uncorrected',gmr_pct=100*uncorrected.gmr,ci_low_pct=100*uncorrected.ci_low,ci_high_pct=100*uncorrected.ci_high,met=passes_ci(uncorrected,limits,a.ema_rounding)),
+                  dict(data='potency-corrected',gmr_pct=100*result.gmr,ci_low_pct=100*result.ci_low,ci_high_pct=100*result.ci_high,met=passed)]
+            report.table('potency correction',both)
+            report.note(f"Potency correction applied (test {pot['test']:g}%, reference {pot['reference']:g}% of label claim; difference {pot['difference_points']:+.2f} points, > 5%): "
+                        'values x 100 / assayed content of their batch, i.e. dose-normalised assuming linear pharmacokinetics (the guidelines give no formula). '
+                        'The decision and the scaled criteria use the corrected data; the uncorrected analysis is shown too (ICH M13A 2.2.2.3). '
+                        'Correction is exceptional and must be pre-specified and justified in the protocol, e.g. with assay data of several reference batches (ICH M13A 2.2.2.3; GCC 3.1.8).')
+        elif pot['exceeds']:
+            report.finding(f"Test and reference batch potencies differ by {abs(pot['difference_points']):.2f} percentage points (> 5%); ICH M13A 2.2.2.3 and GCC 3.1.2 expect at most 5%. "
+                           'Correction is possible only in exceptional, pre-specified cases (--potency-correction)')
+        else:
+            report.note(f"Batch potencies within 5% (test {pot['test']:g}%, reference {pot['reference']:g}%; difference {pot['difference_points']:+.2f} points): "
+                        'no correction; pharmacokinetic parameters are in general not adjusted (GCC 3.1.8)'+('; --potency-correction was ignored' if a.potency_correction else ''))
     if a.nti: report.note('NTI flag changes fixed limits only. It does NOT implement FDA NTI scaling/variance comparison or all EMA endpoint-specific requirements.')
     if a.endogenous:
         if a.baseline_method:

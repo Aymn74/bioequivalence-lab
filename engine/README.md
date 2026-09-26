@@ -73,6 +73,8 @@ This copy of the engine extends the corrected package above (the `provenance.jso
 - `--predose-column`, `--cmax-column`, `--endogenous`: pre-dose screening inputs.
 - `sample_size(..., min_n=)`: minimum total N (18 under the SFDA profile).
 
+- `--potency-test`, `--potency-reference`, `--potency-correction`: batch assay content (% of label claim); correction (value x 100 / content) only when declared pre-specified and the batches differ by more than 5 points, with uncorrected and corrected analyses reported (ICH M13A 2.2.2.3; GCC 3.1.8). Tests: `test_potency.py`.
+
 ABEL is checked against the EMA reference datasets and replicateBE in [`validation/ema_abel/`](validation/ema_abel/README.md) (`test_ema_reference.py`).
 
 Default behaviour without these options is unchanged (reference output in `example_results.json` reproduced to floating-point precision). New tests: `test_sfda.py`.

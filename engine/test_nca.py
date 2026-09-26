@@ -174,7 +174,7 @@ class UpstreamFixes(unittest.TestCase):
         code2, p2, _ = run([r for r in prof if r[2] != ""])
         self.assertAlmostEqual(first(p)["auc_0_t"], first(p2)["auc_0_t"], places=10)
         self.assertEqual(first(p)["n_missing"], 1)
-        self.assertEqual(first(p)["n_blq"], 0)
+        self.assertEqual(first(p)["n_blq"], 1)          # only the measured 0 at time 0
         self.assertEqual(table(p, "missed samples")[0]["time"], 2)
         self.assertTrue(any("protocol deviation" in f for f in p["findings"]))
 
@@ -329,7 +329,136 @@ class BeHandoff(unittest.TestCase):
                 rows += [[f"S{s}", per, trt, x, conc(x), "1" if (s == 0 and per == 1) else ""] for x in TIMES]
         code, p, _ = run(rows, "--profile", "sfda", cols=("subject", "period", "treatment", "time", "conc", "emesis_time"))
         self.assertNotIn("S0", {r["subject"] for r in table(p, "be input")})
-        self.assertTrue(any("leaves out subject(s) S0" in n for n in p["notes"]))
+        self.assertTrue(any("subject S0: a period was excluded" in n for n in p["notes"]))
+
+
+def be_run(rows, *argv):
+    """Write a 'be input' table to CSV and run bioequivalence.py on it; return (exit code, payload, stderr)."""
+    fd, path = tempfile.mkstemp(suffix=".csv")
+    os.close(fd)
+    try:
+        with open(path, "w", newline="") as fh:
+            w = csv.DictWriter(fh, list(rows[0]))
+            w.writeheader()
+            w.writerows(rows)
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = be.main_wrapper(be.run, ["-i", path, "--format", "json", *argv])
+        return code, (json.loads(out.getvalue()) if out.getvalue() else None), err.getvalue()
+    finally:
+        os.remove(path)
+
+
+def crossover(n, seqs=("TR", "RT"), labels=None, **tweak):
+    """Rows (subject, period, treatment, time, conc) for n subjects; tweak[(subject, period)] = callable(rows)."""
+    rng = np.random.default_rng(11)
+    rows = []
+    for s in range(n):
+        seq = seqs[s % len(seqs)]
+        for per, trt in enumerate(seq, 1):
+            f = math.exp(rng.normal(0, .1))
+            lab = labels.get(trt, trt) if labels else trt
+            rows += [[f"S{s:02d}", per, lab, x, f * conc(x)] for x in TIMES[:-1]]
+    return rows
+
+
+COLS = ("subject", "period", "treatment", "time", "conc")
+
+
+class ReviewFixes(unittest.TestCase):
+    """Regression tests for the findings of the 2026-09-26 review."""
+
+    def test_profile_quantifiable_only_at_time_zero_does_not_crash(self):
+        code, p, err = run([["A", 0, 5], ["A", 1, ""], ["A", 2, ""]])
+        self.assertNotIn("Traceback", err)
+        self.assertEqual(first(p)["cmax"], 5)
+
+    def test_blank_period_or_treatment_is_an_input_error(self):
+        rows = [["A", 1, "T", 0, 0], ["A", "", "T", 1, 10], ["A", 1, "T", 2, 8]]
+        self.assertEqual(run(rows, cols=COLS)[0], 2)
+        rows = [["A", 1, "T", 0, 0], ["A", 1, "", 1, 10]]
+        self.assertEqual(run(rows, cols=COLS)[0], 2)
+
+    def test_test_ref_labels_give_canonical_sequences(self):
+        code, p, _ = run(crossover(12, labels={"T": "Test", "R": "Ref"}), cols=COLS)
+        bi = table(p, "be input")
+        self.assertEqual({r["sequence"] for r in bi}, {"TR", "RT"})
+        code, res, err = be_run(bi, "--value-column", "cmax", "--metric", "cmax")
+        self.assertIn(code, (0, 1), err)
+        self.assertEqual(res["scalars"]["n_subjects"], 12)
+
+    def test_subject_missing_a_period_leaves_the_be_input(self):
+        rows = [r for r in crossover(12) if not (r[0] == "S03" and r[1] == 2)]
+        code, p, _ = run(rows, cols=COLS)
+        self.assertNotIn("S03", {r["subject"] for r in table(p, "be input")})
+        self.assertTrue(any("subject S03: 1 of 2 periods" in n for n in p["notes"]))
+
+    def test_column_options_are_case_insensitive(self):
+        rows = crossover(2)
+        code, p, _ = run(rows, "--conc-column", "Conc", "--period-column", "Period", cols=("subject", "Period", "treatment", "time", "Conc"))
+        self.assertEqual(code in (0, 1), True)
+        self.assertEqual({r["period"] for r in table(p, "per-profile parameters")}, {"1", "2"})
+
+    def test_non_finite_numbers_are_rejected(self):
+        self.assertEqual(run([["A", 0, "inf"], ["A", 1, 5]])[0], 2)
+        self.assertEqual(run([["A", 0, 0], ["A", 1, 5], ["A", 2, 3], ["A", 4, 1]], "--tau", "nan")[0], 2)
+
+    def test_nd_and_measured_zero_are_blq(self):
+        prof = [["S", x, conc(x)] for x in TIMES]
+        prof[9][2] = "ND"
+        code, p, _ = run(prof)
+        self.assertEqual(first(p)["n_blq"], 2)          # time 0 (measured 0) and 8 h (ND)
+        prof[9][2] = 0
+        code, p, _ = run(prof)
+        self.assertEqual(first(p)["n_blq"], 2)
+        self.assertTrue(any("BLQ between quantifiable" in f for f in p["findings"]))
+
+    def test_replicate_predose_drops_the_subject_so_the_be_analysis_runs(self):
+        rows = crossover(12, seqs=("TRR", "RTR", "RRT"))
+        for r in rows:
+            if r[0] == "S01" and r[1] == 3 and r[3] == 0:
+                r[4] = 0.08 * conc(2)
+        code, p, _ = run(rows, cols=COLS)
+        bi = table(p, "be input")
+        self.assertNotIn("S01", {r["subject"] for r in bi})
+        code, res, err = be_run(bi, "--design", "partial", "--value-column", "auc_0_t", "--metric", "auc",
+                                "--predose-column", "predose", "--cmax-column", "cmax")
+        self.assertIn(code, (0, 1), err)
+
+    def test_multi_treatment_keeps_subject_with_excluded_unrelated_period(self):
+        rows = [r + [""] for r in crossover(18, seqs=("TAB", "ABT", "BTA", "TBA", "ATB", "BAT"), labels={"A": "R1", "B": "R2"})]
+        for r in rows:
+            if r[0] == "S01" and r[2] == "R2":
+                r[5] = "0.5"
+        code, p, _ = run(rows, "--profile", "sfda", cols=COLS + ("emesis_time",))
+        bi = table(p, "be input")
+        self.assertEqual({(r["subject"], r["treatment"]) for r in bi if r["subject"] == "S01"}, {("S01", "T"), ("S01", "R1")})
+        code, res, err = be_run(bi, "--design", "multi", "--test-label", "T", "--reference-label", "R1",
+                                "--value-column", "cmax", "--metric", "cmax", "--profile", "sfda")
+        self.assertIn(code, (0, 1), err)
+        self.assertEqual(res["scalars"]["n_subjects"], 18)
+
+    def test_parallel_without_period_column(self):
+        rows = [[f"S{s:02d}", "T" if s % 2 else "R", x, conc(x) * (1 + s / 100)] for s in range(24) for x in TIMES[:-1]]
+        code, p, _ = run(rows, cols=("subject", "treatment", "time", "conc"))
+        bi = table(p, "be input")
+        self.assertEqual(len(bi), 24)
+        code, res, err = be_run(bi, "--design", "parallel", "--value-column", "cmax", "--metric", "cmax")
+        self.assertIn(code, (0, 1), err)
+
+    def test_missing_metric_is_named(self):
+        rows = crossover(12)
+        rows = [r for r in rows if not (r[0] == "S02" and r[1] == 1 and r[3] > 3)]   # no terminal phase
+        code, p, _ = run(rows, cols=COLS)
+        self.assertTrue(any("auc_0_inf is not available for subject(s) S02" in n for n in p["notes"]))
+        code, res, err = be_run(table(p, "be input"), "--value-column", "auc_0_inf", "--metric", "aucinf")
+        self.assertEqual(code, 2)
+        self.assertIn("subject S02 period 1", err)
+
+    def test_auc_0_inf_listed_after_primary_parameters_and_partial_auc_included(self):
+        code, p, _ = run(crossover(2), "--partial-auc", "0-2", cols=COLS)
+        cols = next(t["columns"] for t in p["tables"] if t["title"] == "be input")
+        self.assertEqual(cols, ["subject", "sequence", "period", "treatment", "cmax", "auc_0_t", "auc_0_inf", "auc_0_2", "predose"])
 
 
 if __name__ == "__main__":

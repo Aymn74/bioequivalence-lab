@@ -125,7 +125,7 @@ The emesis rule (at or before 2 × median tmax for immediate release) and the 80
 
 Sources re-checked against the full text of DS-G-010 V3.1 (sections 3.1.1–3.1.10): the widened-limit table (CVwR 30/35/40/45/≥50% → 80.00–125.00 / 77.23–129.48 / 74.62–134.02 / 72.15–138.59 / 69.84–143.19%) is reproduced exactly.
 
-**Verification of the ANOVA:** estimate, 90% CI and formulation F-test match `statsmodels` OLS to ~1e-15 on balanced and unbalanced 2×2, partial and full replicate data; the subject(sequence) sum of squares matches the textbook between-subject formula and an explicit nested regression (statsmodels' Type I output is incorrect for this singular parameterisation). Tests: `engine/test_sfda.py` (13 tests) plus the original 12.
+**Verification of the ANOVA:** estimate, 90% CI and formulation F-test match `statsmodels` OLS to ~1e-15 on balanced and unbalanced 2×2, partial and full replicate data; the subject(sequence) sum of squares matches the textbook between-subject formula and an explicit nested regression (statsmodels' Type I output is incorrect for this singular parameterisation). Tests: `engine/test_sfda.py` (28 tests), `engine/test_extensions.py` (11) and the original 12.
 
 **Power note:** for a partial replicate with N = 24, CV 30%, GMR 0.95, power is 70.8% with the contrast model (df = N − 3) and 72.5% with the fixed-effects ANOVA model the SFDA profile uses (df = (N − 1)(P − 1) − 1). Both are correct for their model.
 
@@ -171,7 +171,7 @@ python -m unittest -v
 python validate_simulation.py
 ```
 
-`python -m unittest test_nca -v` runs the 19 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
+`python -m unittest test_nca -v` runs the 31 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
 
 **NCA against PKNCA 0.12.1 (R):** 348 single-dose and 60 steady-state profiles, both trapezoidal rules — all core parameters (Cmax, tmax, AUC(0-t), kel, t½, AUC(0-∞), AUC(0-τ), Cmin,ss) match to 4 × 10⁻¹⁴; the few partial-AUC differences after Clast are explained PKNCA conventions. PKNCA's default BLQ rule differs from ICH M13A and changed AUC(0-t) by up to 21.1%. Scripts, data and results: [`engine/validation/`](engine/validation/README.md).
 

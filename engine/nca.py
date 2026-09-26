@@ -37,8 +37,9 @@ import numpy as np
 
 from _common import InputError, Report, add_format_argument, main_wrapper, parse_float, read_table, require_columns
 
-BLQ_TOKENS = {"blq", "bql", "<lloq", "lloq", "bloq", "nq", "<loq", "bllq"}
-MISSING_TOKENS = {"", ".", "na", "n/a", "nan", "null", "none", "-", "missing", "ns", "nr", "nd"}
+BLQ_TOKENS = {"blq", "bql", "<lloq", "lloq", "bloq", "nq", "<loq", "bllq", "nd"}
+MISSING_TOKENS = {"", ".", "na", "n/a", "nan", "null", "none", "-", "missing", "ns", "nr"}
+TREATMENT_ALIASES = {"TEST": "T", "REF": "R", "REFERENCE": "R"}
 ADJ_R2_TOLERANCE = 1e-4          # PKNCA adj.r.squared.factor / WinNonlin
 COVERAGE_MIN_PCT = 80.0          # ICH M13A 2.1.8, 2.2.2.2; GCC 3.1.4, 3.1.8
 COVERAGE_MAX_SHARE = 0.20
@@ -96,7 +97,7 @@ def parse_conc(raw, lloq):
     value = parse_float(text, "concentration")
     if value < 0:
         raise InputError(f"negative concentration {text}; baseline correction is done by --baseline, not in the input")
-    if lloq is not None and value < lloq:
+    if value == 0 or (lloq is not None and value < lloq):
         return 0.0, True
     return value, False
 
@@ -113,6 +114,10 @@ def load_profiles(a):
             raise InputError(f"row {n}: empty subject")
         period = row[a.period_column].strip() if has["period"] else ""
         treatment = row[a.treatment_column].strip().upper() if has["treatment"] else ""
+        if has["period"] and not period:
+            raise InputError(f"row {n}: empty {a.period_column} for subject {subject}")
+        if has["treatment"] and not treatment:
+            raise InputError(f"row {n}: empty {a.treatment_column} for subject {subject}")
         key = (subject, period or treatment)
         p = buckets.get(key)
         if p is None:
@@ -161,7 +166,7 @@ def derive_sequences(profiles):
     for group in by_subject.values():
         if all(p.sequence for p in group):
             continue
-        seq = "".join(p.treatment for p in sorted(group, key=order))
+        seq = "".join(TREATMENT_ALIASES.get(p.treatment, p.treatment) for p in sorted(group, key=order))
         for p in group:
             p.sequence = p.sequence or seq
 
@@ -279,7 +284,7 @@ def analyse(p, a, findings, notes_seen):
         if len(qu):
             row["cmax_uncorrected"] = float(cu[qu].max())
             row["auc_0_t_uncorrected"] = auc_between(tu, cu, 0.0, float(tu[qu[-1]]), a.auc_method)
-        c_all = np.where(pre, 0.0, np.maximum(c_all - base, 0.0))   # ICH M13A 2.1.5: negative -> zero
+        c_all = np.where(pre, 0.0, np.maximum(c_all - base, 0.0))   # ICH M13A 3.1: negative -> zero
         blq_all = blq_all | (c_all <= 0)
 
     t, c, blq = post_dose(c_all, blq_all)
@@ -299,7 +304,8 @@ def analyse(p, a, findings, notes_seen):
     mid_blq = np.flatnonzero(blq[:last] & (t[:last] > 0) & (np.arange(last) > np.flatnonzero(quant)[0]))
     if len(mid_blq):
         findings.append(f"{where}: BLQ between quantifiable samples at {', '.join(f'{t[i]:g}' for i in mid_blq)} h set to zero (ICH M13A); check the bioanalytical record")
-    if a.tau is None and peak == int(np.flatnonzero(t > 0)[0]):
+    first_post = np.flatnonzero(t > 0)
+    if a.tau is None and len(first_post) and peak == int(first_post[0]):
         findings.append(f"{where}: Cmax is the first post-dose sample; the true peak may precede it (GCC 3.1.4)")
     if last == peak:
         findings.append(f"{where}: Cmax is the last quantifiable sample; the terminal phase is not characterised")
@@ -357,7 +363,7 @@ def ss_tau(row, t, c, quant, a, where, findings, notes_seen):
         k = int(near[np.argmin(np.abs(t[near] - tau))])
         row["ctau_ss"], row["ctau_time"] = float(c[k]), float(t[k])
     else:
-        findings.append(f"{where}: no sample within {tol * 60:g} min of tau = {tau:g} h; CtauSS not reported (ICH M13A 2.1.8)")
+        findings.append(f"{where}: no sample within {tol * 60:g} min of tau = {tau:g} h; CtauSS not reported (program rule; ICH M13A 2.1.8 recommends the last sample within 10 min of the nominal tau)")
     if t[-1] >= tau:
         auc_tau = auc_between(t, c, 0.0, tau, a.auc_method)
     elif t[-1] >= tau - tol:
@@ -387,7 +393,7 @@ def apply_emesis(rows, profiles, a, findings, notes):
         return
     if a.profile != "sfda":
         for r, p in flagged:
-            findings.append(f"{label(p)}: emesis at {p.emesis:g} h; exclusion must follow the criteria pre-specified in the protocol")
+            findings.append(f"{label(p)}: emesis at {p.emesis:g} h; ICH M13A Q&A 2.9 lists emesis within 2 x the expected median tmax as a deviation that may justify exclusion if pre-specified in the protocol (the GCC rule is applied with --profile sfda)")
         return
     if a.release == "mr":
         for r, p in flagged:
@@ -469,6 +475,59 @@ def clean(v):
     return None if isinstance(v, float) and not math.isfinite(v) else v
 
 
+def be_input(rows, a, report, notes):
+    """Long table for bioequivalence.py: one row per subject-period (or per subject in a parallel study).
+
+    Crossover and replicate designs: bioequivalence.py needs complete subjects, so a subject with an
+    excluded or missing period is left out (GCC 3.1.8: in a 2-period trial the subject is removed; in
+    replicate designs the guidelines would remove only that period, which this engine cannot analyse).
+    Designs with more than two treatments keep the other periods: each comparison is analysed without
+    the other arms, and bioequivalence.py keeps subjects that have both products compared.
+    """
+    if not all(r["treatment"] for r in rows):
+        return
+    by_subject: dict[str, list[dict]] = {}
+    for r in rows:
+        by_subject.setdefault(r["subject"], []).append(r)
+    parallel = all(len(v) == 1 for v in by_subject.values())
+    if not parallel and not all(r["period"] for r in rows):
+        return
+    labels = {TREATMENT_ALIASES.get(r["treatment"], r["treatment"]) for r in rows}
+    multi = len(labels) > 2
+    periods = max(len(v) for v in by_subject.values())
+    primary = ("auc_tau", "cmax_ss") if a.tau is not None else ("cmax", "auc_0_t", "auc_0_72", "auc_0_inf")
+    keys = [k for k in primary if any(k in r for r in rows)] + [f"auc_{s:g}_{e:g}" for s, e in a.partial_auc]
+
+    left_out: dict[str, str] = {}
+    for subject, group in by_subject.items():
+        excluded = [r for r in group if r["status"] != "included"]
+        if parallel or multi:
+            continue
+        if excluded:
+            left_out[subject] = "a period was excluded"
+        elif len(group) < periods:
+            left_out[subject] = f"{len(group)} of {periods} periods in the data"
+        elif periods > 2 and any(r.get("predose_pct_cmax") for r in group):
+            left_out[subject] = "pre-dose > 5% of Cmax in a replicate design (the guidelines remove only that period; incomplete replicate data cannot be analysed here)"
+    table = []
+    for r in rows:
+        if r["subject"] in left_out or r["status"] != "included":
+            continue
+        seq = r["treatment"] if parallel else r["sequence"]
+        table.append({"subject": r["subject"], "sequence": seq, "period": r["period"] or "1", "treatment": r["treatment"],
+                      **{k: clean(r.get(k)) for k in keys}, "predose": clean(r.get("predose"))})
+    report.table("be input", table)
+    if left_out:
+        notes.append("BE input leaves out " + "; ".join(f"subject {s}: {why}" for s, why in sorted(left_out.items())))
+    if multi and any(r["status"] != "included" for r in rows):
+        notes.append("BE input keeps the other periods of subjects with an excluded period: with more than two products, "
+                     "each comparison uses only the subjects that have both products")
+    for k in keys:
+        gaps = sorted({x["subject"] for x in table if x.get(k) is None})
+        if gaps:
+            notes.append(f"BE input: {k} is not available for subject(s) {', '.join(gaps)}; they are left out when {k} is analysed")
+
+
 # --------------------------------------------------------------------- CLI
 
 
@@ -509,6 +568,12 @@ def build_parser():
 
 def run(argv=None):
     a = build_parser().parse_args(argv)
+    for name in ("subject", "time", "conc", "period", "treatment", "sequence", "dose", "emesis"):
+        setattr(a, name + "_column", getattr(a, name + "_column").strip().lower())   # read_table lower-cases headers
+    for name in ("tau", "lloq", "tolerance", "dosing_interval"):
+        value = getattr(a, name)
+        if value is not None and not math.isfinite(value):
+            raise InputError(f"--{name.replace('_', '-')} must be a finite number")
     if a.lambda_z_points < 3:
         raise InputError("--lambda-z-points must be at least 3 (ICH M13A 2.1.8)")
     if a.tau is not None and a.tau <= 0:
@@ -564,18 +629,7 @@ def run(argv=None):
             report.table("gcc annex 1", [{k: clean(v) for k, v in x.items()} for x in annex])
             notes.append("GCC Annex 1 section 5: the ratio of geometric means and the confidence interval come from the BE analysis")
 
-    primary = ("auc_tau", "cmax_ss") if a.tau is not None else ("cmax", "auc_0_t", "auc_0_inf", "auc_0_72")
-    be_keys = [k for k in primary if any(k in r for r in rows)]
-    # bioequivalence.py analyses complete subjects only; a subject with an excluded period leaves the BE input.
-    # Pre-dose > 5% periods stay in: bioequivalence.py applies and reports that rule itself from the predose column.
-    dropped = sorted({r["subject"] for r in rows if r["status"] != "included"})
-    be_rows = [{"subject": r["subject"], "sequence": r["sequence"], "period": r["period"], "treatment": r["treatment"],
-                **{k: clean(r.get(k)) for k in be_keys}, "predose": r.get("predose")}
-               for r in rows if r["subject"] not in dropped]
-    if all(r["period"] for r in rows) and all(r["treatment"] for r in rows):
-        report.table("be input", be_rows)
-        if dropped:
-            notes.append(f"BE input leaves out subject(s) {', '.join(dropped)}: a period was excluded, and the BE analysis needs complete subjects")
+    be_input(rows, a, report, notes)
 
     report.note(f"trapezoidal rule: {'linear' if a.auc_method == 'linear' else 'linear-up / log-down'}; pre-specify it in the protocol and report it (ICH M13A 2.2.2.2)")
     report.note("BLQ values are zero in AUC and omitted from kel (ICH M13A 2.2.2.2); blank cells are missed samples, dropped")
@@ -583,8 +637,8 @@ def run(argv=None):
                 "within 1e-4 of the best, the window with more points is used. Report the number of points (ICH M13A, GCC 3.1.8)")
     report.note("parameters use the actual sampling times in the input; times are taken as hours after dosing")
     if a.baseline == "predose-mean":
-        report.note("baseline: mean pre-dose concentration of each period subtracted, negatives set to zero (ICH M13A 2.1.5, GCC 3.1.5). "
-                    "Analyse the uncorrected data as well (ICH M13A)")
+        report.note("baseline: mean pre-dose concentration of each period subtracted, negatives set to zero (ICH M13A 3.1; GCC 3.1.5 prefers subtracting the mean pre-dose concentration). "
+                    "ICH M13A 3.1 asks for PK and statistical analyses of the uncorrected data as well: run the analysis again without --baseline")
     for n in sorted(notes_seen):
         report.note(n)
     for n in notes:

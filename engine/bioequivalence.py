@@ -444,7 +444,7 @@ def load_records(args):
             if tr not in (args.test_label.upper(),args.reference_label.upper()): continue   # other treatment arms are excluded
             tr='T' if tr==args.test_label.upper() else 'R'
         else: tr={'TEST':'T','REF':'R','REFERENCE':'R'}.get(tr,tr)
-        val=positive(row[args.value_column],'value')
+        val=positive(row[args.value_column],f"value ({args.value_column}) for subject {row[args.subject_column].strip()} period {row.get('period','').strip() or '-'}")
         if plan:
             sub=plan[1](row); raw=val; val=raw-sub
             args.baseline_rows.append(dict(subject=row[args.subject_column].strip(),period=row.get('period',''),treatment=tr,uncorrected=raw,subtracted=sub,corrected=val,pct_remaining=100*val/raw))

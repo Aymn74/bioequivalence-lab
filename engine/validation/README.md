@@ -27,7 +27,7 @@ One setting was changed: PKNCA's default `conc.blq` drops BLQ values between qua
 |---|---|---|---|
 | Cmax, tmax, tlast, Clast, AUC(0-t), kel, t½, kel points, adjusted r², AUC(0-∞) obs and pred, AUC(0-2) | 348 × 2 rules | 4 × 10⁻¹⁴ | 0 |
 | Steady state: Cmax,ss, tmax,ss, Cmin,ss, AUC(0-τ) | 60 × 2 rules | 2 × 10⁻¹⁴ | 0 |
-| AUC(0-24) against `aucint.all` | 348 × 2 rules | 5 × 10⁻¹⁵ where both give a value | linear 15, lin-up/log-down 8 |
+| AUC(0-24) against `aucint.all` | 348 × 2 rules | 5 × 10⁻¹⁵ outside the explained cases below (the 7 linear-rule cases differ by up to 5.1%) | linear 15, lin-up/log-down 8 |
 
 Every AUC(0-24) mismatch has 24 h after Clast, and all are explained exactly:
 
@@ -36,6 +36,8 @@ Every AUC(0-24) mismatch has 24 h after Clast, and all are explained exactly:
 - Against `aucint.last` (all concentrations after Clast set to zero), 28 profiles differ, as expected: `nca.py` keeps a later BLQ sample as zero at its own time, like `aucint.all`.
 
 These partial-AUC cases do not arise for AUC(0-t), AUC(0-∞) or AUC(0-τ), which match exactly.
+
+Limits of the steady-state check: in 27 of the 60 profiles the last sample lies before τ (within 0.1 h), and both tools then stop AUC(0-τ) at that sample, so agreement there reflects a shared convention rather than correctness. CtauSS, CavSS, fluctuation and swing were not compared. `compare_pknca.py` prints the results but does not yet fail on unexpected differences (planned).
 
 ## Effect of PKNCA's default BLQ rule
 

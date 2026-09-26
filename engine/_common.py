@@ -80,9 +80,12 @@ def parse_float(text: Any, field_name: str = "value", allow_missing: bool = Fals
             return None
         raise InputError(f"{field_name}: missing")
     try:
-        return float(s)
+        x = float(s)
     except ValueError as exc:
         raise InputError(f"{field_name}: {s!r} is not a number") from exc
+    if not math.isfinite(x):
+        raise InputError(f"{field_name}: {s!r} is not a finite number")
+    return x
 
 
 def parse_positive(text: Any, field_name: str) -> float:

@@ -11,11 +11,54 @@
 ![Status](https://img.shields.io/badge/status-research%20use%20only-orange?style=flat-square)
 
 A bilingual (Arabic / English) web interface for average bioequivalence analysis — ABE, EMA ABEL, FDA RSABE, and power / sample size.
-The page runs the Python engine (`engine/bioequivalence.py`) **unmodified in the browser** via [Pyodide](https://pyodide.org). No data leaves the user's device.
+The page runs the Python engine (`engine/bioequivalence.py`) **in the browser** via [Pyodide](https://pyodide.org). No data leaves the user's device.
 
 > ⚠️ **Research implementation, not regulatory certification.** Complete canonical designs only. It does not replace a statistical analysis plan or product-specific guidance. See [`engine/README.md`](engine/README.md) for model assumptions, unsupported cases and references.
 
 **Live app:** https://bioequivalence-lab.vercel.app
+
+## Regulatory comparison · مقارنة الأدلة التنظيمية
+
+Reviewed against the full text of each document (September 2026). "—" = the document does not address the point; *not reviewed* = not checked in that document.
+
+| Topic | ICH M13A (Step 4, Jul 2024) | EMA BE guideline Rev.1 | FDA *Statistical Approaches to Establishing BE* (May 2026) | GCC / SFDA DS-G-010 V3.1 (2022) | This app |
+|---|---|---|---|---|---|
+| **ABE criterion** | 90% CI of GMR within 80.00–125.00% (log scale) | same | same | same | ✓ both frameworks |
+| **Rounding to 2 decimals** | not stated | ≥ 80.00 / ≤ 125.00 after rounding | rounded CI ≥ 80.00 and ≤ 125.00 | as EMA | ICH framework: optional · SFDA: always |
+| **Model, crossover** | "appropriate parametric method, e.g. general linear model or mixed model" | ANOVA, **fixed** effects: sequence, subject(sequence), period, formulation | replicate designs: "mixed-effects or two-stage linear model" | as EMA (same wording) | *Within-subject differences (FDA)* = two-stage model; *Fixed-effects ANOVA (EMA / GCC)*; SFDA forces ANOVA |
+| **ANOVA / effect tables in report** | required (sequence, subject(sequence), period, formulation) | required | *not reviewed* | required | `--anova`; always under SFDA |
+| **Minimum evaluable subjects** | 12 (crossover); 12 per arm (parallel) | 12 | *not reviewed* | **18** (24 recommended) | SFDA: 18 enforced · ICH framework: **not enforced** |
+| **Pre-dose > 5% of Cmax** (single dose) | exclude that period | exclude | *not reviewed* | exclude | SFDA only (optional `predose` column) · **not applied in ICH framework** |
+| **Very low AUC (< 5% of GM)** | exceptional exclusion, **test or comparator** period | exceptional, **reference** only | *not reviewed* | as EMA (reference) | SFDA: reference AUC flagged, never excluded |
+| **Carry-over test** | not relevant | not relevant | *not reviewed* | not relevant | not performed |
+| **Potency / assay-content correction** | batches within 5%; exceptional pre-specified correction, report **both** uncorrected and corrected | exceptional, pre-specified | *not reviewed* | as EMA | not implemented |
+| **Endogenous substances** | pre-specified, period-specific baseline correction; negative concentrations set to 0; analyse **both** corrected and uncorrected, decide on corrected | baseline correction, subtractive method preferred | *not reviewed* | as EMA | `--endogenous`: subtraction of a baseline column, or explicit confirmation; parameter ≤ 0 → error |
+| **Highly variable drugs** | out of scope (→ M13C) | **ABEL**: Cmax only, CVwR > 30%, k = 0.760, max 69.84–143.19%, GMR 80–125, replicate, pre-specified | **RSABE**: CVwR ≥ 30% (sWR ≥ 0.294), θ = (ln 1.25 / 0.25)², GMR 80–125, partial or full replicate | as EMA (ABEL only) | ABEL and RSABE (ICH framework); ABEL only (SFDA) |
+| **Narrow therapeutic index** | out of scope (→ M13C) | 90.00–111.11% for AUC (and Cmax where important) | full replicate; RSABE with Δ = 1/0.9, σW0 = 0.10, **plus** ABE 80–125, **plus** σWT/σWR ≤ 2.5 | as EMA | fixed 90.00–111.11% only (EMA / GCC); FDA NTI method **not implemented** |
+| **Two-stage / adaptive** | out of scope (→ M13C) | allowed; adjusted CI (e.g. 94.12%); stage term in ANOVA | adaptive designs allowed if fully pre-specified | as EMA | `--ci-level`; `stage` column adds stage terms |
+| **Multiple comparators / tests** | analyse each comparison without the other arms | *not reviewed* | *not reviewed* | same as M13A | **not supported** (non-canonical sequences) |
+| **Multi-group / multi-site** | model with group, sequence×group, subject(sequence×group), period(group); no group×treatment | *not reviewed* | *not reviewed* | — | not implemented (the two-stage `stage` term has the same structure) |
+| **Missing data** | *not reviewed* | subjects without both T and R excluded | GLM (complete cases) or MIXED (all data), pre-specified | as EMA | complete, canonical data only |
+
+**Why they differ.** ICH M13A (2024) harmonises only the basics of average BE for immediate-release oral products and explicitly defers highly variable drugs, NTI drugs and adaptive designs to M13C; until then each region keeps its own method. The GCC guideline V3.1 (2022) predates M13A and reproduces the EMA guideline almost word for word, adding stricter regional requirements (minimum 18 subjects, subject selection criteria). The FDA follows a different statistical tradition: mixed-effects or two-stage models for replicate designs and reference scaling (RSABE) for both highly variable and NTI drugs. We found no evidence that the SFDA has adopted M13A.
+
+**Gaps in this app that the table reveals:** in the *ICH M13A · EMA · FDA* framework the minimum of 12 subjects and the pre-dose > 5% rule are not applied (both are M13A / EMA requirements); M13A's low-AUC exception also covers the test product; the FDA NTI method and multiple-comparator studies are not implemented.
+
+Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/download) · [EMA CPMP/EWP/QWP/1401/98 Rev.1](https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf) · [FDA Statistical Approaches to Establishing BE (May 2026)](https://www.fda.gov/media/163638/download) · [GCC DS-G-010 V3.1](https://www.sfda.gov.sa/sites/default/files/2022-08/GCC_Guidelines_Bioequivalence31_0.pdf)
+
+<details>
+<summary><b>الملخص بالعربية</b></summary>
+
+- **متفق عليه في كل الأدلة:** فترة ثقة 90% للبيانات اللوغاريتمية ضمن 80.00–125.00%، ولا يُجرى اختبار للأثر المتبقي.
+- **النموذج:** الدليل الأوروبي والخليجي يشترطان ANOVA بتأثيرات ثابتة؛ ICH M13A يقبل نموذجًا خطيًا عامًا أو مختلطًا؛ FDA يقبل للتصاميم المكرّرة نموذجًا مختلطًا أو نموذج «فروق الأفراد» على مرحلتين.
+- **الحد الأدنى للمشاركين:** 12 في ICH M13A والأوروبي، و**18** في الخليجي.
+- **الأدوية عالية التباين:** الأوروبي والخليجي يستخدمان ABEL لـ Cmax فقط؛ FDA يستخدم RSABE؛ ICH M13A أجّلها إلى M13C.
+- **ضيقة المؤشر:** الأوروبي والخليجي يضيّقان الحدود إلى 90.00–111.11%؛ FDA يطلب تصميمًا مكرّرًا كاملًا مع معيار متدرج وحدود 80–125 ومقارنة تباين الاختبار بالمرجع (≤ 2.5).
+- **المواد داخلية المنشأ:** الجميع يشترط تصحيح خط الأساس؛ ICH M13A يطلب التحليل بالقيم المصححة وغير المصححة معًا.
+- **لماذا الاختلاف؟** ICH M13A وحّد الأساسيات فقط، والدليل الخليجي (2022) سبقه ونقل الدليل الأوروبي تقريبًا حرفيًا مع متطلبات أشد، وFDA له منهج إحصائي مختلف.
+- **نواقص في التطبيق كشفتها المقارنة:** في إطار ICH لا يُطبَّق الحد الأدنى 12 ولا قاعدة ما قبل الجرعة 5%، وطريقة FDA للأدوية ضيقة المؤشر ودراسات أكثر من مرجع غير منفّذة.
+
+</details>
 
 ## Screenshots
 

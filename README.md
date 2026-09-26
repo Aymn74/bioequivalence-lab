@@ -62,6 +62,12 @@ Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/dow
 
 ## Screenshots
 
+All screenshots use simulated data and show the current version (regenerate with `node docs/capture_screenshots.mjs` while `python -m http.server 8766` serves the repository).
+
+| NCA tab — simulated 2×2 study, SFDA profile | NCA parameters sent to the BE analysis (AUC(0-t)) |
+|---|---|
+| ![NCA results](docs/screenshots/09-nca-results-ar.png) | ![NCA to BE](docs/screenshots/10-nca-to-be-ar.png) |
+
 | Arabic interface — example study, all criteria met | Highly variable drug — EMA ABEL + FDA RSABE |
 |---|---|
 | ![Arabic results](docs/screenshots/02-results-ar.png) | ![ABEL and RSABE](docs/screenshots/03-hvd-abel-rsabe-en.png) |
@@ -77,7 +83,7 @@ Sources: [ICH M13A (FDA edition, Oct 2024)](https://www.fda.gov/media/165049/dow
 
 ![Full page, Arabic](docs/screenshots/01-overview-ar.png)
 
-<img src="docs/screenshots/07-mobile-ar.png" width="320" alt="Mobile, Arabic">
+<img src="docs/screenshots/07-mobile-ar.png" width="320" alt="Mobile, Arabic, NCA tab">
 
 </details>
 
@@ -185,7 +191,7 @@ The web UI was checked against the engine's reference output (`engine/example_re
 
 > ⚠️ **تنفيذ بحثي وليس اعتمادًا تنظيميًا.** يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. راجع [`engine/اقرأني.md`](engine/اقرأني.md).
 
-**الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى، وجميعها ببيانات مُحاكاة.
+**الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى محدَّثة للنسخة الحالية (ومنها تبويب NCA)، وجميعها ببيانات مُحاكاة؛ يعيد السكربت `docs/capture_screenshots.mjs` توليدها.
 
 **إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا يتضمن حدّ المرحلة، وعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. قاعدة ما قبل الجرعة للدراسات أحادية الجرعة فقط. وللمواد داخلية المنشأ يطرح البرنامج خط الأساس (عمود `baseline`) أو يشترط تأكيدًا صريحًا بأن القيم مصححة، وإلا يرفض التحليل. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. غير منفّذ: تصحيح المحتوى، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات.
 

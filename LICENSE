@@ -1,10 +1,13 @@
 MIT License
 
 Copyright (c) 2025 K-Dense Inc.
-  (original statistical engine: engine/original_bioequivalence.py, engine/_common.py;
+  (original pkpd-modeling scripts: engine/original_bioequivalence.py,
+   engine/original_nca.py and engine/_common.py, and the parts of
+   engine/bioequivalence.py and engine/nca.py derived from them;
    source: https://github.com/K-Dense-AI/scientific-agent-skills)
 Copyright (c) 2026 Aymn74
-  (corrected engine, bilingual web interface and test data)
+  (corrected engines, bilingual web interface, tests, validation scripts
+   and simulated test data)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

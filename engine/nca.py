@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -61,6 +62,8 @@ class Profile:
     period: str = ""
     treatment: str = ""
     sequence: str = ""
+    stage: str = ""
+    group: str = ""
     dose: float | None = None
     emesis: float | None = None
     samples: list[Sample] = field(default_factory=list)
@@ -106,7 +109,7 @@ def load_profiles(a):
     rows = read_table(a.input)
     require_columns(rows, [a.subject_column, a.time_column, a.conc_column], str(a.input))
     cols = rows[0].keys()
-    has = {k: getattr(a, k + "_column") in cols for k in ("period", "treatment", "sequence", "dose", "emesis")}
+    has = {k: getattr(a, k + "_column") in cols for k in ("period", "treatment", "sequence", "stage", "group", "dose", "emesis")}
     buckets: dict[tuple, Profile] = {}
     for n, row in enumerate(rows, start=2):
         subject = row[a.subject_column].strip()
@@ -126,6 +129,9 @@ def load_profiles(a):
             raise InputError(f"subject {subject} period {period}: more than one treatment in one profile")
         if has["sequence"] and row[a.sequence_column].strip():
             p.sequence = row[a.sequence_column].strip().upper()
+        for k in ("stage", "group"):   # two-stage design / multi-group study: carried to the BE input
+            if has[k] and row[getattr(a, k + "_column")].strip():
+                setattr(p, k, row[getattr(a, k + "_column")].strip())
         if has["dose"] and row[a.dose_column].strip():
             p.dose = parse_float(row[a.dose_column], f"{a.dose_column} (row {n})")
         if has["emesis"] and row[a.emesis_column].strip():
@@ -146,6 +152,14 @@ def load_profiles(a):
     profiles = list(buckets.values())
     for p in profiles:
         p.samples.sort(key=lambda s: s.time)
+    for k in ("stage", "group"):
+        if has[k]:
+            seen: dict[str, set] = {}
+            for p in profiles:
+                seen.setdefault(p.subject, set()).add(getattr(p, k))
+            bad = sorted(s for s, v in seen.items() if len(v) != 1 or "" in v)
+            if bad:
+                raise InputError(f"{k}: every subject needs one {k} value in all its rows (check subject(s) {', '.join(bad[:6])})")
     if has["period"] and has["treatment"]:
         derive_sequences(profiles)
     return profiles
@@ -264,6 +278,7 @@ def label(p):
 
 def analyse(p, a, findings, notes_seen):
     row = {"subject": p.subject, "period": p.period, "treatment": p.treatment, "sequence": p.sequence,
+           **{k: getattr(p, k) for k in ("stage", "group") if getattr(p, k)},
            "n_samples": len(p.samples), "n_blq": sum(s.blq for s in p.samples), "n_missing": len(p.missing)}
     where = label(p)
     t_all = np.array([s.time for s in p.samples], float)
@@ -530,14 +545,79 @@ def population(rows):
     return info, left_out, summary_out
 
 
+def be_labels(rows, a):
+    """Treatment codes for bioequivalence.py: Test/Ref aliases -> T/R, and with two products the
+    --test-label / --reference-label codes -> T/R. Designs with more than two products keep their codes."""
+    labels = sorted({r["treatment"] for r in rows if r["treatment"]})
+    out = {x: TREATMENT_ALIASES.get(x, x) for x in labels}
+    t_lab, r_lab = a.test_label.strip().upper(), a.reference_label.strip().upper()
+    if len(labels) == 2 and t_lab != r_lab and {t_lab, r_lab} <= set(labels):
+        out[t_lab], out[r_lab] = "T", "R"
+    return out
+
+
+def _natural(text):
+    return [(0, int(x), "") if x.isdigit() else (1, 0, x) for x in re.split(r"(\d+)", text) if x]
+
+
+def be_periods(rows):
+    """Integer periods for bioequivalence.py: 1, 2.0 -> 1, 2; other codes (P1, P2, ...) numbered in natural order."""
+    labels = sorted({r["period"] for r in rows if r["period"]}, key=_natural)
+
+    def as_int(x):
+        try:
+            f = float(x)
+        except ValueError:
+            return None
+        return int(f) if math.isfinite(f) and f.is_integer() and f >= 1 else None
+
+    ints = {x: as_int(x) for x in labels}
+    if all(v is not None for v in ints.values()) and len(set(ints.values())) == len(ints):
+        return {x: str(v) for x, v in ints.items()}, any(x != str(v) for x, v in ints.items())
+    return {x: str(i + 1) for i, x in enumerate(labels)}, True
+
+
+def be_sequences(rows, codes, periods, full):
+    """Sequence of every subject in T/R codes, in period order. A sequence column already in these codes
+    is kept; otherwise (e.g. 1/2, AB/BA, or no column) it is derived from the treatments. A subject with
+    missing periods gets the one full sequence of the study that fits its observed periods.
+    Returns ({subject: sequence}, {subject: reason it cannot be determined})."""
+    by_subject: dict[str, list[dict]] = {}
+    for r in rows:
+        by_subject.setdefault(r["subject"], []).append(r)
+    letters = set(codes.values())
+    pos = lambda r: int(periods[r["period"]])
+    seq, unknown, derived = {}, {}, {}
+    for s, g in by_subject.items():
+        given = {r["sequence"] for r in g}
+        given = given.pop() if len(given) == 1 else ""
+        if given and len(given) == full and set(given) <= letters:
+            seq[s] = given
+            continue
+        derived[s] = "".join(codes[r["treatment"]] for r in sorted(g, key=pos))
+    complete = ({v for v in derived.values() if len(v) == full} |
+                {v for s, v in seq.items() if len(by_subject[s]) == full})
+    for s, d in derived.items():
+        if len(d) == full:
+            seq[s] = d
+            continue
+        fits = [c for c in complete if all(c[pos(r) - 1:pos(r)] == codes[r["treatment"]] for r in by_subject[s])]
+        if len(fits) == 1:
+            seq[s] = fits[0]
+        else:
+            unknown[s] = "sequence cannot be determined from the observed periods; add a sequence column"
+    return seq, unknown
+
+
 def be_input(rows, a, report, notes):
     """Long table for bioequivalence.py: one row per subject-period (or per subject in a parallel study).
 
-    Crossover and replicate designs: bioequivalence.py needs complete subjects, so a subject with an
-    excluded or missing period is left out (GCC 3.1.8: in a 2-period trial the subject is removed; in
-    replicate designs the guidelines would remove only that period, which this engine cannot analyse).
-    Designs with more than two treatments keep the other periods: each comparison is analysed without
-    the other arms, and bioequivalence.py keeps subjects that have both products compared.
+    2x2: a subject with an excluded or missing period is left out (GCC 3.1.8: in a 2-period trial the
+    subject is removed). Replicate designs keep the other periods of such subjects; bioequivalence.py
+    analyses them with the fixed-effects model (EMA Method A; ICH M13A Q&A 2.9). Designs with more than
+    two treatments keep the other periods: each comparison uses the subjects that have both products.
+    Treatment codes become T/R, periods integers and sequences T/R strings; stage and group columns
+    (two-stage design, multi-group study) are carried over.
     """
     info, left_out, _ = population(rows)
     if info is None:
@@ -545,15 +625,41 @@ def be_input(rows, a, report, notes):
     parallel, multi = info["parallel"], info["multi"]
     primary = ("auc_tau", "cmax_ss") if a.tau is not None else ("cmax", "auc_0_t", "auc_0_72", "auc_0_inf")
     keys = [k for k in primary if any(k in r for r in rows)] + [f"auc_{s:g}_{e:g}" for s, e in a.partial_auc]
+    codes = be_labels(rows, a)
+    periods, renumbered = be_periods(rows) if not parallel else ({}, False)
+    left_out = dict(left_out)
+    seqs = {}
+    two = set(codes.values()) == {"T", "R"}
+    if not parallel and not multi and two:
+        seqs, unknown = be_sequences(rows, codes, periods, info["periods"])
+        for s, why in unknown.items():
+            left_out.setdefault(s, why)
+    extra = [k for k in ("stage", "group") if any(r.get(k) for r in rows)]
 
     table = []
     for r in rows:
         if r["subject"] in left_out or r["status"] != "included":
             continue
-        seq = r["treatment"] if parallel else r["sequence"]
-        table.append({"subject": r["subject"], "sequence": seq, "period": r["period"] or "1", "treatment": r["treatment"],
+        trt = codes[r["treatment"]]
+        seq = trt if parallel else seqs.get(r["subject"], r["sequence"])
+        table.append({"subject": r["subject"], "sequence": seq, "period": periods.get(r["period"], r["period"] or "1"),
+                      "treatment": trt, **{k: r.get(k, "") for k in extra},
                       **{k: clean(r.get(k)) for k in keys}, "predose": clean(r.get("predose"))})
     report.table("be input", table)
+    mapped = {k: v for k, v in codes.items() if k != v}
+    if mapped:
+        notes.append("BE input: treatment codes " + ", ".join(f"{k} -> {v}" for k, v in sorted(mapped.items())))
+    if not multi and not two:
+        notes.append("BE input: the treatment codes are not T and R; choose the test and reference labels "
+                     "(--test-label / --reference-label) before sending the parameters to the BE analysis")
+    if renumbered:
+        notes.append("BE input: periods numbered in order: " +
+                     ", ".join(f"{k} -> {v}" for k, v in sorted(periods.items(), key=lambda kv: int(kv[1]))))
+    if "stage" in extra:
+        notes.append("BE input keeps the stage column (two-stage design): the BE analysis fits periods within stage "
+                     "with the fixed-effects model; set the pre-specified confidence level (e.g. 94.12%)")
+    if "group" in extra:
+        notes.append("BE input keeps the group column (multi-group study, ICH M13A 2.2.3.5): the BE analysis adds the group terms")
     if left_out:
         notes.append("BE input leaves out " + "; ".join(f"subject {s}: {why}" for s, why in sorted(left_out.items())))
     if multi and any(r["status"] != "included" for r in rows):
@@ -564,10 +670,13 @@ def be_input(rows, a, report, notes):
             any(len([x for x in rows if x["subject"] == s]) < info["periods"] for s in {r["subject"] for r in rows})):
         notes.append("BE input (replicate design) keeps the available periods of subjects with an excluded or missing period; "
                      "analyse it with the fixed-effects model (EMA Method A), which uses all available observations")
+    periodwise = not parallel and (info["periods"] > 2 or multi)
     for k in keys:
         gaps = sorted({x["subject"] for x in table if x.get(k) is None})
         if gaps:
-            notes.append(f"BE input: {k} is not available for subject(s) {', '.join(gaps)}; they are left out when {k} is analysed")
+            notes.append(f"BE input: {k} is not available for subject(s) {', '.join(gaps)}; "
+                         + ("only those periods are left out when it is analysed" if periodwise
+                            else "they are left out when it is analysed"))
 
 
 # --------------------------------------------------------------------- CLI
@@ -601,7 +710,8 @@ def build_parser():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("-i", "--input", required=True)
     for name, default in (("subject", "subject"), ("time", "time"), ("conc", "conc"), ("period", "period"),
-                          ("treatment", "treatment"), ("sequence", "sequence"), ("dose", "dose"), ("emesis", "emesis_time")):
+                          ("treatment", "treatment"), ("sequence", "sequence"), ("stage", "stage"), ("group", "group"),
+                          ("dose", "dose"), ("emesis", "emesis_time")):
         p.add_argument(f"--{name}-column", default=default)
     p.add_argument("--profile", choices=("none", "sfda"), default="none", help="sfda: GCC DS-G-010 V3.1 rules on top of ICH M13A")
     p.add_argument("--auc-method", choices=("linear", "linup-logdown"), default="linear",
@@ -626,7 +736,7 @@ def build_parser():
 
 def run(argv=None):
     a = build_parser().parse_args(argv)
-    for name in ("subject", "time", "conc", "period", "treatment", "sequence", "dose", "emesis"):
+    for name in ("subject", "time", "conc", "period", "treatment", "sequence", "stage", "group", "dose", "emesis"):
         setattr(a, name + "_column", getattr(a, name + "_column").strip().lower())   # read_table lower-cases headers
     for name in ("tau", "lloq", "tolerance", "dosing_interval"):
         value = getattr(a, name)
@@ -686,10 +796,15 @@ def run(argv=None):
     if excluded:
         report.table("exclusions", excluded)
     if a.profile == "sfda" and a.tau is None:
-        annex = gcc_annex(stats, a.test_label.upper(), a.reference_label.upper())
+        codes = be_labels(rows, a) if all(r["treatment"] for r in rows) else {}
+        raw = {v: k for k, v in codes.items()}
+        annex = gcc_annex(stats, raw.get("T"), raw.get("R")) if {"T", "R"} <= set(raw) else []
         if annex:
             report.table("gcc annex 1", [{k: clean(v) for k, v in x.items()} for x in annex])
             notes.append("GCC Annex 1 section 5: the ratio of geometric means and the confidence interval come from the BE analysis")
+        else:
+            notes.append("GCC Annex 1 table not produced: it needs a test and a reference product (treatment codes T/R, "
+                         "Test/Reference, or --test-label / --reference-label)")
 
     be_input(rows, a, report, notes)
 

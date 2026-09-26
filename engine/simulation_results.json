@@ -1,9 +1,9 @@
 {
   "seed": 20260925,
   "repetitions_per_design": 4000,
-  "python": "3.12.14",
-  "numpy": "2.3.5",
-  "scipy": "1.17.0",
+  "python": "3.12.10",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
   "assumptions": {
     "true_gmr": 0.95,
     "cv_t": 0.3,
@@ -27,17 +27,17 @@
     {
       "design": "partial",
       "n": 24,
-      "theoretical_power": 0.7080531753480326,
+      "theoretical_power": 0.7080531753480325,
       "empirical_power": 0.71625,
-      "power_mc_standard_error": 0.007188773821515057,
+      "power_mc_standard_error": 0.007188773821515058,
       "ci90_coverage": 0.9075
     },
     {
       "design": "full",
       "n": 24,
-      "theoretical_power": 0.8687602033218778,
+      "theoretical_power": 0.868760203321878,
       "empirical_power": 0.87175,
-      "power_mc_standard_error": 0.00533891169729392,
+      "power_mc_standard_error": 0.005338911697293916,
       "ci90_coverage": 0.8995
     }
   ]

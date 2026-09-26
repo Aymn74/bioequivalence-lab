@@ -7,9 +7,11 @@
     "df": 33,
     "n_subjects": 36,
     "method": "equal-sequence subject contrasts; common contrast variance",
+    "ci_level": 90.0,
     "gmr_pct": 94.8601689793493,
     "ci90_low_pct": 82.19030783592378,
     "ci90_high_pct": 109.48312393176916,
+    "profile": "none",
     "average_be_met": true,
     "limits": [
       0.8,
@@ -33,6 +35,7 @@
         "low",
         "high",
         "widened",
+        "passes_gmr_constraint",
         "estimate",
         "se",
         "criterion_point_estimate",
@@ -43,16 +46,17 @@
         {
           "criterion": "EMA ABEL (fixed-effects model)",
           "met": true,
-          "gmr": 0.9486016897934927,
-          "ci_low": 0.8106342672425332,
-          "ci_high": 1.110050737109841,
+          "gmr": 0.9486016897934931,
+          "ci_low": 0.8106342672425336,
+          "ci_high": 1.1100507371098414,
           "df": 69,
-          "cvwr": 0.5447202400207906,
-          "s2wr": 0.2598381071003536,
+          "cvwr": 0.5447202400207904,
+          "s2wr": 0.25983810710035354,
           "df_wr": 34,
           "low": 0.6983678197809269,
           "high": 1.4319101935620302,
-          "widened": true
+          "widened": true,
+          "passes_gmr_constraint": true
         },
         {
           "criterion": "FDA HVD RSABE (complete-data contrast model)",
@@ -72,6 +76,7 @@
   ],
   "findings": [],
   "notes": [
-    "Research implementation, not regulatory certification. Complete canonical designs only; see README for assumptions, unsupported cases and references."
+    "ABEL: the applicant should justify that the calculated intra-subject variability is a reliable estimate and not the result of outliers (EMA 4.1.10; GCC 3.1.10). This program does not test for outliers: review the reference data before relying on the widened limits.",
+    "Research implementation, not regulatory certification. Canonical designs; incomplete subjects only in the fixed-effects (EMA) analysis. See README for assumptions, unsupported cases and references."
   ]
 }

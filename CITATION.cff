@@ -1,0 +1,75 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, together with the guidelines and validation references it reproduces."
+title: "Bioequivalence Lab: bilingual NCA and bioequivalence analysis in the browser"
+abstract: >-
+  Arabic/English web application that runs Python engines in the browser (Pyodide) for
+  non-compartmental analysis and bioequivalence: average BE (subject-contrast and fixed-effects
+  models), EMA ABEL, FDA RSABE and NTI methods, multi-treatment, multi-group and two-stage designs,
+  endogenous substances, potency correction, and power and sample size, under an ICH M13A / EMA / FDA
+  framework and an SFDA / GCC (DS-G-010 V3.1) framework. Research and teaching use; not validated for
+  regulatory submissions.
+type: software
+version: 1.0.0
+date-released: 2026-09-26
+license: MIT
+url: "https://bioequivalence-lab.vercel.app"
+repository-code: "https://github.com/Aymn74/bioequivalence-lab"
+authors:
+  - alias: Aymn74
+keywords:
+  - bioequivalence
+  - non-compartmental analysis
+  - ABEL
+  - RSABE
+  - ICH M13A
+  - SFDA
+  - GCC
+  - Pyodide
+references:
+  - type: software
+    title: "scientific-agent-skills (pkpd-modeling scripts)"
+    authors:
+      - name: "K-Dense Inc."
+    license: MIT
+    repository-code: "https://github.com/K-Dense-AI/scientific-agent-skills"
+  - type: software
+    title: "replicateBE: Average Bioequivalence with Expanding Limits (ABEL)"
+    authors:
+      - family-names: "Schütz"
+        given-names: "Helmut"
+    version: "1.1.3"
+    doi: "10.32614/CRAN.package.replicateBE"
+  - type: software
+    title: "PKNCA: Perform Pharmacokinetic Non-Compartmental Analysis"
+    authors:
+      - family-names: "Denney"
+        given-names: "William"
+      - family-names: "Duvvuri"
+        given-names: "Sridhar"
+      - family-names: "Buckeridge"
+        given-names: "Clare"
+    version: "0.12.1"
+  - type: report
+    title: "M13A Bioequivalence for Immediate-Release Solid Oral Dosage Forms"
+    authors:
+      - name: "International Council for Harmonisation (ICH)"
+    year: 2024
+  - type: report
+    title: "Guideline on the Investigation of Bioequivalence (CPMP/EWP/QWP/1401/98 Rev. 1)"
+    authors:
+      - name: "European Medicines Agency"
+    year: 2010
+  - type: report
+    title: "Statistical Approaches to Establishing Bioequivalence"
+    authors:
+      - name: "U.S. Food and Drug Administration"
+    year: 2026
+  - type: report
+    title: "Guidelines for Bioequivalence, version 3.1 (DS-G-010)"
+    authors:
+      - name: "Saudi Food and Drug Authority"
+    year: 2022
+  - type: software
+    title: "Pyodide"
+    version: "0.25.1"
+    url: "https://pyodide.org"

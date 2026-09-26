@@ -115,6 +115,12 @@ def evaluable(records):
     for r in records: have[r['subject']].add(r['treatment'])
     return sum({'T','R'}<=v for v in have.values())
 
+def one_product_subjects(records):
+    """Subjects without data for both the test and the reference product, with what they have."""
+    have=defaultdict(list)
+    for r in records: have[r['subject']].append(r['treatment'])
+    return [dict(subject=s,observations=len(v),products=''.join(sorted(set(v)))) for s,v in sorted(have.items()) if not {'T','R'}<=set(v)]
+
 def incomplete_subjects(records, design):
     """Subjects observed in fewer periods than their sequence has (crossover designs)."""
     if design not in DESIGNS: return []
@@ -598,6 +604,15 @@ def run(argv=None):
     fixed_only=a.analysis=='ema' and a.scaling in ('none','abel') and a.design!='parallel'
     a.allow_missing=fixed_only
     records=load_records(a)
+    # ICH M13A 2.2.3.2 / GCC 3.1.8: the primary analysis includes the subjects with evaluable data for both
+    # the test and the comparator product. In a 2x2 or a multi-treatment comparison a subject without both
+    # contributes nothing to the formulation contrast, so it is left out and listed (replicate designs keep
+    # such subjects for the period effects and CVwR, EMA Method A).
+    lone=[]
+    if a.design=='multi' or (a.design=='2x2' and fixed_only):
+        lone=one_product_subjects(records)
+        drop={x['subject'] for x in lone}
+        records=[r for r in records if r['subject'] not in drop]
     design,_=validate(records,a.design,fixed_only)
     if any(nest(r) for r in records) and a.analysis!='ema' and design!='parallel':
         raise InputError('a stage or group column requires the fixed-effects model (--analysis ema or --profile sfda)')
@@ -610,7 +625,7 @@ def run(argv=None):
     def primary(recs):
         if design=='parallel': return parallel_design(recs,a.welch)
         return ema_analysis(recs,design,a.ci_level,fixed_only) if a.analysis=='ema' else contrast_analysis(recs,design)
-    uncorrected=None
+    uncorrected=None; measured=records
     if pot and pot['apply']:
         uncorrected=primary(records); uncorrected.ci_level=a.ci_level
         records=potency_corrected(records,pot)   # the pre-dose rule above used the measured values
@@ -627,13 +642,10 @@ def run(argv=None):
         report.scalar('potency_test',pot['test']); report.scalar('potency_reference',pot['reference'])
         report.scalar('potency_difference_points',pot['difference_points']); report.scalar('potency_corrected',pot['apply'])
         if pot['apply']:
-            both=[dict(data='uncorrected',gmr_pct=100*uncorrected.gmr,ci_low_pct=100*uncorrected.ci_low,ci_high_pct=100*uncorrected.ci_high,met=passes_ci(uncorrected,limits,a.ema_rounding)),
-                  dict(data='potency-corrected',gmr_pct=100*result.gmr,ci_low_pct=100*result.ci_low,ci_high_pct=100*result.ci_high,met=passed)]
-            report.table('potency correction',both)
             report.note(f"Potency correction applied (test {pot['test']:g}%, reference {pot['reference']:g}% of label claim; difference {pot['difference_points']:+.2f} points, > 5%): "
                         'values x 100 / assayed content of their batch, i.e. dose-normalised assuming linear pharmacokinetics (the guidelines give no formula). '
-                        'The decision and the scaled criteria use the corrected data; the uncorrected analysis is shown too (ICH M13A 2.2.2.3). '
-                        'Correction is exceptional and must be pre-specified and justified in the protocol, e.g. with assay data of several reference batches (ICH M13A 2.2.2.3; GCC 3.1.8).')
+                        'The decision uses the corrected data; the same criteria are shown for the uncorrected data too (ICH M13A 2.2.2.3). '
+                        'Correction is exceptional and must be pre-specified in the protocol (ICH M13A 2.2.2.3; GCC 3.1.8), and justified, e.g. with assay data of several reference batches (ICH M13A 2.2.2.3).')
         elif pot['exceeds']:
             report.finding(f"Test and reference batch potencies differ by {abs(pot['difference_points']):.2f} percentage points (> 5%); ICH M13A 2.2.2.3 and GCC 3.1.2 expect at most 5%. "
                            'Correction is possible only in exceptional, pre-specified cases (--potency-correction)')
@@ -665,7 +677,7 @@ def run(argv=None):
         gi=group_interaction(records)
         if gi:
             report.table('group interaction',[gi])
-            report.note('Multi-group study: groups modelled as in ICH M13A 2.2.3.5 (group, sequence×group, subject(sequence×group), period(group), formulation); group×formulation is tested only as a supportive analysis.')
+            report.note('Multi-group study: groups modelled as in ICH M13A 2.2.3.5 (group, sequence, sequence×group, subject(sequence×group), period(group), formulation); group×formulation is tested only as a supportive analysis.')
     if a.missing_values:
         report.table('missing values',a.missing_values)
         report.note(f'{len(a.missing_values)} observation(s) marked missing in the input (blank or NA) were left out; nothing was imputed.')
@@ -691,22 +703,45 @@ def run(argv=None):
     if a.profile=='sfda':
         if result.n_subjects<SFDA_MIN_SUBJECTS: report.finding(f'SFDA: {result.n_subjects} evaluable subjects; the guideline requires at least {SFDA_MIN_SUBJECTS}')
         report.note('SFDA profile (GCC BE guideline DS-G-010 V3.1): fixed-effects ANOVA, CI bounds rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 evaluable subjects, pre-dose > 5% of Cmax exclusion'+(' (skipped: endogenous)' if a.endogenous else '')+'.')
-    rows=[]
     if a.scaling in ('abel','both'):
         if a.metric.lower()!='cmax': raise InputError('ABEL is restricted to --metric cmax')
-        if not a.abel_justified: raise InputError('ABEL requires --abel-justified: clinical justification and prospective protocol specification must exist')
-        ema=ema_analysis(records,design,a.ci_level,fixed_only); rv=reference_variability(records,'ema',design,fixed_only); low,high,widened=abel_limits(rv)
-        met=passes_ci(ema,(low,high),True) and .8<=ema.gmr<=1.25
-        rows.append(dict(criterion='EMA ABEL (fixed-effects model)',met=bool(met),gmr=ema.gmr,ci_low=ema.ci_low,ci_high=ema.ci_high,df=ema.df,cvwr=rv.cvwr,s2wr=rv.s2wr,df_wr=rv.df,low=low,high=high,widened=widened))
+        if not a.abel_justified: raise InputError('ABEL requires --abel-justified: clinical justification, prospective protocol specification, and a CVwR that is a reliable estimate, not the result of outliers (EMA 4.1.10; GCC 3.1.10)')
+    def scaled(recs):
+        out=[]
+        if a.scaling in ('abel','both'):
+            ema=ema_analysis(recs,design,a.ci_level,fixed_only); rv=reference_variability(recs,'ema',design,fixed_only); low,high,widened=abel_limits(rv)
+            # point estimate within 80.00-125.00%, compared at two decimals like the CI (EMA 4.1.10; GCC 3.1.10)
+            pe_ok=Decimal('80.00')<=rounded_pct(ema.gmr)<=Decimal('125.00')
+            met=passes_ci(ema,(low,high),True) and pe_ok
+            out.append(dict(criterion='EMA ABEL (fixed-effects model)',met=bool(met),gmr=ema.gmr,ci_low=ema.ci_low,ci_high=ema.ci_high,df=ema.df,cvwr=rv.cvwr,s2wr=rv.s2wr,df_wr=rv.df,low=low,high=high,widened=widened,passes_gmr_constraint=bool(pe_ok)))
+        if a.scaling=='fda-nti':
+            out.append(fda_nti(recs,design))
+        if a.scaling in ('rsabe','both'):
+            contrast=contrast_analysis(recs,design); rv=reference_variability(recs,'contrast',design)
+            if rv.swr<.294: raise InputError('sWR < 0.294: FDA unscaled heterogeneous mixed-model fallback is not implemented; no FDA decision produced')
+            bound=rsabe_bound(contrast.estimate,contrast.se,contrast.df,rv)
+            met=bound['passes_scaled_criterion'] and .8<=contrast.gmr<=1.25
+            out.append(dict(criterion='FDA HVD RSABE (complete-data contrast model)',met=bool(met),estimate=contrast.estimate,se=contrast.se,df=contrast.df,s2wr=rv.s2wr,df_wr=rv.df,cvwr=rv.cvwr,**bound))
+        return out
+    rows=scaled(records)
+    if a.scaling in ('abel','both'):
+        report.note('ABEL: the applicant should justify that the calculated intra-subject variability is a reliable estimate and not the result of outliers (EMA 4.1.10; GCC 3.1.10). This program does not test for outliers: review the reference data before relying on the widened limits.')
     if a.scaling=='fda-nti':
-        rows.append(fda_nti(records,design))
         report.note('FDA NTI method (Statistical Approaches to Establishing BE, May 2026, Appendix F): all three conditions must hold — scaled bound ≤ 0, unscaled ABE 80.00-125.00%, and 90% upper limit of sWT/sWR ≤ 2.5. FDA expects both AUC and Cmax to be tested.')
-    if a.scaling in ('rsabe','both'):
-        contrast=contrast_analysis(records,design); rv=reference_variability(records,'contrast',design)
-        if rv.swr<.294: raise InputError('sWR < 0.294: FDA unscaled heterogeneous mixed-model fallback is not implemented; no FDA decision produced')
-        bound=rsabe_bound(contrast.estimate,contrast.se,contrast.df,rv)
-        met=bound['passes_scaled_criterion'] and .8<=contrast.gmr<=1.25
-        rows.append(dict(criterion='FDA HVD RSABE (complete-data contrast model)',met=bool(met),estimate=contrast.estimate,se=contrast.se,df=contrast.df,s2wr=rv.s2wr,df_wr=rv.df,cvwr=rv.cvwr,**bound))
+    if pot and pot['apply']:
+        # ICH M13A 2.2.2.3: analyses of both uncorrected and potency-corrected data, with the same criteria
+        def crit_rows(data,res,srows):
+            out=[dict(data=data,criterion='average BE (fixed limits)',gmr_pct=100*res.gmr,ci_low_pct=100*res.ci_low,ci_high_pct=100*res.ci_high,
+                      limit_low_pct=100*limits[0],limit_high_pct=100*limits[1],met=passes_ci(res,limits,a.ema_rounding))]
+            for x in srows:
+                ci=(100*x['ci_low'],100*x['ci_high']) if 'ci_low' in x else (100*math.exp(x['estimate']-t.ppf(.95,x['df'])*x['se']),100*math.exp(x['estimate']+t.ppf(.95,x['df'])*x['se']))
+                out.append(dict(data=data,criterion=x['criterion'],gmr_pct=100*x.get('gmr',math.exp(x.get('estimate',0))),ci_low_pct=ci[0],ci_high_pct=ci[1],
+                                limit_low_pct=100*x['low'] if 'low' in x else None,limit_high_pct=100*x['high'] if 'high' in x else None,met=x['met']))
+            return out
+        report.table('potency correction',crit_rows('uncorrected',uncorrected,scaled(measured))+crit_rows('potency-corrected',result,rows))
+    if lone:
+        report.table('subjects without both products',lone)
+        report.note(f'{len(lone)} subject(s) without data for both the test and the reference product were left out of this comparison (ICH M13A 2.2.3.2; GCC 3.1.8).')
     if rows:
         report.table('scaled criteria',rows)
         for row in rows:

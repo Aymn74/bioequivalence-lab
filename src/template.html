@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>مختبر التكافؤ الحيوي · BE Lab</title>
+<meta name="description" content="Bilingual (Arabic/English) bioequivalence analysis in the browser: NCA, average BE, EMA ABEL, FDA RSABE and NTI, power and sample size. Research and teaching use; data stay on your device.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bioequivalence Lab · مختبر التكافؤ الحيوي">
+<meta property="og:description" content="NCA and bioequivalence (ICH M13A, EMA, FDA, SFDA/GCC) computed in your browser with Python (Pyodide). Research and teaching use.">
+<meta property="og:url" content="https://bioequivalence-lab.vercel.app/">
+<meta property="og:image" content="https://bioequivalence-lab.vercel.app/docs/screenshots/02-results-ar.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%230f766e'/%3E%3Cpath d='M8 27 C14 27 14 12 20 12 C26 12 26 27 32 27' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
@@ -128,7 +136,7 @@ details.adv summary{cursor:pointer;font-size:13px;color:var(--ink2);font-weight:
 .drop span{font-size:12px;color:var(--muted)}
 .file-chip{display:flex;align-items:center;gap:10px;background:var(--accent-soft);color:var(--accent-ink);border-radius:10px;padding:8px 12px;font-size:13px;margin-top:10px}
 .file-chip .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:start}
-.file-chip button{background:none;border:0;cursor:pointer;color:inherit;font-size:16px;line-height:1}
+.file-chip button{background:none;border:0;cursor:pointer;color:inherit;font-size:18px;line-height:1;min-width:36px;min-height:36px;margin:-8px -8px -8px 0}
 .or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:10px 0}
 .or:before,.or:after{content:"";flex:1;height:1px;background:var(--line)}
 
@@ -155,6 +163,9 @@ details.adv summary{cursor:pointer;font-size:13px;color:var(--ink2);font-weight:
 .section-t:after{content:"";flex:1;height:1px;background:var(--line2)}
 .chart{width:100%;height:auto;display:block}
 .chart text{font-family:var(--mono);fill:var(--muted);font-size:11px}
+@media (max-width:640px){.chart text{font-size:18px}}
+.numin.bad{border-color:var(--fail);box-shadow:0 0 0 3px var(--fail-soft)}
+footer a{color:inherit}
 .crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
 .crit .card-b{padding:14px 16px}
 .badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
@@ -235,7 +246,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
     <div style="font-weight:600" data-i18n="boot_title">تجهيز محرك الحساب</div>
     <div style="font-size:13px;color:var(--muted)" id="bootMsg" data-i18n="boot_py">تحميل Python + NumPy + SciPy داخل المتصفح…</div>
     <div class="bar"><i id="bootBar"></i></div>
-    <div class="skip" data-i18n="boot_note">يعمل الكود الأصلي bioequivalence.py كما هو — لا تُرسل بياناتك لأي خادم.</div>
+    <div class="skip" data-i18n="boot_note">المحرك: نسخة مصححة ومختبرة من nca.py وbioequivalence.py (K-Dense، ترخيص MIT) — لا تُرسل بياناتك لأي خادم.</div>
   </div>
 </div>
 
@@ -266,7 +277,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
     <p data-i18n="hero_p">ارفع بيانات دراسة تبادلية (2×2، مكرّرة جزئيًا أو كليًا، أو متوازية) لحساب نسبة المتوسط الهندسي وفترة الثقة 90%، مع معايير EMA ABEL وFDA RSABE للأدوية عالية التباين، وحساب القوة وحجم العينة.</p>
     <div class="disclaimer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-      <span data-i18n="disc">تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم القياسية (والبيانات الناقصة في تحليل التأثيرات الثابتة فقط)، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.</span>
+      <span data-i18n="disc"></span>
     </div>
   </section>
 
@@ -293,6 +304,10 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
             <div class="or" data-i18n="or">أو</div>
             <button class="btn btn-ghost" style="width:100%" id="ncaExample" data-i18n="nca_ex">تحميل مثال: دراسة 2×2 بـ 24 مشاركًا (مُحاكاة)</button>
             <div id="ncaChip"></div>
+            <div class="row2" id="ncaLabRow" style="display:none;margin-top:10px">
+              <div class="field"><label for="ncaTestLab" data-i18n="f_test_lab">المستحضر الاختباري</label><select id="ncaTestLab"></select></div>
+              <div class="field"><label for="ncaRefLab" data-i18n="f_ref_lab">المرجع</label><select id="ncaRefLab"></select></div>
+            </div>
             <details class="ncamap" style="margin-top:8px">
               <summary class="hint" style="cursor:pointer" data-i18n="adv_cols">ربط الأعمدة</summary>
               <div class="row3" style="margin-top:10px">
@@ -580,7 +595,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
     <div class="methods" id="methodsBody"></div>
   </section>
 </main>
-<footer><span data-i18n="foot">المحرك: bioequivalence.py (النسخة المصححة) عبر Pyodide · جميع الحسابات محلية في متصفحك</span></footer>
+<footer><span data-i18n="foot"></span> · <span id="appVer" class="mono"></span> · <a href="LICENSE" data-i18n="lic">الترخيص (MIT)</a></footer>
 <div class="toast" id="toast"></div>
 
 <script type="application/json" id="py-bioequivalence">__BIOEQUIVALENCE_PY__</script>
@@ -592,13 +607,13 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
 /* ================= i18n ================= */
 const I18N={
 ar:{
- boot_title:"تجهيز محرك الحساب",boot_py:"تحميل Python + NumPy + SciPy داخل المتصفح…",boot_note:"يعمل الكود الأصلي bioequivalence.py كما هو — لا تُرسل بياناتك لأي خادم.",
+ boot_title:"تجهيز محرك الحساب",boot_py:"تحميل Python + NumPy + SciPy داخل المتصفح…",boot_note:"المحرك: نسخة مصححة ومختبرة من nca.py وbioequivalence.py (K-Dense، ترخيص MIT) — لا تُرسل بياناتك لأي خادم.",
  boot_pkgs:"تحميل NumPy وSciPy…",boot_mod:"تهيئة وحدة التكافؤ الحيوي…",boot_fail:"تعذّر تحميل المحرك. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.",
  app_name:"مختبر التكافؤ الحيوي",app_sub:"Bioequivalence Lab · NCA · ABE · ABEL · RSABE · القوة",
  eng_loading:"المحرك قيد التحميل",eng_ready:"المحرك جاهز",eng_err:"خطأ في المحرك",eng_busy:"جارٍ الحساب…",
  eyebrow:"تحليل إحصائي للتكافؤ الحيوي",hero_t:"من بيانات الدراسة إلى قرار التكافؤ — بشفافية كاملة",
  hero_p:"ارفع بيانات دراسة تبادلية (2×2، مكرّرة جزئيًا أو كليًا، أو متوازية) لحساب نسبة المتوسط الهندسي وفترة الثقة 90%، مع معايير EMA ABEL وFDA RSABE للأدوية عالية التباين، وحساب القوة وحجم العينة.",
- disc:"تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم القياسية (والبيانات الناقصة في تحليل التأثيرات الثابتة فقط)، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.",
+ disc:"تنفيذ بحثي وتعليمي يُقدَّم «كما هو» بلا أي ضمان، وليس برنامجًا معتمدًا لملف تنظيمي: لم يخضع لتحقق الأنظمة الحاسوبية (GAMP 5)، ولم يُختبر على بيانات دراسة حقيقية، ولم يُقارن ببرنامج WinNonlin/Phoenix. تحقّق من كل نتيجة ببرنامج معتمد؛ ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. بياناتك لا تغادر جهازك؛ تُنزَّل فقط المكتبات (jsDelivr) والخطوط (Google Fonts).",
  tab_analysis:"تحليل البيانات",tab_power:"القوة وحجم العينة",tab_methods:"المنهجية والحدود",
  s_data:"البيانات",drop_t:"اسحب ملف CSV هنا أو اضغط للاختيار",drop_s:"الأعمدة: subject, sequence, period, treatment, value",or:"أو",
  load_ex:"تحميل مثال: تصميم جزئي TRR/RTR/RRT (مُحاكى)",
@@ -606,14 +621,14 @@ ar:{
  f_analysis:"نموذج ABE الأساسي",a_contrast:"فروق الأفراد (نهج FDA)",a_ema:"ANOVA بتأثيرات ثابتة (EMA / الخليجي)",f_metric:"المؤشر الدوائي",f_limits:"حدود القبول",
  l_std:"80.00–125.00%",l_nti:"NTI 90.00–111.11%",l_custom:"مخصّصة…",f_lo:"الحد الأدنى",f_hi:"الحد الأعلى",
  s_hvd:"الأدوية عالية التباين (HVD)",f_scaling:"المعيار المتدرج",sc_none:"بدون",sc_both:"كلاهما",scaling_hint:"يتطلب تصميمًا مكرّرًا وحدود 80–125%.",
- c_abel:"أُقرّ بوجود مبرر سريري ومواصفة مسبقة في البروتوكول لـ ABEL",c_abel_s:"البرنامج لا يستطيع التحقق من هذه الوثائق — مطلوب لـ ABEL (Cmax فقط).",
+ c_abel:"أُقرّ بوجود مبرر سريري ومواصفة مسبقة في البروتوكول لـ ABEL",c_abel_s:"ويشمل تبرير أن تباين المرجع تقدير موثوق وليس ناتجًا عن قيم شاذة (EMA 4.1.10؛ الدليل الخليجي 3.1.10). البرنامج لا يتحقق من ذلك — مطلوب لـ ABEL (Cmax فقط).",
  c_round:"تقريب حدود فترة الثقة (منزلتان عشريتان، نصف لأعلى)",c_welch:"اختبار Welch لتباينات غير متساوية",c_welch_s:"للتصميم المتوازي فقط",
  adv_cols:"ربط الأعمدة",run:"تشغيل التحليل",preview:"معاينة البيانات",empty:"ارفع بيانات أو حمّل المثال، ثم اضغط «تشغيل التحليل».",
  h_multi:"أكثر من مستحضر (مثل تصميم Williams بمرجع خليجي وآخر أمريكي): تُحلَّل كل مقارنة وحدها بعد استبعاد بيانات المعالجة الأخرى. اختر الاختبار والمرجع.",d_multi:"متعدد المعالجات",f_test_lab:"المستحضر الاختباري",f_ref_lab:"المرجع",sc_nti:"FDA NTI",
  nti_t:"FDA — الأدوية ضيقة المؤشر (تصميم مكرّر كامل)",nti_scaled:"الشرط 1: الحد الأعلى للمعيار المتدرج ⁦≤ 0⁩",nti_abe:"الشرط 2: ABE غير متدرج ⁦80.00–125.00%⁩",nti_ratio:"الشرط 3: الحد الأعلى لفترة الثقة 90% لـ ⁦sWT/sWR ≤ 2.5⁩",nti_swt:"s²wT (الاختبار)",nti_rat:"sWT/sWR (فترة ثقة 90%)",
  gi_t:"تحليل داعم: تفاعل المجموعة × المستحضر",h_2x2:"تسلسلان TR / RT، فترتان.",h_partial:"ثلاثة تسلسلات TRR / RTR / RRT — المرجع مكرّر.",h_full:"تسلسلان TRTR / RTRT — الاختبار والمرجع مكرّران.",h_replicate:"يستنتج التصميم الجزئي أو الكامل من التسلسلات الموجودة.",h_parallel:"مجموعتان مستقلتان، سجل واحد لكل مشارك.",
  v_pass:"تحقّق التكافؤ الحيوي",v_fail:"لم يتحقق معيار التكافؤ",v_err:"مدخلات غير صالحة أو حالة غير مدعومة",
- v_pass_s:"فترة الثقة 90% ضمن حدود القبول لجميع المعايير المطلوبة.",v_fail_s:"معيار واحد على الأقل من المعايير المطلوبة لم يتحقق — راجع التفاصيل أدناه.",v_err_s:"البرنامج يرفض الحالات غير المدعومة صراحة بدل إعطاء حكم مضلل.",
+ v_pass_s:"فترة الثقة ضمن حدود القبول لجميع المعايير المطلوبة.",v_fail_s:"معيار واحد على الأقل من المعايير المطلوبة لم يتحقق — راجع التفاصيل أدناه.",v_err_s:"البرنامج يرفض الحالات غير المدعومة صراحة بدل إعطاء حكم مضلل.",
  k_gmr:"نسبة المتوسط الهندسي",k_ci:"فترة الثقة 90%",k_n:"عدد المشاركين",k_df:"درجات الحرية",k_se:"الخطأ المعياري (log)",
  ci_title:"فترة الثقة 90% مقابل حدود القبول",ci_abe:"ABE",ci_abel:"ABEL",lim:"الحدود",
  crit_t:"المعايير المتدرجة",met:"متحقق",notmet:"غير متحقق",
@@ -627,11 +642,13 @@ ar:{
  p_empty:"حدد الافتراضات ثم اضغط «احسب» لعرض منحنى القوة.",cv_par:"للتصميم المتوازي: CV بين الأفراد.",
  p_n:"N الإجمالي المطلوب",p_pow:"القوة المحققة",p_per:"لكل تسلسل",p_curve:"منحنى القوة مقابل حجم العينة",p_target:"الهدف",
  p_note:"تكامل عددي لقوة TOST بحدود ثابتة؛ تصميم متوازن كامل، بيانات لوغاريتمية طبيعية، تباين متساوٍ لـ T/R، بلا تفاعل فرد×معالجة. لا يشمل هامش الانسحاب ولا قوة ABEL/RSABE.",
- foot:"المحرك: nca.py وbioequivalence.py (النسختان المصححتان) عبر Pyodide · جميع الحسابات محلية في متصفحك",
+ foot:"المحرك: nca.py وbioequivalence.py (نسختان مصححتان من K-Dense) عبر Pyodide · جميع الحسابات محلية في متصفحك",lic:"الترخيص (MIT)",
+ c_rnd:"تقريب فترة الثقة",th_sub:"المشارك",th_per:"الفترة",th_pre:"ما قبل الجرعة",th_trt:"المستحضر",th_seq:"التسلسل",th_before:"قبل",th_base:"خط الأساس",th_after:"بعد",th_obs:"المشاهدات",th_prod:"المستحضرات",
+ th_crit:"المعيار",th_lims:"الحدود %",rows_w:"صف",subj_w:"مشارك",lone_t:"مشاركون بلا بيانات للمستحضرين معًا (خارج هذه المقارنة)",pot_num:"محتوى الدفعة يجب أن يكون رقمًا بين 0 و200 (% من المعلن)",num_bad:"قيمة غير رقمية في أحد الحقول",
  loaded:"تم تحميل الملف",
  f_profile:"الإطار التنظيمي",pr_none:"ICH M13A · EMA · FDA",
  pr_note_ich:"ABE وفق ICH M13A (الدليل المنسّق دوليًا) كما في المستودع الأصلي K-Dense: حد أدنى 12 مشاركًا قابلًا للتقييم (12 لكل ذراع في المتوازي)، واستبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax. مع خيارين إقليميين للأدوية عالية التباين: ABEL من دليل EMA، وRSABE من FDA؛ لم تُنسَّق دوليًا بعد (ICH M13C).",pr_sfda:"SFDA / الخليجي",
- pr_note:"يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة > 5% من Cmax.",
+ pr_note:"يطبّق دليل التكافؤ الحيوي DS-G-010 V3.1 (الهيئة العامة للغذاء والدواء، المعتمد خليجيًا): ANOVA بتأثيرات ثابتة، تقريب الحدود لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد تركيز ما قبل الجرعة > 5% من Cmax.",
  f_cilevel:"مستوى فترة الثقة",cl_90:"90% (قياسي)",cl_94:"94.12% (تصميم على مرحلتين، محدد مسبقًا)",
  opt:"(اختياري، جرعة مفردة)",opt_cmax:"(لفحص ما قبل الجرعة)",c_multi:"دراسة متعددة الجرعات (حالة مستقرة)",c_multi_s:"قاعدة ما قبل الجرعة 5% لا تنطبق عليها.",c_endo:"مادة داخلية المنشأ (هرمونات، بوتاسيوم، حديد…)",c_endo_s:"موجودة طبيعيًا في الجسم: يلزم تصحيح خط الأساس قبل التحليل.",
  f_base:"عمود خط الأساس (تركيز)",f_base_auc:"عمود مساحة خط الأساس",f_auc_h:"مدة AUC بالساعات (خط الأساس × الساعات)",
@@ -648,7 +665,7 @@ ar:{
  nca_endo:"مادة داخلية المنشأ: طرح متوسط ما قبل الجرعة لكل فترة",nca_endo_s:"القيم السالبة بعد الطرح تصبح صفرًا (ICH M13A 3.1). يُعرض Cmax وAUC(0-t) غير المصححين، ويطلب ICH M13A تحليلًا كاملًا للبيانات غير المصححة أيضًا: أعد التشغيل دون هذا الخيار.",
  nca_release:"نوع التحرر (قاعدة القيء)",rel_ir:"فوري التحرر",rel_mr:"معدّل التحرر",nca_dosint:"فترة الجرعة المعتمدة (ساعات)",
  nca_note_ich:"ICH M13A: القيم تحت حد القياس = صفر وتُستبعد من kel، والأوقات الفعلية للعينات، وقاعدة التغطية 80/20، واستبعاد ما قبل الجرعة > 5% من Cmax، وAUC(0-72h) عند الحاجة، ومعايير الحالة المستقرة.",
- nca_note_sfda:"يضيف الدليل الخليجي DS-G-010 V3.1: قاعدة صريحة لاستبعاد القيء عند ضعف وسيط tmax أو قبله (فوري التحرر؛ وفي أسئلة وأجوبة ICH M13A 2.9 هي مثال لانحراف يُحدَّد مسبقًا)، واشتراط أن يكون تركيز 72 ساعة مقاسًا للاكتفاء بـ AUC(0-72h)، وجدول الملحق 1.",
+ nca_note_sfda:"يضيف الدليل الخليجي DS-G-010 V3.1 (3.1.8): قاعدة صريحة لاستبعاد القيء عند ضعف وسيط tmax أو قبله (فوري التحرر؛ يستخدم البرنامج الوسيط المتوقع من البروتوكول كما في أسئلة وأجوبة ICH M13A 2.9، حيث القيء مثال لانحراف يُحدَّد مسبقًا)، واشتراط أن يكون تركيز 72 ساعة مقاسًا للاكتفاء بـ AUC(0-72h)، وجدول الملحق 1.",
  nca_run:"تشغيل NCA",nca_empty:"ارفع ملف تركيزات أو حمّل المثال، ثم اضغط «تشغيل NCA».",
  nv_pass:"اكتمل التحليل غير الحجيري",nv_pass_s:"لا توجد ملاحظات تستدعي المراجعة.",nv_warn:"اكتمل التحليل — توجد ملاحظات للمراجعة",nv_warn_s:"راجع الملاحظات أدناه قبل نقل النتائج إلى تحليل التكافؤ.",
  nk_prof:"ملفات التركيز المشمولة",nk_subj:"المشاركون",nk_cov:"AUC(0-t) < 80% من AUC(0-∞)",nk_cov_na:"لا تنطبق",nk_meth:"طريقة المساحة",
@@ -657,19 +674,19 @@ ar:{
  nc_excl:"الاستبعادات",nc_missed:"العينات المفقودة (انحرافات عن البروتوكول)",nc_be_t:"إرسال إلى تحليل التكافؤ الحيوي",nc_be_btn:"إرسال",
  nc_be_h:"يُنقل جدول (مشارك، تسلسل، فترة، مستحضر، المعيار، ما قبل الجرعة) إلى تبويب التحليل مع ضبط الأعمدة والإطار التنظيمي.",
  nca_medt:"وسيط tmax المتوقع من البروتوكول (ساعات)",nca_medt_h:"لقاعدة القيء: قيمة واحدة أو لكل مستحضر (T=1.5,R=2). بدونها يُستخدم وسيط الدراسة نفسها مع تنبيه، لأن قرار الاستبعاد يُتخذ قبل التحليل الحيوي (الدليل الخليجي 3.1.8).",nk_noeval:"بلا kel",
- nca_sent:"نُقلت المعايير إلى تحليل التكافؤ",nca_gap:"استُبعد لعدم توفر القيمة",nc_addl:"معيار إضافي",nc_find:"ملاحظات للمراجعة",dl_params:"تنزيل المعايير CSV",g_test:"الاختبار",g_ref:"المرجع",nc_ratio:"النسبة وفترة الثقة: من تحليل التكافؤ",
+ nca_sent:"نُقلت المعايير إلى تحليل التكافؤ",nca_gap:"استُبعد لعدم توفر القيمة",nca_gap_p:"استُبعدت الفترات التي لا تتوفر فيها القيمة",nc_addl:"معيار إضافي",nc_find:"ملاحظات للمراجعة",dl_params:"تنزيل المعايير CSV",g_test:"الاختبار",g_ref:"المرجع",nc_ratio:"النسبة وفترة الثقة: من تحليل التكافؤ",
  inc_t:"مشاركون ببيانات ناقصة (يستخدم نموذج التأثيرات الثابتة كل المشاهدات المتاحة)",inc_missing:"الفترات الناقصة",mv_t:"قيم مسجّلة مفقودة في الملف (لم تُعوَّض)",
- pot_t:"محتوى الدفعتين وتصحيح المحتوى",pot_test:"محتوى دفعة الاختبار (% من المعلن)",pot_ref:"محتوى دفعة المرجع (% من المعلن)",pot_c:"تصحيح المحتوى محدد مسبقًا في البروتوكول ومبرر",pot_c_s:"استثنائي: يُطبَّق فقط إن زاد الفرق على 5%، ويُعرض التحليل مصححًا وغير مصحح (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.8). البرنامج لا يتحقق من البروتوكول.",pot_res:"محتوى الدفعتين",pot_applied:"طُبّق تصحيح المحتوى؛ القرار على البيانات المصححة",pot_none:"دون تصحيح",pot_unc:"غير مصحح",pot_cor:"مصحح للمحتوى",
+ pot_t:"محتوى الدفعتين وتصحيح المحتوى",pot_test:"محتوى دفعة الاختبار (% من المعلن)",pot_ref:"محتوى دفعة المرجع (% من المعلن)",pot_c:"تصحيح المحتوى محدد مسبقًا في البروتوكول ومبرر",pot_c_s:"استثنائي ومحدد مسبقًا (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.8): يُطبَّق فقط إن زاد الفرق على 5%، ويُعرض التحليل مصححًا وغير مصحح بالمعايير نفسها (ICH M13A 2.2.2.3). البرنامج لا يتحقق من البروتوكول.",pot_res:"محتوى الدفعتين",pot_applied:"طُبّق تصحيح المحتوى؛ القرار على البيانات المصححة",pot_none:"دون تصحيح",pot_unc:"غير مصحح",pot_cor:"مصحح للمحتوى",
  k_ci_lvl:"فترة الثقة",sfda_badge:"SFDA",err_read:"تعذّرت قراءة الملف",ex_loaded:"تم تحميل بيانات المثال",
 },
 en:{
- boot_title:"Preparing the compute engine",boot_py:"Loading Python + NumPy + SciPy in your browser…",boot_note:"The original bioequivalence.py runs unmodified — your data never leaves this device.",
+ boot_title:"Preparing the compute engine",boot_py:"Loading Python + NumPy + SciPy in your browser…",boot_note:"Engine: corrected, tested derivatives of K-Dense nca.py and bioequivalence.py (MIT) — your data never leave this device.",
  boot_pkgs:"Loading NumPy and SciPy…",boot_mod:"Initialising bioequivalence module…",boot_fail:"Could not load the engine. Check your internet connection and reload.",
  app_name:"Bioequivalence Lab",app_sub:"NCA · ABE · ABEL · RSABE · Power & sample size",
  eng_loading:"Engine loading",eng_ready:"Engine ready",eng_err:"Engine error",eng_busy:"Computing…",
  eyebrow:"Statistical bioequivalence analysis",hero_t:"From study data to a BE decision — fully auditable",
  hero_p:"Upload a crossover study (2×2, partial or full replicate) or a parallel study to compute the geometric mean ratio and 90% CI, apply EMA ABEL and FDA RSABE for highly variable drugs, and plan power and sample size.",
- disc:"Research implementation, not regulatory certification. Canonical designs (incomplete subjects in the fixed-effects analysis only); it does not replace your statistical analysis plan or product-specific guidance.",
+ disc:"Research and teaching implementation, provided “as is” without warranty; not validated software for a regulatory submission: no computerised-system validation (GAMP 5), not tested on real study data, not compared with WinNonlin/Phoenix. Verify every result with validated software; it does not replace your statistical analysis plan or product-specific guidance. Your data never leave this device; only the libraries (jsDelivr) and fonts (Google Fonts) are downloaded.",
  tab_analysis:"Data analysis",tab_power:"Power & sample size",tab_methods:"Methods & limits",
  s_data:"Data",drop_t:"Drop a CSV here or click to browse",drop_s:"Columns: subject, sequence, period, treatment, value",or:"or",
  load_ex:"Load example: partial replicate TRR/RTR/RRT (simulated)",
@@ -677,14 +694,14 @@ en:{
  f_analysis:"Primary ABE model",a_contrast:"Within-subject differences (FDA approach)",a_ema:"Fixed-effects ANOVA (EMA / GCC)",f_metric:"PK metric",f_limits:"Acceptance limits",
  l_std:"80.00–125.00%",l_nti:"NTI 90.00–111.11%",l_custom:"Custom…",f_lo:"Lower",f_hi:"Upper",
  s_hvd:"Highly variable drugs (HVD)",f_scaling:"Scaled criterion",sc_none:"None",sc_both:"Both",scaling_hint:"Requires a replicate design and 80–125% limits.",
- c_abel:"I confirm clinical justification and prospective protocol specification for ABEL",c_abel_s:"The software cannot verify these documents — required for ABEL (Cmax only).",
+ c_abel:"I confirm clinical justification and prospective protocol specification for ABEL",c_abel_s:"Including a justification that CVwR is a reliable estimate, not the result of outliers (EMA 4.1.10; GCC 3.1.10). The software cannot verify this — required for ABEL (Cmax only).",
  c_round:"Round CI endpoints (2 decimals, half-up)",c_welch:"Welch unequal-variance test",c_welch_s:"Parallel design only",
  adv_cols:"Column mapping",run:"Run analysis",preview:"Data preview",empty:"Upload data or load the example, then press “Run analysis”.",
  h_multi:"Several products (e.g. a Williams design with a GCC and a US reference): each comparison is analysed alone after removing the other treatment's data. Choose the test and the reference.",d_multi:"Multi-treatment",f_test_lab:"Test product",f_ref_lab:"Reference",sc_nti:"FDA NTI",
  nti_t:"FDA — narrow therapeutic index (full replicate)",nti_scaled:"Condition 1: scaled-criterion upper bound ≤ 0",nti_abe:"Condition 2: unscaled ABE 80.00–125.00%",nti_ratio:"Condition 3: 90% upper limit of sWT/sWR ≤ 2.5",nti_swt:"s²wT (test)",nti_rat:"sWT/sWR (90% CI)",
  gi_t:"Supportive analysis: group × formulation interaction",h_2x2:"Two sequences TR / RT, two periods.",h_partial:"Three sequences TRR / RTR / RRT — reference replicated.",h_full:"Two sequences TRTR / RTRT — test and reference replicated.",h_replicate:"Infers partial or full from the sequences present.",h_parallel:"Two independent arms, one record per subject.",
  v_pass:"Bioequivalence demonstrated",v_fail:"BE criterion not met",v_err:"Invalid input or unsupported case",
- v_pass_s:"The 90% CI lies within the acceptance limits for every requested criterion.",v_fail_s:"At least one requested criterion was not met — see details below.",v_err_s:"The engine rejects unsupported cases explicitly instead of producing a misleading decision.",
+ v_pass_s:"The confidence interval lies within the acceptance limits for every requested criterion.",v_fail_s:"At least one requested criterion was not met — see details below.",v_err_s:"The engine rejects unsupported cases explicitly instead of producing a misleading decision.",
  k_gmr:"Geometric mean ratio",k_ci:"90% confidence interval",k_n:"Subjects",k_df:"Degrees of freedom",k_se:"SE (log scale)",
  ci_title:"90% CI against acceptance limits",ci_abe:"ABE",ci_abel:"ABEL",lim:"limits",
  crit_t:"Scaled criteria",met:"Met",notmet:"Not met",
@@ -698,11 +715,13 @@ en:{
  p_empty:"Set assumptions and press “Calculate” to see the power curve.",cv_par:"Parallel design: between-subject CV.",
  p_n:"Required total N",p_pow:"Achieved power",p_per:"per sequence",p_curve:"Power vs. sample size",p_target:"target",
  p_note:"Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. No dropout allowance; no ABEL/RSABE power.",
- foot:"Engine: nca.py and bioequivalence.py (corrected) via Pyodide · all computation runs locally in your browser",
+ foot:"Engine: nca.py and bioequivalence.py (corrected derivatives of K-Dense) via Pyodide · all computation runs locally in your browser",lic:"License (MIT)",
+ c_rnd:"CI rounding",th_sub:"subject",th_per:"period",th_pre:"pre-dose",th_trt:"product",th_seq:"sequence",th_before:"before",th_base:"baseline",th_after:"after",th_obs:"observations",th_prod:"products",
+ th_crit:"criterion",th_lims:"limits %",rows_w:"rows",subj_w:"subjects",lone_t:"Subjects without data for both products (left out of this comparison)",pot_num:"Batch content must be a number between 0 and 200 (% of label claim)",num_bad:"A field contains a non-numeric value",
  loaded:"File loaded",
  f_profile:"Regulatory framework",pr_none:"ICH M13A · EMA · FDA",
  pr_note_ich:"Average BE per ICH M13A (the harmonised guideline), as in the original K-Dense repository: at least 12 evaluable subjects (12 per arm in a parallel design) and exclusion of a period whose pre-dose concentration exceeds 5% of Cmax. Two regional options for highly variable drugs: ABEL from the EMA guideline and RSABE from the FDA; not yet harmonised (ICH M13C).",pr_sfda:"SFDA / GCC",
- pr_note:"Applies the GCC bioequivalence guideline DS-G-010 V3.1: fixed-effects ANOVA, limits rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 subjects, and exclusion of pre-dose concentrations > 5% of Cmax.",
+ pr_note:"Applies the SFDA Guidelines for Bioequivalence DS-G-010 V3.1 (adopted in the GCC): fixed-effects ANOVA, limits rounded to two decimals, ABEL for Cmax only, no RSABE, minimum 18 subjects, and exclusion of pre-dose concentrations > 5% of Cmax.",
  f_cilevel:"Confidence level",cl_90:"90% (standard)",cl_94:"94.12% (two-stage, pre-specified)",
  opt:"(optional, single dose)",opt_cmax:"(for pre-dose check)",c_multi:"Multiple-dose (steady-state) study",c_multi_s:"The 5% pre-dose rule does not apply.",c_endo:"Endogenous substance (hormones, potassium, iron…)",c_endo_s:"Naturally present in the body: baseline correction is required before analysis.",
  f_base:"Baseline column (concentration)",f_base_auc:"Baseline AUC column",f_auc_h:"AUC interval in hours (baseline × hours)",
@@ -719,7 +738,7 @@ en:{
  nca_endo:"Endogenous: subtract the mean pre-dose concentration of each period",nca_endo_s:"Negative values after subtraction are set to zero (ICH M13A 3.1). Uncorrected Cmax and AUC(0-t) are shown; ICH M13A asks for a full analysis of the uncorrected data too: run again without this option.",
  nca_release:"Release type (emesis rule)",rel_ir:"Immediate release",rel_mr:"Modified release",nca_dosint:"Labelled dosing interval (h)",
  nca_note_ich:"ICH M13A: BLQ = zero and omitted from kel, actual sampling times, the 80/20 coverage rule, pre-dose > 5% of Cmax exclusion, AUC(0-72h) where needed, and steady-state parameters.",
- nca_note_sfda:"The GCC guideline DS-G-010 V3.1 adds: an explicit rule that emesis at or before 2 × median tmax excludes the period (IR; in ICH M13A Q&A 2.9 it is an example of a deviation to pre-specify), a quantifiable 72 h concentration to rely on AUC(0-72h), and the Annex 1 table.",
+ nca_note_sfda:"The GCC guideline DS-G-010 V3.1 (3.1.8) adds: an explicit rule that emesis at or before 2 × median tmax excludes the period (IR; the program uses the expected median from the protocol, as in ICH M13A Q&A 2.9, where emesis is an example of a deviation to pre-specify), a quantifiable 72 h concentration to rely on AUC(0-72h), and the Annex 1 table.",
  nca_run:"Run NCA",nca_empty:"Upload a concentration file or load the example, then press “Run NCA”.",
  nv_pass:"NCA complete",nv_pass_s:"No findings need review.",nv_warn:"NCA complete — findings to review",nv_warn_s:"Review the findings below before sending results to the BE analysis.",
  nk_prof:"Profiles included",nk_subj:"Subjects",nk_cov:"AUC(0-t) < 80% of AUC(0-∞)",nk_cov_na:"not applicable",nk_meth:"AUC rule",
@@ -728,15 +747,24 @@ en:{
  nc_excl:"Exclusions",nc_missed:"Missed samples (protocol deviations)",nc_be_t:"Send to bioequivalence analysis",nc_be_btn:"Send",
  nc_be_h:"Moves one table (subject, sequence, period, treatment, the parameter, pre-dose) to the analysis tab and sets the columns and the framework.",
  nca_medt:"Expected median tmax from the protocol (h)",nca_medt_h:"For the emesis rule: one value or per product (T=1.5,R=2). Without it the study's own median is used and flagged, because exclusion is decided before bioanalysis (GCC 3.1.8).",nk_noeval:"without kel",
- nca_sent:"Parameters sent to the BE analysis",nca_gap:"left out, value not available",nc_addl:"additional parameter",nc_find:"Findings to review",dl_params:"Download parameters CSV",g_test:"Test",g_ref:"Reference",nc_ratio:"Ratio and CI: from the BE analysis",
+ nca_sent:"Parameters sent to the BE analysis",nca_gap:"left out, value not available",nca_gap_p:"periods without the value left out",nc_addl:"additional parameter",nc_find:"Findings to review",dl_params:"Download parameters CSV",g_test:"Test",g_ref:"Reference",nc_ratio:"Ratio and CI: from the BE analysis",
  inc_t:"Subjects with missing periods (the fixed-effects model uses all available observations)",inc_missing:"missing periods",mv_t:"Values marked missing in the file (not imputed)",
- pot_t:"Batch potency and content correction",pot_test:"Test batch content (% of label claim)",pot_ref:"Reference batch content (% of label claim)",pot_c:"Potency correction pre-specified in the protocol and justified",pot_c_s:"Exceptional: applied only when the batches differ by more than 5%; corrected and uncorrected analyses are shown (ICH M13A 2.2.2.3; GCC 3.1.8). The program cannot verify the protocol.",pot_res:"Batch potency",pot_applied:"potency correction applied; decision on corrected data",pot_none:"no correction",pot_unc:"uncorrected",pot_cor:"potency-corrected",
+ pot_t:"Batch potency and content correction",pot_test:"Test batch content (% of label claim)",pot_ref:"Reference batch content (% of label claim)",pot_c:"Potency correction pre-specified in the protocol and justified",pot_c_s:"Exceptional and pre-specified (ICH M13A 2.2.2.3; GCC 3.1.8): applied only when the batches differ by more than 5%; corrected and uncorrected analyses are shown with the same criteria (ICH M13A 2.2.2.3). The program cannot verify the protocol.",pot_res:"Batch potency",pot_applied:"potency correction applied; decision on corrected data",pot_none:"no correction",pot_unc:"uncorrected",pot_cor:"potency-corrected",
  k_ci_lvl:"confidence interval",sfda_badge:"SFDA",err_read:"Could not read file",ex_loaded:"Example data loaded",
 }};
 /* Arabic translations of known engine messages (English original is always shown too) */
 const MSG_AR=[
  [/^value \((.+?)\) for subject (.+?) period (\S+): expected a finite positive number/,m=>`قيمة ${m[1]} للمشارك ${m[2]}، الفترة ${m[3]}: مفقودة أو غير موجبة؛ يلزم رقم موجب.`],
- [/ABEL requires --abel-justified/,"يتطلب ABEL الإقرار بوجود مبرر سريري ومواصفة مسبقة في البروتوكول (فعّل خيار الإقرار)."],
+ [/ABEL requires --abel-justified/,"يتطلب ABEL الإقرار بوجود مبرر سريري ومواصفة مسبقة في البروتوكول، وبأن تباين المرجع تقدير موثوق وليس ناتجًا عن قيم شاذة (EMA 4.1.10؛ الدليل الخليجي 3.1.10). فعّل خيار الإقرار."],
+ [/^ABEL: the applicant should justify/,"ABEL: على مقدم الطلب أن يبرر أن تباين المرجع المحسوب تقدير موثوق وليس ناتجًا عن قيم شاذة (EMA 4.1.10؛ الدليل الخليجي 3.1.10). البرنامج لا يختبر القيم الشاذة: راجع بيانات المرجع قبل الاعتماد على الحدود الموسّعة."],
+ [/^(\d+) subject\(s\) without data for both the test and the reference product/,m=>`${m[1]} مشارك/مشاركين بلا بيانات للمستحضرين الاختباري والمرجع معًا استُبعدوا من هذه المقارنة (ICH M13A 2.2.3.2؛ الدليل الخليجي 3.1.8).`],
+ [/^BE input: treatment codes (.+)$/,m=>`مدخلات التكافؤ: رموز المعالجة ${m[1]}`],
+ [/^BE input: the treatment codes are not T and R/,"مدخلات التكافؤ: رموز المعالجة ليست T وR؛ اختر المستحضر الاختباري والمرجع قبل الإرسال إلى تحليل التكافؤ."],
+ [/^BE input: periods numbered in order: (.+)$/,m=>`مدخلات التكافؤ: رُقّمت الفترات بالترتيب: ${m[1]}`],
+ [/^BE input keeps the stage column/,"مدخلات التكافؤ تحتفظ بعمود المرحلة (تصميم على مرحلتين): يستخدم تحليل التكافؤ نموذج التأثيرات الثابتة مع الفترات داخل كل مرحلة؛ اختر مستوى الثقة المحدد مسبقًا (مثل 94.12%)."],
+ [/^BE input keeps the group column/,"مدخلات التكافؤ تحتفظ بعمود المجموعة (دراسة متعددة المجموعات، ICH M13A 2.2.3.5): يضيف تحليل التكافؤ حدود المجموعة."],
+ [/^GCC Annex 1 table not produced/,"لم يُنشأ جدول الملحق الخليجي 1: يلزم مستحضر اختباري ومرجع (رموز T/R أو Test/Reference، أو اختيار الاختبار والمرجع)."],
+ [/every subject needs one (stage|group) value/,m=>`كل مشارك يحتاج قيمة واحدة ${m[1]==='stage'?'للمرحلة (stage)':'للمجموعة (group)'} في كل صفوفه.`],
  [/ABEL is restricted to --metric cmax/,"يقتصر ABEL على المؤشر Cmax."],
  [/sWR < 0.294/,"sWR أقل من 0.294: مسار FDA غير المتدرج (النموذج المختلط) غير منفّذ، لذا لا يُصدر قرار FDA."],
  [/scaled HVD criteria cannot be combined/,"لا يمكن دمج المعايير المتدرجة مع حدود NTI أو حدود مخصصة."],
@@ -775,7 +803,7 @@ const MSG_AR=[
  [/^Pre-dose concentration > 5% of Cmax: (\d+) period\(s\) removed/,m=>`تركيز ما قبل الجرعة أعلى من 5% من Cmax: استُبعدت ${m[1]} فترة من التحليل، وبقيت الفترات الأخرى لأولئك المشاركين (ICH M13A 2.2.3.3 وسؤال وجواب 2.9؛ الأثر المتبقي).`],
  [/^Incomplete data: (\d+) subject\(s\) with missing periods.*?(\d+) subject\(s\) have both products/,m=>`بيانات ناقصة: ${m[1]} مشارك/مشاركين تنقصهم فترات؛ يستخدم نموذج التأثيرات الثابتة (طريقة EMA A) كل المشاهدات المتاحة. لدى ${m[2]} مشاركًا المستحضران معًا؛ ومن لديه مستحضر واحد يسهم في أثر الفترة فقط (وفي CVwR إن كانت له مشاهدتان للمرجع).`],
  [/^(\d+) observation\(s\) marked missing in the input/,m=>`${m[1]} مشاهدة مسجّلة مفقودة في الملف (خانة فارغة أو NA) تُركت خارج التحليل؛ لم يُعوَّض شيء.`],
- [/Pre-dose concentration > 5% of Cmax/,"تركيز ما قبل الجرعة أعلى من 5% من Cmax: استُبعد مشارك أو أكثر من التحليل (الدليل الخليجي، الأثر المتبقي)."],
+ [/Pre-dose concentration > 5% of Cmax/,"تركيز ما قبل الجرعة أعلى من 5% من Cmax: استُبعد مشارك أو أكثر من التحليل (ICH M13A 2.2.3.3؛ الدليلان الأوروبي والخليجي، الأثر المتبقي)."],
  [/pre-dose > 5% of Cmax in .*incomplete replicate/,"تركيز ما قبل الجرعة > 5% من Cmax في تصميم مكرّر: الأدلة تستبعد تلك الفترة وحدها، والبيانات الناقصة تُحلَّل بنموذج التأثيرات الثابتة وحده. اختر «ANOVA بتأثيرات ثابتة»."],
  [/a stage column requires the fixed-effects model/,"عمود المرحلة (stage) يتطلب نموذج التأثيرات الثابتة (EMA أو إطار SFDA)."],
  [/confidence interval \(the ci90_\* fields hold this interval\)/,"فترة ثقة بمستوى معدّل؛ المستويات المعدّلة مخصصة للتصميم على مرحلتين المحدد مسبقًا."],
@@ -833,10 +861,10 @@ const MSG_AR=[
  [/the FDA NTI method is not an SFDA method/,"إطار SFDA: طريقة FDA للأدوية ضيقة المؤشر ليست من طرق الهيئة؛ الدليل يضيّق الحدود إلى 90.00–111.11% (خيار NTI في حدود القبول)."],
  [/a stage or group column requires the fixed-effects model/,"عمود المرحلة (stage) أو المجموعة (group) يتطلب نموذج ANOVA بتأثيرات ثابتة."],
  [/Multiple-treatment study: comparison/,"دراسة متعددة المعالجات: حُلّلت المقارنة المختارة بعد استبعاد بيانات المعالجات الأخرى مع الإبقاء على الفترات الأصلية (ICH M13A 2.2.3.1؛ الدليل الخليجي 3.1.8). شغّل التحليل مرة لكل مقارنة."],
- [/Multi-group study: groups modelled as in ICH M13A/,"دراسة متعددة المجموعات: نُمذجت المجموعات كما في ICH M13A 2.2.3.5 (المجموعة، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر)؛ تفاعل المجموعة × المستحضر يُختبر كتحليل داعم فقط."],
+ [/Multi-group study: groups modelled as in ICH M13A/,"دراسة متعددة المجموعات: نُمذجت المجموعات كما في ICH M13A 2.2.3.5 (المجموعة، التسلسل، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر)؛ تفاعل المجموعة × المستحضر يُختبر كتحليل داعم فقط."],
  [/FDA NTI method \(Statistical Approaches/,"طريقة FDA للأدوية ضيقة المؤشر (الملحق F): يجب تحقق الشروط الثلاثة معًا — الحد الأعلى للمعيار المتدرج ≤ 0، وABE غير متدرج 80.00–125.00%، والحد الأعلى 90% لـ sWT/sWR ≤ 2.5. تطلب FDA اختبار AUC وCmax كليهما."],
  [/FDA NTI \(reference-scaled, full replicate\): criterion not met/,"لم يتحقق معيار FDA للأدوية ضيقة المؤشر."],
- [/^Potency correction applied \(test (\S+)%, reference (\S+)% of label claim; difference (\S+) points/,m=>`طُبّق تصحيح المحتوى (الاختبار ${m[1]}%، المرجع ${m[2]}% من المعلن؛ الفرق ${m[3]} نقطة، أكثر من 5%): كل قيمة × 100 ÷ محتوى دفعتها، أي تطبيع للجرعة بافتراض حركية دوائية خطية (لا تحدد الأدلة معادلة). القرار والمعايير المتدرجة على البيانات المصححة، ويُعرض التحليل غير المصحح أيضًا (ICH M13A 2.2.2.3). التصحيح استثنائي ويجب تحديده مسبقًا وتبريره في البروتوكول، مثلًا ببيانات محتوى عدة دفعات من المرجع (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.8).`],
+ [/^Potency correction applied \(test (\S+)%, reference (\S+)% of label claim; difference (\S+) points/,m=>`طُبّق تصحيح المحتوى (الاختبار ${m[1]}%، المرجع ${m[2]}% من المعلن؛ الفرق ${m[3]} نقطة، أكثر من 5%): كل قيمة × 100 ÷ محتوى دفعتها، أي تطبيع للجرعة بافتراض حركية دوائية خطية (لا تحدد الأدلة معادلة). القرار على البيانات المصححة، وتُعرض المعايير نفسها للبيانات غير المصححة أيضًا (ICH M13A 2.2.2.3). التصحيح استثنائي ويجب تحديده مسبقًا في البروتوكول (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.8) وتبريره، مثلًا ببيانات محتوى عدة دفعات من المرجع (ICH M13A 2.2.2.3).`],
  [/^Test and reference batch potencies differ by (\S+) percentage points/,m=>`يختلف محتوى دفعتي الاختبار والمرجع بـ ${m[1]} نقطة مئوية (أكثر من 5%)، وICH M13A 2.2.2.3 والدليل الخليجي 3.1.2 يتوقعان 5% على الأكثر. التصحيح ممكن فقط في حالات استثنائية محددة مسبقًا (خيار تصحيح المحتوى).`],
  [/^Batch potencies within 5%/,m=>'محتوى الدفعتين ضمن 5%: لا تصحيح؛ المعايير الدوائية لا تُعدَّل عمومًا (الدليل الخليجي 3.1.8)'+(/ignored/.test(m.input)?'؛ تُجوهل خيار التصحيح.':'.')],
  [/--potency-correction needs|give both --potency-test and --potency-reference/,"أدخل محتوى دفعتي الاختبار والمرجع معًا (% من المعلن)."],
@@ -871,10 +899,10 @@ const MSG_AR=[
  [/^GCC 3\.1\.8: modified-release subjects with emesis/,"الدليل الخليجي 3.1.8: في المستحضرات معدّلة التحرر يُستبعد من تقيأ خلال فترة الجرعة المعتمدة."],
  [/^GCC 3\.1\.8 \(immediate release\)/,"الدليل الخليجي 3.1.8 (فوري التحرر): تُستبعد الفترة إذا حدث القيء عند ضعف وسيط tmax أو قبله."],
  [/^GCC Annex 1 section 5/,"ملحق الدليل الخليجي 1، البند 5: نسبة المتوسطات الهندسية وفترة الثقة تأتيان من تحليل التكافؤ الحيوي."],
- [/^BE input leaves out (.+)$/,m=>`لا يدخل تحليل التكافؤ: ${m[1].replace(/subject (\S+): a period was excluded/g,'المشارك $1 (استُبعدت إحدى فتراته)').replace(/subject (\S+): (\d+) of (\d+) periods in the data/g,'المشارك $1 (له $2 من $3 فترات)').replace(/subject (\S+): pre-dose > 5% of Cmax in a replicate design.*?here\)/g,'المشارك $1 (ما قبل الجرعة أعلى من 5% من Cmax في تصميم مكرّر؛ الأدلة تستبعد تلك الفترة وحدها، والبيانات المكرّرة الناقصة لا تُحلَّل هنا)')}. تحليل التكافؤ يتطلب مشاركين مكتملين.`],
+ [/^BE input leaves out (.+)$/,m=>`لا يدخل تحليل التكافؤ: ${m[1].replace(/subject (\S+): a period was excluded/g,'المشارك $1 (استُبعدت إحدى فتراته)').replace(/subject (\S+): (\d+) of (\d+) periods in the data/g,'المشارك $1 (له $2 من $3 فترات)').replace(/subject (\S+): sequence cannot be determined from the observed periods; add a sequence column/g,'المشارك $1 (تعذّر تحديد تسلسله من الفترات المرصودة؛ أضف عمود sequence)')}.`],
  [/^BE input \(replicate design\) keeps the available periods/,"مدخلات التكافؤ (تصميم مكرّر) تحتفظ بالفترات المتاحة لمن استُبعدت إحدى فتراته أو نقصت؛ حلّلها بنموذج التأثيرات الثابتة (طريقة EMA A) الذي يستخدم كل المشاهدات المتاحة."],
  [/^BE input keeps the other periods of subjects with an excluded period/,"مع أكثر من مستحضرين تبقى الفترات الأخرى لمن استُبعدت إحدى فتراته: كل مقارنة تستخدم المشاركين الذين لديهم المستحضران المقارنان."],
- [/^BE input: (\S+) is not available for subject\(s\) (.+); they are left out/,m=>`مدخلات التكافؤ: ${m[1]} غير متاح للمشارك/المشاركين ${m[2]}؛ يُستبعدون عند تحليل هذا المعيار.`],
+ [/^BE input: (\S+) is not available for subject\(s\) (.+?); (only those periods are|they are) left out/,m=>`مدخلات التكافؤ: ${m[1]} غير متاح للمشارك/المشاركين ${m[2]}؛ ${m[3].startsWith('only')?'تُستبعد تلك الفترات وحدها':'يُستبعدون'} عند تحليل هذا المعيار.`],
  [/^row \d+: empty (\S+) for subject (.+)$/,m=>`خانة ${m[1]} فارغة للمشارك ${m[2]}؛ كل صف يحتاج قيمة في هذا العمود.`],
  [/is not a finite number|must be a finite number/,"قيمة غير منتهية (inf أو nan) في الملف أو الإعدادات؛ يلزم رقم محدد."],
  [/range end must exceed start/,"نهاية المساحة الجزئية يجب أن تكون بعد بدايتها (مثل 0-2)."],
@@ -902,29 +930,29 @@ const MSG_AR=[
 const METHODS={
 ar:`<div class="card"><div class="card-b"><h4>ABE — فروق الأفراد (نهج FDA، افتراضي)</h4><p>لكل مشارك: متوسط log(T) − متوسط log(R). التقدير = متوسط متساوي الوزن لمتوسطات التسلسلات، والتباين المشترك للتباينات بدرجات حرية N − m.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>يطابق التحليل العادي لـ 2×2 الكامل.</p></div></div>
 <div class="card"><div class="card-b"><h4>ABE — ANOVA بتأثيرات ثابتة (EMA / الخليجي)</h4><p>انحدار OLS: فرد + فترة + معالجة (التسلسل مستوعب في الفرد)، تباين متبقٍ مشترك. يُستخدم دائمًا لـ ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
-<div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax فقط، مع إقرار بالمبرر السريري.</li><li>التوسيع إذا CVwR &gt; 30%، بحد أقصى CV = 50%.</li><li>قيد التقدير النقطي 80.00–125.00%.</li><li>مقارنة بنسب مئوية مقربة لمنزلتين.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
+<div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax فقط، مع إقرار بالمبرر السريري.</li><li>التوسيع إذا CVwR &gt; 30%، بحد أقصى CV = 50%.</li><li>قيد التقدير النقطي 80.00–125.00%.</li><li>مقارنة فترة الثقة والتقدير النقطي بنسب مئوية مقربة لمنزلتين.</li><li>يجب تبرير أن CVwR تقدير موثوق وليس ناتجًا عن قيم شاذة (EMA 4.1.10؛ الدليل الخليجي 3.1.10)؛ البرنامج لا يختبر القيم الشاذة.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
 <div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>تقدير تباين المرجع من فروق R المرتبة داخل التسلسل، ثم حد أعلى 95% بطريقة Howe:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>يُرفض القرار إذا sWR &lt; 0.294 لأن المسار البديل غير منفّذ.</p></div></div>
 <div class="card"><div class="card-b"><h4>القوة وحجم العينة</h4><p>تكامل عددي على توزيع χ² لقوة TOST بحدود ثابتة. عوامل التباين: 2/N (2×2)، 1.5/N (جزئي)، 1/N (كامل)، 4/N (متوازي).</p></div></div>
-<div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>البيانات الناقصة في تحليل فروق الأفراد وRSABE وطريقة FDA للأدوية ضيقة المؤشر (مدعومة في نموذج التأثيرات الثابتة وABEL).</li><li>تسلسلات غير قياسية (مثل TRT/RTR وTRRT/RTTR).</li><li>نماذج الأثر المتبقي (carryover)، وطريقة EMA B (النموذج المختلط).</li><li>قوة ABEL/RSABE وقوة Welch.</li></ul><p>تحقق: ABEL مطابق لنتائج EMA المنشورة لمجموعتيها المرجعيتين ولحزمة replicateBE على 31 مجموعة.</p></div></div>
+<div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>البيانات الناقصة في تحليل فروق الأفراد وRSABE وطريقة FDA للأدوية ضيقة المؤشر (مدعومة في نموذج التأثيرات الثابتة وABEL).</li><li>تسلسلات غير قياسية (مثل TRT/RTR وTRRT/RTTR).</li><li>نماذج الأثر المتبقي (carryover)، وطريقة EMA B (النموذج المختلط).</li><li>قوة ABEL/RSABE وقوة Welch.</li><li>الإعطاء الوريدي، وتعديل نافذة kel يدويًا، والمنحنيات المتوسطة بالأوقات الاسمية، والبيانات البولية، وf2 للذوبان.</li><li>لا تحقق وفق GAMP 5، ولا مقارنة مع WinNonlin/Phoenix، ولا اختبار على دراسة حقيقية.</li></ul><p>تحقق: ABEL مطابق لنتائج EMA المنشورة لمجموعتيها المرجعيتين ولحزمة replicateBE على 31 مجموعة.</p></div></div>
 <div class="card"><div class="card-b"><h4>تنسيق البيانات</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>القيم موجبة، لا حذف أو تعويض صامت. يُقبل Test/Ref/Reference للمعالجة.</p></div></div>
-<div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. خارج النطاق: تصحيح المحتوى، وf2 للذوبان.</p></div></div>
+<div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><p>المرجع: «Guidelines for Bioequivalence» الإصدار 3.1 (DS-G-010، الهيئة العامة للغذاء والدواء، 10 أغسطس 2022)، ويُشار إليه هنا بالدليل الخليجي مع أرقام بنوده.</p><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. تصحيح المحتوى في بطاقته أدناه. خارج النطاق: f2 للذوبان.</p></div></div>
 <div class="card"><div class="card-b"><h4>FDA — الأدوية ضيقة المؤشر</h4><p>تصميم مكرّر كامل (TRTR/RTRT)، ويجب تحقق ثلاثة شروط معًا (الملحق F، 2026):</p><ul><li>معيار متدرج: (μT−μR)² − θ·s²wR ≤ 0، حيث θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>ABE غير متدرج ضمن 80.00–125.00%.</li><li>الحد الأعلى لفترة ثقة 90% لـ sWT/sWR ≤ 2.5.</li></ul></div></div>
-<div class="card"><div class="card-b"><h4>أكثر من مرجع ومتعدد المجموعات</h4><ul><li><b>متعدد المعالجات:</b> تُحلّل كل مقارنة وحدها بعد حذف المعالجة الثالثة، بالفترات الأصلية وبنموذج ANOVA.</li><li><b>متعدد المجموعات:</b> عمود <span class="mono">group</span> اختياري؛ النموذج كما في ICH M13A: المجموعة، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر. تفاعل المجموعة×المستحضر تحليل داعم فقط.</li></ul></div></div>
-<div class="card"><div class="card-b"><h4>التحليل غير الحجيري (NCA)</h4><ul><li>القيم تحت حد القياس = صفر، وتُستبعد من kel؛ الخانة الفارغة عينة مفقودة تُحذف وتُوثَّق ولا تصبح صفرًا (ICH M13A 2.2.2.2).</li><li>kel: أفضل R² معدّل (3 نقاط فأكثر بعد tmax)، وعند التقارب ضمن 0.0001 النافذة ذات النقاط الأكثر (قاعدة PKNCA).</li><li>شبه المنحرف: خطية (افتراضيًا) أو خطية/لوغاريتمية، تُحدد مسبقًا ويُبلَّغ عنها. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>التغطية: مناقشة صلاحية الدراسة إذا قلّت AUC(0-t)/AUC(0-∞) عن 80% في أكثر من 20% من الملاحظات.</li><li>الحالة المستقرة: AUC(0-τ)، Cmax,ss، Cmin,ss، Cτ,ss (عينة خلال 10 دقائق من τ)، Cav,ss، التذبذب (Cmax−Cmin)/Cav، التأرجح (Cmax−Cmin)/Cmin.</li><li>الدليل الخليجي: قاعدة القيء بوسيط tmax المتوقع من البروتوكول، وAUC(0-72h) مع تركيز مقاس عند 72 ساعة، وجدول الملحق 1. الإحصاءات الوصفية تستثني المنسحبين والمستبعدين.</li><li>التحقق: 36 اختبارًا، منها مقارنة 297 منحنى عشوائيًا بتنفيذ مستقل (scipy)؛ ومقارنة مع PKNCA 0.12.1 على 408 منحنيات تطابقت فيها المعايير الأساسية حتى 4 × 10⁻¹⁴.</li></ul><p>خارج النطاق: الإعطاء الوريدي، وتعديل نافذة kel يدويًا، والمنحنيات المتوسطة بالأوقات الاسمية، والبيانات البولية.</p></div></div>
-<div class="card"><div class="card-b"><h4>تصحيح المحتوى</h4><p>يجب ألا يختلف محتوى دفعتي الاختبار والمرجع بأكثر من 5% (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.2). التصحيح استثنائي، محدد مسبقًا ومبرر، ويُعرض التحليل مصححًا وغير مصحح ويُحكم على المصحح. يُطبَّق فقط إن زاد الفرق على 5 نقاط:</p><div class="formula">value × 100 / assay%  ⇒  ln GMR + ln(assay R / assay T)</div><p>عرض فترة الثقة وCVwR لا يتغيران. المعادلة وطريقة حساب الفرق تفسيران شائعان؛ الأدلة لا تحددهما.</p></div></div>
+<div class="card"><div class="card-b"><h4>أكثر من مرجع ومتعدد المجموعات</h4><ul><li><b>متعدد المعالجات:</b> تُحلّل كل مقارنة وحدها بعد حذف المعالجة الثالثة، بالفترات الأصلية وبنموذج ANOVA.</li><li><b>متعدد المجموعات:</b> عمود <span class="mono">group</span> اختياري؛ النموذج كما في ICH M13A 2.2.3.5: المجموعة، التسلسل، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر. تفاعل المجموعة×المستحضر تحليل داعم فقط.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>التحليل غير الحجيري (NCA)</h4><ul><li>القيم تحت حد القياس = صفر، وتُستبعد من kel؛ الخانة الفارغة عينة مفقودة تُحذف وتُوثَّق ولا تصبح صفرًا (ICH M13A 2.2.2.2).</li><li>kel: أفضل R² معدّل (3 نقاط فأكثر بعد tmax)، وعند التقارب ضمن 0.0001 النافذة ذات النقاط الأكثر (قاعدة PKNCA).</li><li>شبه المنحرف: خطية (افتراضيًا) أو خطية/لوغاريتمية، تُحدد مسبقًا ويُبلَّغ عنها. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>التغطية: مناقشة صلاحية الدراسة إذا قلّت AUC(0-t)/AUC(0-∞) عن 80% في أكثر من 20% من الملاحظات.</li><li>قيمة ما قبل الجرعة = أعلى تركيز عند الزمن 0 أو قبله (قاعدة البرنامج).</li><li>الحالة المستقرة: AUC(0-τ)، Cmax,ss، Cmin,ss، Cτ,ss (عينة خلال 10 دقائق من τ — قاعدة البرنامج؛ يوصي ICH M13A 2.1.8 بآخر عينة خلال 10 دقائق من τ)، Cav,ss، التذبذب (Cmax−Cmin)/Cav، التأرجح (Cmax−Cmin)/Cmin.</li><li>AUC(0-72h) حتى آخر عينة إن وقعت خلال 10 دقائق قبل 72 ساعة (قاعدة البرنامج).</li><li>الدليل الخليجي 3.1.8: استبعاد القيء عند ضعف وسيط tmax أو قبله، ويستخدم البرنامج الوسيط المتوقع من البروتوكول (ICH M13A سؤال وجواب 2.9)؛ وAUC(0-72h) مع تركيز مقاس عند 72 ساعة (3.1.5)، وجدول الملحق 1. الإحصاءات الوصفية تستثني المنسحبين والمستبعدين.</li><li>التحقق: 37 اختبارًا، منها مقارنة 297 منحنى عشوائيًا بتنفيذ مستقل (scipy)؛ ومقارنة مع PKNCA 0.12.1 على 408 منحنيات تطابقت فيها المعايير الأساسية حتى 4 × 10⁻¹⁴.</li></ul><p>خارج النطاق: الإعطاء الوريدي، وتعديل نافذة kel يدويًا، والمنحنيات المتوسطة بالأوقات الاسمية، والبيانات البولية.</p></div></div>
+<div class="card"><div class="card-b"><h4>تصحيح المحتوى</h4><p>يجب ألا يختلف محتوى دفعتي الاختبار والمرجع بأكثر من 5% (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.2). التصحيح استثنائي ومحدد مسبقًا (ICH M13A 2.2.2.3؛ الدليل الخليجي 3.1.8)؛ ويطلب ICH M13A 2.2.2.3 تحليل البيانات المصححة وغير المصححة والحكم على المصححة، فيُطبَّق المعيار نفسه (ومنه ABEL أو RSABE أو NTI) على الاثنين. يُطبَّق فقط إن زاد الفرق على 5 نقاط:</p><div class="formula">value × 100 / assay%  ⇒  ln GMR + ln(assay R / assay T)</div><p>عرض فترة الثقة وCVwR لا يتغيران. المعادلة وطريقة حساب الفرق تفسيران شائعان؛ الأدلة لا تحددهما.</p></div></div>
 <div class="card"><div class="card-b"><h4>رموز الخروج</h4><ul><li><b>0</b> — كل المعايير متحققة</li><li><b>1</b> — معيار غير متحقق</li><li><b>2</b> — مدخلات غير صالحة/غير مدعومة</li></ul><p>المراجع: مثال FDA 2011 للبروجستيرون، إرشادات EMA للتكافؤ الحيوي (4.1.8–4.1.10).</p></div></div>`,
 en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences (FDA approach, default)</h4><p>Per subject: mean log(T) − mean log(R). Estimate = equally weighted mean of sequence means; common contrast variance with N − m degrees of freedom.</p><div class="formula">SE = √( MSE · Σ(1/nᵢ) / m² )</div><p>Matches the ordinary complete 2×2 analysis.</p></div></div>
 <div class="card"><div class="card-b"><h4>ABE — fixed-effects ANOVA (EMA / GCC)</h4><p>OLS with subject + period + treatment (sequence absorbed by subject), common residual variance. Always used for ABEL.</p><div class="formula">log(y) ~ subject + period + treatment</div></div></div>
-<div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax only, with acknowledged clinical justification.</li><li>Widening when CVwR &gt; 30%, capped at CV = 50%.</li><li>80.00–125.00% point-estimate constraint.</li><li>CI compared as percentages rounded to 2 decimals.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
+<div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax only, with acknowledged clinical justification.</li><li>Widening when CVwR &gt; 30%, capped at CV = 50%.</li><li>80.00–125.00% point-estimate constraint.</li><li>CI and point estimate compared as percentages rounded to 2 decimals.</li><li>CVwR must be justified as a reliable estimate, not the result of outliers (EMA 4.1.10; GCC 3.1.10); the program does not test for outliers.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
 <div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>Reference variance from ordered R differences centred within sequence, then Howe's 95% upper bound:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>Rejected when sWR &lt; 0.294, because the unscaled fallback is not implemented.</p></div></div>
 <div class="card"><div class="card-b"><h4>Power & sample size</h4><p>Numerical integration over χ² for fixed-limit TOST power. Variance factors: 2/N (2×2), 1.5/N (partial), 1/N (full), 4/N (parallel).</p></div></div>
-<div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete data in the subject-contrast analysis, RSABE and the FDA NTI method (supported in the fixed-effects model and ABEL).</li><li>Non-canonical sequences (e.g. TRT/RTR, TRRT/RTTR).</li><li>Carryover models and EMA Method B (mixed model).</li><li>ABEL/RSABE power and Welch power.</li></ul><p>Verification: ABEL matches the EMA-published results for both EMA reference datasets and replicateBE on 31 datasets.</p></div></div>
+<div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete data in the subject-contrast analysis, RSABE and the FDA NTI method (supported in the fixed-effects model and ABEL).</li><li>Non-canonical sequences (e.g. TRT/RTR, TRRT/RTTR).</li><li>Carryover models and EMA Method B (mixed model).</li><li>ABEL/RSABE power and Welch power.</li><li>Intravenous dosing, manual kel windows, mean curves on nominal times, urinary data, dissolution f2.</li><li>No GAMP 5 validation, no WinNonlin/Phoenix comparison, no test on a real study.</li></ul><p>Verification: ABEL matches the EMA-published results for both EMA reference datasets and replicateBE on 31 datasets.</p></div></div>
 <div class="card"><div class="card-b"><h4>Data format</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>Positive values only; no silent dropping or imputation. Test/Ref/Reference are accepted as treatment labels.</p></div></div>
-<div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Endogenous substances: baseline subtraction (concentration for Cmax; baseline AUC or concentration × hours for AUC), or an explicit confirmation that values are already corrected.</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Emesis exclusion and the 80% AUC(0-t) coverage check are in the NCA tab. Out of scope: content correction and dissolution f2.</p></div></div>
+<div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><p>Source: SFDA “Guidelines for Bioequivalence” version 3.1 (DS-G-010, 10 August 2022), cited here as “GCC” with its section numbers.</p><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Endogenous substances: baseline subtraction (concentration for Cmax; baseline AUC or concentration × hours for AUC), or an explicit confirmation that values are already corrected.</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Emesis exclusion and the 80% AUC(0-t) coverage check are in the NCA tab. Potency correction: see its card below. Out of scope: dissolution f2.</p></div></div>
 <div class="card"><div class="card-b"><h4>FDA — narrow therapeutic index</h4><p>Full replicate design (TRTR/RTRT); all three conditions must hold (Appendix F, 2026):</p><ul><li>Scaled criterion: (μT−μR)² − θ·s²wR ≤ 0, θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>Unscaled ABE within 80.00–125.00%.</li><li>Upper 90% confidence limit of sWT/sWR ≤ 2.5.</li></ul></div></div>
-<div class="card"><div class="card-b"><h4>Multiple comparators & multi-group</h4><ul><li><b>Multi-treatment:</b> each comparison is analysed alone after removing the third treatment, with the original periods and the ANOVA model.</li><li><b>Multi-group:</b> optional <span class="mono">group</span> column; model per ICH M13A: group, sequence×group, subject(sequence×group), period(group), formulation. Group×formulation is a supportive analysis only.</li></ul></div></div>
-<div class="card"><div class="card-b"><h4>Non-compartmental analysis (NCA)</h4><ul><li>BLQ = zero and omitted from kel; a blank cell is a missed sample, dropped and documented, never zero (ICH M13A 2.2.2.2).</li><li>kel: best adjusted R² (≥ 3 points after tmax); within 0.0001 of the best, the window with more points (PKNCA rule).</li><li>Trapezoidal rule: linear (default) or linear-up/log-down, pre-specified and reported. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>Coverage: study validity may need discussion when AUC(0-t)/AUC(0-∞) &lt; 80% in more than 20% of observations.</li><li>Steady state: AUC(0-τ), Cmax,ss, Cmin,ss, Cτ,ss (sample within 10 min of τ), Cav,ss, fluctuation (Cmax−Cmin)/Cav, swing (Cmax−Cmin)/Cmin.</li><li>GCC: emesis rule with the protocol's expected median tmax, AUC(0-72h) with a quantifiable 72 h concentration, Annex 1 table. Summary statistics leave out drop-outs and excluded subjects.</li><li>Verification: 36 tests, including 297 random profiles against an independent scipy implementation; comparison with PKNCA 0.12.1 on 408 profiles, core parameters equal to 4 × 10⁻¹⁴.</li></ul><p>Out of scope: intravenous dosing, manual kel windows, mean curves on nominal times, urinary data.</p></div></div>
-<div class="card"><div class="card-b"><h4>Potency correction</h4><p>Test and reference batch potencies should not differ by more than 5% (ICH M13A 2.2.2.3; GCC 3.1.2). Correction is exceptional, pre-specified and justified; uncorrected and corrected analyses are reported and BE is judged on the corrected one. Applied only above 5 points:</p><div class="formula">value × 100 / assay%  ⇒  ln GMR + ln(assay R / assay T)</div><p>The CI width and CVwR are unchanged. The formula and the way the difference is computed are common interpretations; the guidelines do not specify them.</p></div></div>
+<div class="card"><div class="card-b"><h4>Multiple comparators & multi-group</h4><ul><li><b>Multi-treatment:</b> each comparison is analysed alone after removing the third treatment, with the original periods and the ANOVA model.</li><li><b>Multi-group:</b> optional <span class="mono">group</span> column; model per ICH M13A 2.2.3.5: group, sequence, sequence×group, subject(sequence×group), period(group), formulation. Group×formulation is a supportive analysis only.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>Non-compartmental analysis (NCA)</h4><ul><li>BLQ = zero and omitted from kel; a blank cell is a missed sample, dropped and documented, never zero (ICH M13A 2.2.2.2).</li><li>kel: best adjusted R² (≥ 3 points after tmax); within 0.0001 of the best, the window with more points (PKNCA rule).</li><li>Trapezoidal rule: linear (default) or linear-up/log-down, pre-specified and reported. AUC(0-∞) = AUC(0-t) + Clast/kel.</li><li>Coverage: study validity may need discussion when AUC(0-t)/AUC(0-∞) &lt; 80% in more than 20% of observations.</li><li>Pre-dose value = highest concentration at or before time 0 (program rule).</li><li>Steady state: AUC(0-τ), Cmax,ss, Cmin,ss, Cτ,ss (sample within 10 min of τ — program rule; ICH M13A 2.1.8 recommends the last sample within 10 min of τ), Cav,ss, fluctuation (Cmax−Cmin)/Cav, swing (Cmax−Cmin)/Cmin.</li><li>AUC(0-72h) taken to the last sample when it lies within 10 min before 72 h (program rule).</li><li>GCC 3.1.8: emesis at or before 2 × median tmax excludes the period; the program uses the protocol's expected median (ICH M13A Q&amp;A 2.9). AUC(0-72h) with a quantifiable 72 h concentration (3.1.5), Annex 1 table. Summary statistics leave out drop-outs and excluded subjects.</li><li>Verification: 37 tests, including 297 random profiles against an independent scipy implementation; comparison with PKNCA 0.12.1 on 408 profiles, core parameters equal to 4 × 10⁻¹⁴.</li></ul><p>Out of scope: intravenous dosing, manual kel windows, mean curves on nominal times, urinary data.</p></div></div>
+<div class="card"><div class="card-b"><h4>Potency correction</h4><p>Test and reference batch potencies should not differ by more than 5% (ICH M13A 2.2.2.3; GCC 3.1.2). Correction is exceptional and pre-specified (ICH M13A 2.2.2.3; GCC 3.1.8); ICH M13A 2.2.2.3 asks for analyses of both uncorrected and corrected data with BE judged on the corrected data, so the same criterion (including ABEL, RSABE or NTI) is applied to both. Applied only above 5 points:</p><div class="formula">value × 100 / assay%  ⇒  ln GMR + ln(assay R / assay T)</div><p>The CI width and CVwR are unchanged. The formula and the way the difference is computed are common interpretations; the guidelines do not specify them.</p></div></div>
 <div class="card"><div class="card-b"><h4>Exit codes</h4><ul><li><b>0</b> — all criteria met</li><li><b>1</b> — a criterion not met</li><li><b>2</b> — invalid / unsupported input</li></ul><p>References: FDA 2011 progesterone example; EMA BE guideline §4.1.8–4.1.10.</p></div></div>`};
 
 /* ================= state ================= */
@@ -934,6 +962,7 @@ let lang=store.get('be_lang')||'ar';
 const S={profile:'none',design:'2x2',analysis:'contrast',scaling:'none',csv:null,fname:null,headers:[],last:null,
          p:{profile:'none',design:'2x2',analysis:'contrast',mode:'n'},plast:null};
 let ready=false;
+const APP_VERSION='1.0.0',APP_URL='https://bioequivalence-lab.vercel.app';
 const t=k=>(I18N[lang][k]??I18N.en[k]??k);
 const subAr=s=>s.replace(/^subject (\S+)/,'المشارك $1').replace(/ period (\S+)/,'، الفترة $1');
 function trMsg(m){ if(lang!=='ar')return null; for(const [re,ar] of MSG_AR) if(re.test(m)) return typeof ar==='function'?ar(m.match(re)):ar; return null;}
@@ -969,6 +998,11 @@ $$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.setAttribute('aria-
 function seg(id,cb){const root=$(id);root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
   root.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));cb(b.dataset.v);});}
 function setSeg(id,v){$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v));}
+/* a result or an NCA table stays on screen only while it matches the data and settings it came from */
+function clearResult(){if(!S.last)return;S.last=null;$('#resBody').style.display='none';$('#resBody').innerHTML='';$('#resEmpty').style.display='';}
+function clearNca(){if(!N.last)return;N.last=null;N.json=null;$('#ncaBody').style.display='none';$('#ncaBody').innerHTML='';$('#ncaEmpty').style.display='';}
+function watchStale(sel,clear){const root=$(sel);root.addEventListener('change',clear);root.addEventListener('input',clear);
+  root.addEventListener('click',e=>{const b=e.target.closest('.seg button');if(b&&!b.disabled&&b.getAttribute('aria-pressed')!=='true')clear();},true);}
 seg('#designSeg',v=>{S.design=v;syncForm();});
 seg('#analysisSeg',v=>{S.analysis=v;});
 seg('#profileSeg',v=>{if(v==='sfda'&&S.profile!=='sfda')S._roundBefore=$('#emaRound').checked;if(v!=='sfda'&&S.profile==='sfda')$('#emaRound').checked=!!S._roundBefore;S.profile=v;syncForm();});
@@ -993,7 +1027,8 @@ function syncForm(){
   $('#emaRound').disabled=sf;
   const rep=['partial','full','replicate'].includes(S.design), par=S.design==='parallel', multi=S.design==='multi';
   $('#multiPanel').style.display=multi?'':'none';
-  if(multi&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
+  if(multi&&S.analysis!=='ema'){S._anBefore=S.analysis;S.analysis='ema';setSeg('#analysisSeg','ema');}
+  if(!multi&&!sf&&S._anBefore){S.analysis=S._anBefore;setSeg('#analysisSeg',S.analysis);S._anBefore=null;}
   $('#designHint').textContent=t('h_'+S.design);
   $$('#scalingSeg button').forEach(b=>{if(b.dataset.v!=='none')b.disabled=!rep||$('#limits').value!=='std'||(b.dataset.v==='fda-nti'&&(S.design==='partial'||sf));});
   if((!rep||$('#limits').value!=='std')&&S.scaling!=='none'){S.scaling='none';setSeg('#scalingSeg','none');}
@@ -1029,12 +1064,12 @@ function parseCSV(text,name){
   return{headers,rows};
 }
 function setData(text,name){
-  S.csv=text;S.fname=name;const {headers}=parseCSV(text,name);S.headers=headers;
+  clearResult();S.csv=text;S.fname=name;const {headers}=parseCSV(text,name);S.headers=headers;
   for(const [id,def] of [['#colSubject','subject'],['#colTreatment','treatment'],['#colValue','value']]){
     const sel=$(id);sel.innerHTML=headers.map(h=>`<option ${h===def?'selected':''}>${esc(h)}</option>`).join('');
     if(!headers.includes(def)){
       const alias={subject:['subj','id','volunteer','patient'],treatment:['treat','trt','formulation','product','form'],value:['conc','cmax','auc','response','result','pk']}[def];
-      const guess=alias.map(a=>headers.find(h=>h.includes(a))).find(Boolean)||headers.find(h=>!['sequence','period'].includes(h))||headers[0];
+      const guess=alias.map(a=>headers.find(h=>h.includes(a))).find(Boolean)||headers.find(h=>!['sequence','period',$('#colSubject').value].includes(h))||headers[0];
       sel.value=guess; document.querySelector('#pane-analysis details.adv').open=true;
     }
   }
@@ -1053,14 +1088,14 @@ function setData(text,name){
   if(S._multiDetected){S.design='multi';setSeg('#designSeg','multi');syncForm();}
   else if(guess){S.design=guess;setSeg('#designSeg',guess);syncForm();}
   $('#fileChip').innerHTML=`<div class="file-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="name">${esc(name)}</span><button aria-label="remove" id="rmFile">×</button></div>`;
-  $('#rmFile').onclick=()=>{S.csv=null;S.fname=null;$('#fileChip').innerHTML='';$('#previewCard').style.display='none';updateRun();};
+  $('#rmFile').onclick=()=>{S.csv=null;S.fname=null;$('#fileChip').innerHTML='';$('#previewCard').style.display='none';clearResult();updateRun();};
   renderPreview();updateRun();
 }
 function renderPreview(){
   const {headers,rows}=parseCSV(S.csv,S.fname);
   const subj=$('#colSubject').value||'subject';
   const nsub=new Set(rows.map(r=>r[subj])).size;
-  $('#previewMeta').textContent=`${rows.length} rows · ${nsub} subjects`;
+  $('#previewMeta').textContent=`${rows.length} ${t('rows_w')} · ${nsub} ${t('subj_w')}`;
   const bySeq={};rows.forEach(r=>{const s=(r.sequence||'—').toUpperCase();(bySeq[s]=bySeq[s]||new Set()).add(r[subj]);});
   $('#seqChips').innerHTML=Object.entries(bySeq).sort().map(([s,set])=>`<span class="seqchip">${esc(s)} · <b>n=${set.size}</b></span>`).join('');
   $('#previewTbl').innerHTML=`<thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,60).map(r=>`<tr>${headers.map(h=>`<td>${esc(fmtCell(r[h]))}</td>`).join('')}</tr>`).join('')}</tbody>`;
@@ -1165,15 +1200,17 @@ $('#runBtn').onclick=async()=>{
       else{argv.push('--baseline-column',$('#colBaseline').value||'__none__','--baseline-auc-column',$('#colBaselineAuc').value||'__none__');
         if(/auc/.test($('#metric').value)&&$('#aucHours').value)argv.push('--auc-hours',$('#aucHours').value);}}
     if($('#ciLevel').value!=='90')argv.push('--ci-level',$('#ciLevel').value);
-    if($('#potT').value||$('#potR').value){argv.push('--potency-test',$('#potT').value||'__','--potency-reference',$('#potR').value||'__');if($('#potCorr').checked)argv.push('--potency-correction');}
-    else if($('#potCorr').checked)argv.push('--potency-correction');
-    if($('#colPredose').value)argv.push('--predose-column',$('#colPredose').value);
+    // potency: pass only the fields that are filled; the engine asks for the missing one
+    for(const [id,opt] of [['#potT','--potency-test'],['#potR','--potency-reference']]){const v=$(id).value.trim();
+      if(v){if(!/^\d+(\.\d+)?$/.test(v))throw new Error(t('pot_num'));argv.push(opt,v);}}
+    if($('#potCorr').checked)argv.push('--potency-correction');
+    argv.push('--predose-column',$('#colPredose').value||'__none__');
     if($('#multiDose').checked)argv.push('--multiple-dose');
     if(S.design==='multi')argv.push('--test-label',$('#testLabel').value,'--reference-label',$('#refLabel').value);
     if($('#colCmax').value&&$('#metric').value!=='cmax')argv.push('--cmax-column',$('#colCmax').value);
     const r=await cli(argv); r.argv=argv; S.last=r; renderResult(r);
   }catch(e){S.last={code:2,stdout:'',stderr:'error: '+e.message,argv:[]};renderResult(S.last);}
-  btn.classList.remove('busy');btn.disabled=false;setEngine('ok');
+  btn.classList.remove('busy');btn.disabled=false;setEngine(ready?'ok':'err');
   if(innerWidth<920)$('#resCard').scrollIntoView({behavior:'smooth'});
 };
 
@@ -1181,10 +1218,13 @@ const P=x=>(100*x).toFixed(2);
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function msgLi(m,cls){const ar=trMsg(m);return `<li class="${cls}"><span>${ar?esc(ar)+`<span class="en">${esc(m)}</span>`:`<span class="en" style="color:inherit;font-size:13px">${esc(m)}</span>`}</span></li>`;}
 
+/* engine errors: with an argparse usage dump keep only the error line */
+function cliErrors(stderr){const ls=String(stderr||'').split('\n').filter(Boolean);
+  const pick=/^usage:/m.test(stderr||'')?ls.filter(l=>/error:/.test(l)):ls;return pick.map(l=>l.replace(/^.*?error:\s*/,''));}
 function renderResult(r){
   $('#resEmpty').style.display='none';const body=$('#resBody');body.style.display='';
   let j=null;try{j=r.stdout.trim()?JSON.parse(r.stdout):null;}catch(e){}
-  const errLines=(r.stderr||'').split('\n').filter(Boolean).map(l=>l.replace(/^error:\s*/,''));
+  const errLines=cliErrors(r.stderr);
   const kind=r.code===0?'pass':r.code===1?'fail':'err';
   const icon={pass:'<path d="M5 12l5 5L20 7"/>',fail:'<path d="M6 6l12 12M18 6 6 18"/>',err:'<path d="M12 8v5m0 4h.01"/>'}[kind];
   let h=`<div class="verdict ${kind}"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">${icon}</svg></div>
@@ -1208,14 +1248,14 @@ function renderResult(r){
   const nti=tab&&tab.rows.find(x=>x.criterion.startsWith('FDA NTI'));
   if(abel)rows.push({label:t('ci_abel'),lo:abel.ci_low,hi:abel.ci_high,pe:abel.gmr,L:abel.low,U:abel.high,ok:abel.met,alt:true});
   h+=`<div class="section-t">${t('ci_title')}</div>${ciChart(rows)}`;
-  h+=`<div class="hint" style="margin-top:2px">${t('method')}: <span class="en" style="display:inline">${esc(s.method)}</span> · CI rounding: ${esc(s.ci_rounding)}</div>`;
+  h+=`<div class="hint" style="margin-top:2px">${t('method')}: <span class="en" style="display:inline">${esc(s.method)}</span> · ${t('c_rnd')}: <span class="en" style="display:inline">${esc(s.ci_rounding)}</span></div>`;
   if(abel||rs||nti){
     h+=`<div class="section-t">${t('crit_t')}</div><div class="crit">`;
     if(abel)h+=`<div class="card"><div class="card-b"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:14px">${t('abel_t')}</b>${badge(abel.met)}</div>
       <dl class="kv"><dt>${t('r_cvwr')}</dt><dd>${P(abel.cvwr)}%</dd><dt>${t('r_swr')}</dt><dd>${abel.s2wr.toFixed(5)}</dd><dt>${t('r_dfwr')}</dt><dd>${abel.df_wr}</dd>
       <dt>${t('r_widened')}</dt><dd>${abel.widened?t('yes'):t('no')}</dd><dt>${t('r_lims')}</dt><dd>${P(abel.low)} – ${P(abel.high)}%</dd>
       <dt>${t('r_gmr')}</dt><dd>${P(abel.gmr)}%</dd><dt>${t('r_ci')}</dt><dd>${P(abel.ci_low)} – ${P(abel.ci_high)}%</dd><dt>df</dt><dd>${abel.df}</dd>
-      <dt>${t('r_pe')}</dt><dd>${abel.gmr>=.8&&abel.gmr<=1.25?'✓':'✗'}</dd></dl></div></div>`;
+      <dt>${t('r_pe')}</dt><dd>${(abel.passes_gmr_constraint??(abel.gmr>=.8&&abel.gmr<=1.25))?'✓':'✗'}</dd></dl></div></div>`;
     if(rs)h+=`<div class="card"><div class="card-b"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:14px">${t('rsabe_t')}</b>${badge(rs.met)}</div>
       ${rsGauge(rs)}
       <dl class="kv"><dt>${t('r_cvwr')}</dt><dd>${P(rs.cvwr)}%</dd><dt>${t('r_swr')}</dt><dd>${rs.s2wr.toFixed(5)}</dd><dt>${t('r_dfwr')}</dt><dd>${rs.df_wr}</dd>
@@ -1233,19 +1273,21 @@ function renderResult(r){
     h+=`</div>`;
   }
   const ex=(j.tables||[]).find(x=>x.title==='pre-dose exclusions');
-  if(ex)h+=`<div class="section-t">${t('excl_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>pre-dose</th><th>Cmax</th><th>%</th></tr></thead><tbody>${ex.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.predose)}</td><td>${fmtN(x.cmax)}</td><td>${x.ratio_pct.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
+  if(ex)h+=`<div class="section-t">${t('excl_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>${t('th_sub')}</th><th>${t('th_per')}</th><th>${t('th_pre')}</th><th>Cmax</th><th>%</th></tr></thead><tbody>${ex.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${fmtN(x.predose)}</td><td>${fmtN(x.cmax)}</td><td>${x.ratio_pct.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const bc=(j.tables||[]).find(x=>x.title==='baseline correction');
-  if(bc){const mn=Math.min(...bc.rows.map(x=>x.pct_remaining));h+=`<div class="section-t">${t('base_t')}</div><div class="hint" style="margin-bottom:6px">${esc(s.baseline_correction||'')} · ${t('base_min')}: <span class="num">${mn.toFixed(1)}%</span></div><details><summary class="hint" style="cursor:pointer">${t('base_rows')} (${bc.rows.length})</summary><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>before</th><th>baseline</th><th>after</th><th>%</th></tr></thead><tbody>${bc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.uncorrected)}</td><td>${fmtN(x.subtracted)}</td><td>${fmtN(x.corrected)}</td><td>${x.pct_remaining.toFixed(1)}</td></tr>`).join('')}</tbody></table></div></details>`;}
+  if(bc){const mn=Math.min(...bc.rows.map(x=>x.pct_remaining));h+=`<div class="section-t">${t('base_t')}</div><div class="hint" style="margin-bottom:6px">${esc(s.baseline_correction||'')} · ${t('base_min')}: <span class="num">${mn.toFixed(1)}%</span></div><details><summary class="hint" style="cursor:pointer">${t('base_rows')} (${bc.rows.length})</summary><div class="tbl-wrap"><table class="anova"><thead><tr><th>${t('th_sub')}</th><th>${t('th_per')}</th><th>T/R</th><th>${t('th_before')}</th><th>${t('th_base')}</th><th>${t('th_after')}</th><th>%</th></tr></thead><tbody>${bc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.uncorrected)}</td><td>${fmtN(x.subtracted)}</td><td>${fmtN(x.corrected)}</td><td>${x.pct_remaining.toFixed(1)}</td></tr>`).join('')}</tbody></table></div></details>`;}
   const gi=(j.tables||[]).find(x=>x.title==='group interaction');
   if(gi){const g=gi.rows[0];h+=`<div class="section-t">${t('gi_t')}</div><div class="hint" style="margin-bottom:8px"><span class="num">F(${g.df}, ${g.df_residual}) = ${g.f.toFixed(3)} · p = ${fmtP(g.p)}</span></div>`;}
   const pc=(j.tables||[]).find(x=>x.title==='potency correction');
   if(s.potency_test!=null)h+=`<div class="section-t">${t('pot_res')}</div><div class="hint" style="margin-bottom:6px"><span class="num" dir="ltr">T ${s.potency_test}% · R ${s.potency_reference}% · Δ ${s.potency_difference_points>0?'+':''}${Number(s.potency_difference_points).toFixed(2)}</span> — ${s.potency_corrected?t('pot_applied'):t('pot_none')}</div>`+
-    (pc?`<div class="tbl-wrap"><table class="anova"><thead><tr><th></th><th>GMR %</th><th>CI low %</th><th>CI high %</th><th>80–125</th></tr></thead><tbody>${pc.rows.map(x=>`<tr class="${x.data==='potency-corrected'?'form':''}"><td>${t(x.data==='uncorrected'?'pot_unc':'pot_cor')}</td><td>${x.gmr_pct.toFixed(2)}</td><td>${x.ci_low_pct.toFixed(2)}</td><td>${x.ci_high_pct.toFixed(2)}</td><td>${x.met?'✓':'✗'}</td></tr>`).join('')}</tbody></table></div>`:'');
+    (pc?`<div class="tbl-wrap"><table class="anova"><thead><tr><th></th><th>${t('th_crit')}</th><th>GMR %</th><th>CI %</th><th>${t('th_lims')}</th><th></th></tr></thead><tbody>${pc.rows.map(x=>`<tr class="${x.data==='potency-corrected'?'form':''}"><td>${t(x.data==='uncorrected'?'pot_unc':'pot_cor')}</td><td><span class="en" style="display:inline">${esc(x.criterion||'')}</span></td><td>${x.gmr_pct.toFixed(2)}</td><td class="num">${x.ci_low_pct.toFixed(2)} – ${x.ci_high_pct.toFixed(2)}</td><td class="num">${x.limit_low_pct==null?'—':x.limit_low_pct.toFixed(2)+' – '+x.limit_high_pct.toFixed(2)}</td><td>${x.met?'✓':'✗'}</td></tr>`).join('')}</tbody></table></div>`:'');
   const inc=(j.tables||[]).find(x=>x.title==='incomplete subjects'),mv=(j.tables||[]).find(x=>x.title==='missing values');
-  if(inc)h+=`<div class="section-t">${t('inc_t')} (${inc.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>sequence</th><th>${t('inc_missing')}</th><th>T</th><th>R</th></tr></thead><tbody>${inc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.sequence)}</td><td>${esc(x.missing_periods)}</td><td>${x.test}</td><td>${x.reference}</td></tr>`).join('')}</tbody></table></div>`;
-  if(mv)h+=`<div class="section-t">${t('mv_t')} (${mv.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>treatment</th></tr></thead><tbody>${mv.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td></tr>`).join('')}</tbody></table></div>`;
+  if(inc)h+=`<div class="section-t">${t('inc_t')} (${inc.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>${t('th_sub')}</th><th>${t('th_seq')}</th><th>${t('inc_missing')}</th><th>T</th><th>R</th></tr></thead><tbody>${inc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.sequence)}</td><td>${esc(x.missing_periods)}</td><td>${x.test}</td><td>${x.reference}</td></tr>`).join('')}</tbody></table></div>`;
+  const lo1=(j.tables||[]).find(x=>x.title==='subjects without both products');
+  if(lo1)h+=`<div class="section-t">${t('lone_t')} (${lo1.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>${t('th_sub')}</th><th>${t('th_obs')}</th><th>${t('th_prod')}</th></tr></thead><tbody>${lo1.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${x.observations}</td><td>${esc(x.products)}</td></tr>`).join('')}</tbody></table></div>`;
+  if(mv)h+=`<div class="section-t">${t('mv_t')} (${mv.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>${t('th_sub')}</th><th>${t('th_per')}</th><th>${t('th_trt')}</th></tr></thead><tbody>${mv.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td></tr>`).join('')}</tbody></table></div>`;
   const la=(j.tables||[]).find(x=>x.title==='low AUC');
-  if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>AUC</th><th>GM</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.auc)}</td><td>${fmtN(x.product_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
+  if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>${t('th_sub')}</th><th>${t('th_per')}</th><th>T/R</th><th>AUC</th><th>GM</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.auc)}</td><td>${fmtN(x.product_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const an=(j.tables||[]).find(x=>x.title==='anova');
   if(an)h+=`<div class="section-t">${t('anova_t')}${s.cv_intra_pct!=null?` · ${t('cv_intra')} <span class="num">${s.cv_intra_pct.toFixed(2)}%</span>`:''}</div><div class="tbl-wrap" style="max-height:none"><table class="anova"><thead><tr><th>${t('a_src')}</th><th>df</th><th>SS</th><th>MS</th><th>F</th><th>p</th></tr></thead><tbody>${an.rows.map(x=>`<tr class="${x.source==='formulation'?'form':x.source.startsWith('total')?'tot':''}"><td>${esc(x.source)}</td><td>${x.df}</td><td>${fmtN(x.ss)}</td><td>${fmtN(x.ms)}</td><td>${x.f==null?'':fmtN(x.f)}</td><td>${x.p==null?'':fmtP(x.p)}</td></tr>`).join('')}</tbody></table></div>`;
   if(j.findings.length)h+=`<div class="section-t">${t('findings')}</div><ul class="list">${j.findings.map(m=>msgLi(m,'f')).join('')}</ul>`;
@@ -1255,14 +1297,24 @@ function renderResult(r){
 const badge=ok=>`<span class="badge ${ok?'pass':'fail'}">${ok?'✓ '+t('met'):'✗ '+t('notmet')}</span>`;
 function toolbar(r){return `<div class="toolbar"><button class="btn btn-ghost btn-sm" id="tbRaw">${t('raw')}</button><button class="btn btn-ghost btn-sm" id="tbJson">${t('dl_json')}</button><button class="btn btn-ghost btn-sm" id="tbCsv">${t('dl_csv')}</button></div>
  <pre class="json" id="rawBox" style="display:none"></pre>`;}
+/* CSV cell: quoted when needed; text starting with = + - @ is prefixed with ' so spreadsheets do not run it as a formula */
+function csvCell(v){if(v==null)return '';if(typeof v==='number')return String(v);v=String(v);
+  if(/^[=+\-@\t\r]/.test(v)&&!/^-?\d+(\.\d+)?(e[+-]?\d+)?$/i.test(v))v="'"+v;
+  return /[",\r\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;}
+const csvRow=a=>a.map(csvCell).join(',');
+/* provenance written into every export */
+function provenance(){return {tool:'Bioequivalence Lab',version:APP_VERSION,url:APP_URL,generated_utc:new Date().toISOString(),runtime:'Pyodide 0.25.1 (NumPy, SciPy)',
+  disclaimer:'Research and teaching implementation, provided as is without warranty; not validated for regulatory submission (no GAMP 5 validation, not tested on real study data). Verify results with validated software.'};}
+function provenanceCsv(){return Object.entries(provenance()).map(([k,v])=>'# '+k+': '+v);}
 function bindToolbar(r,j){
-  const raw=JSON.stringify({argv:['bioequivalence.py',...(r.argv||[])],exit_code:r.code,result:j,stderr:r.stderr||undefined},null,2);
+  const raw=JSON.stringify({...provenance(),argv:['bioequivalence.py',...(r.argv||[])],exit_code:r.code,result:j,stderr:r.stderr||undefined},null,2);
   $('#tbRaw').onclick=()=>{const b=$('#rawBox');b.textContent=raw;b.style.display=b.style.display==='none'?'':'none';};
   $('#tbJson').onclick=()=>download('be_result.json',raw,'application/json');
   $('#tbCsv').onclick=()=>{if(!j){download('be_error.txt',r.stderr,'text/plain');return;}
-    const lines=['key,value',...Object.entries(j.scalars).map(([k,v])=>`${k},"${Array.isArray(v)?v.join(' - '):v}"`)];
-    (j.tables||[]).forEach(tb=>{lines.push('',tb.title);lines.push(tb.columns.join(','));tb.rows.forEach(row=>lines.push(tb.columns.map(c=>row[c]??'').join(',')));});
-    j.findings.forEach(f=>lines.push('finding,"'+f+'"'));download('be_summary.csv',lines.join('\n'),'text/csv');};
+    const lines=[...provenanceCsv(),csvRow(['key','value']),...Object.entries(j.scalars).map(([k,v])=>csvRow([k,Array.isArray(v)?v.join(' - '):v]))];
+    (j.tables||[]).forEach(tb=>{lines.push('',csvRow([tb.title]));lines.push(csvRow(tb.columns));tb.rows.forEach(row=>lines.push(csvRow(tb.columns.map(c=>row[c]))));});
+    lines.push('');j.findings.forEach(f=>lines.push(csvRow(['finding',f])));j.notes.forEach(n=>lines.push(csvRow(['note',n])));
+    download('be_summary.csv',lines.join('\n'),'text/csv');};
 }
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 
@@ -1298,7 +1350,7 @@ function rsGauge(rs){
    <line x1="${x(pe)}" x2="${x(ub)}" y1="21" y2="21" stroke="${c}" stroke-width="4" stroke-linecap="round"/>
    <circle cx="${x(pe)}" cy="21" r="5" fill="${css('--panel')}" stroke="${c}" stroke-width="2.5"/>
    <line x1="${x(ub)}" x2="${x(ub)}" y1="12" y2="30" stroke="${c}" stroke-width="3"/>
-   <text x="${ub<=0?Math.min(x(ub),x(0)-10):Math.max(x(ub),x(0)+10)}" y="48" text-anchor="${ub<=0?'end':'start'}" style="fill:${c}">UB ${ub.toPrecision(3)}</text></svg>
+   <text x="${ub<=0?x(0)-10:x(0)+10}" y="48" text-anchor="${ub<=0?'end':'start'}" style="fill:${c}">UB ${ub.toPrecision(3)}</text></svg>
    <div class="hint">${t('r_rule')}</div>`;
 }
 
@@ -1332,7 +1384,7 @@ function renderPower(r){
 }
 function powerChart(pts,n,p,target){
   if(!pts.length)return'';
-  const W=720,H=300,pl=46,pr=18,pt=14,pb=36;const nmax=pts[pts.length-1][0],nmin=pts[0][0];
+  const W=720,H=300,pl=62,pr=18,pt=14,pb=36;const nmax=pts[pts.length-1][0],nmin=pts[0][0];
   const x=v=>pl+(v-nmin)/(nmax-nmin||1)*(W-pl-pr),y=v=>pt+(1-v)*(H-pt-pb);
   const acc=css('--accent'),line=css('--line'),ink=css('--ink'),gold=css('--gold');
   let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" direction="ltr">`;
@@ -1373,18 +1425,26 @@ function ncaReadFile(f){const r=new FileReader();r.onload=()=>{ncaSetData(String
 $('#ncaExample').onclick=()=>{ncaSetData(JSON.parse($('#example-nca').textContent),'example_nca.csv');
   N.profile='sfda';setSeg('#ncaProfileSeg','sfda');syncNca();toast(t('ex_loaded'));};
 function ncaSetData(text,name){
-  N.csv=text;N.fname=name;const {headers}=parseCSV(text,name);let guessed=false;
+  clearNca();N.csv=text;N.fname=name;const {headers}=parseCSV(text,name);let guessed=false;
   for(const [id,def,alias,opt] of NCA_COLS){const sel=$(id);
     sel.innerHTML=(opt?'<option value="">—</option>':'')+headers.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
     let g=headers.includes(def)?def:alias.map(a=>headers.find(h=>h===a||h.startsWith(a))).find(Boolean);
     if(!g&&!opt){g=headers[0];guessed=true;} sel.value=g||'';}
   if(guessed)document.querySelector('details.ncamap').open=true;
+  ncaLabels();
   $('#ncaChip').innerHTML=`<div class="file-chip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="name">${esc(name)}</span><button aria-label="remove" id="ncaRm">×</button></div>`;
-  $('#ncaRm').onclick=()=>{N.csv=null;N.fname=null;$('#ncaChip').innerHTML='';syncNca();
-    if(N.last){N.last=null;N.json=null;$('#ncaBody').style.display='none';$('#ncaBody').innerHTML='';$('#ncaEmpty').style.display='';}};
+  $('#ncaRm').onclick=()=>{N.csv=null;N.fname=null;$('#ncaChip').innerHTML='';$('#ncaLabRow').style.display='none';syncNca();clearNca();};
   syncNca();
 }
 const ncol=id=>$(id).value;
+/* two treatment codes other than T/R (e.g. A/B, T/C): the user says which is the test and which the reference */
+function ncaLabels(){const col=ncol('#ncaColTreatment'),row=$('#ncaLabRow');
+  const labs=col&&N.csv?[...new Set(parseCSV(N.csv,N.fname).rows.map(r=>String(r[col]||'').trim().toUpperCase()).filter(Boolean))].sort():[];
+  const norm=labs.map(l=>({TEST:'T',REF:'R',REFERENCE:'R'}[l]||l));
+  if(labs.length!==2||(norm.includes('T')&&norm.includes('R'))){row.style.display='none';return;}
+  const opts=labs.map(l=>`<option>${esc(l)}</option>`).join('');$('#ncaTestLab').innerHTML=opts;$('#ncaRefLab').innerHTML=opts;
+  $('#ncaTestLab').value=labs.find(l=>/^T/.test(l))||labs[0];$('#ncaRefLab').value=labs.find(l=>l!==$('#ncaTestLab').value);row.style.display='';}
+$('#ncaColTreatment').addEventListener('change',ncaLabels);
 
 $('#ncaRun').onclick=async()=>{
   const btn=$('#ncaRun');N.running=true;btn.classList.add('busy');btn.disabled=true;setEngine('run');await new Promise(r=>setTimeout(r,30));
@@ -1399,6 +1459,7 @@ $('#ncaRun').onclick=async()=>{
   if($('#ncaLloq').value)argv.push('--lloq',$('#ncaLloq').value);
   $('#ncaPauc').value.split(/[,\s]+/).filter(Boolean).forEach(x=>argv.push('--partial-auc',x));
   if($('#ncaEndo').checked)argv.push('--baseline','predose-mean');
+  if($('#ncaLabRow').style.display!=='none')argv.push('--test-label',$('#ncaTestLab').value,'--reference-label',$('#ncaRefLab').value);
   let r;try{await call('write',{path,text:N.csv});r=await call('nca',argv);}catch(e){r={code:2,stdout:'',stderr:'error: '+e.message};}
   r.argv=argv;r.study=N.study;r.endo=$('#ncaEndo').checked;r.profile=N.profile;
   r.data={csv:N.csv,fname:N.fname,cols:['#ncaColSubject','#ncaColTime','#ncaColConc','#ncaColPeriod','#ncaColTreatment'].map(ncol),lloq:Number($('#ncaLloq').value)||0};
@@ -1425,7 +1486,7 @@ function renderNca(r){
   const icon=k=>({pass:'<path d="M5 12l5 5L20 7"/>',warn:'<path d="M12 8v5m0 4h.01"/>',err:'<path d="M12 8v5m0 4h.01"/>'}[k]);
   const head=(k,h,p)=>`<div class="verdict ${k}"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">${icon(k)}</svg></div><div><h4>${h}${r.profile==='sfda'?`<span class="pbadge">${t('sfda_badge')}</span>`:''}</h4><p>${p}</p></div><div class="code">${t('exit_code')}<br><b style="font-size:18px">${r.code}</b></div></div>`;
   if(r.code===2||!j){
-    const errs=(r.stderr||'').split('\n').filter(l=>/error/i.test(l)).map(l=>l.replace(/^.*?error:\s*/,''));
+    const errs=cliErrors(r.stderr);
     body.innerHTML=head('err',t('v_err'),t('v_err_s'))+`<ul class="list">${(errs.length?errs:[r.stderr||'?']).map(m=>msgLi(m,'f')).join('')}</ul>`+ncaToolbar(r);bindNcaToolbar(r,null);return;}
   const s=j.scalars,T=Object.fromEntries(j.tables.map(x=>[x.title,x])),rows=T['per-profile parameters'].rows;
   const kind=j.findings.length?'warn':'pass';
@@ -1438,7 +1499,7 @@ function renderNca(r){
     <div class="kpi"><div class="l">${t('nk_meth')}</div><div class="v" style="font-size:15px;padding-top:5px">${s.auc_method==='linear'?t('m_lin'):t('m_log')}</div></div></div>`;
   const bi=T['be input'];
   if(bi){const opts=bi.columns.filter(c=>!['subject','sequence','period','treatment','predose'].includes(c));
-    h+=`<div class="section-t">${t('nc_be_t')}</div><div class="be-send"><select id="ncaBeMetric" dir="ltr">${opts.map(c=>`<option value="${esc(c)}">${esc(pn(c))}${c==='auc_0_inf'?' — '+esc(t('nc_addl')):''}</option>`).join('')}</select><button class="btn btn-primary btn-sm" id="ncaBeGo">${t('nc_be_btn')} →</button><div class="hint">${t('nc_be_h')}</div></div>`;}
+    h+=`<div class="section-t">${t('nc_be_t')}</div><div class="be-send"><select id="ncaBeMetric" dir="ltr">${opts.map(c=>`<option value="${esc(c)}">${esc(pn(c))}${c==='auc_0_inf'?' — '+esc(t('nc_addl')):''}</option>`).join('')}</select><button class="btn btn-primary btn-sm" id="ncaBeGo">${t('nc_be_btn')} ${lang==='ar'?'←':'→'}</button><div class="hint">${t('nc_be_h')}</div></div>`;}
   h+=`<div class="section-t">${t('nc_chart')}<div class="seg" id="ncaView" style="flex:none;margin-inline-start:8px"><button data-v="lin" aria-pressed="${N.view==='lin'}">${t('v_lin')}</button><button data-v="log" aria-pressed="${N.view==='log'}">${t('v_log')}</button></div></div><div id="ncaChart">${ncaChart()}</div>`;
   if(j.findings.length)h+=`<div class="section-t">${t('nc_find')}</div><ul class="list">${j.findings.map(m=>msgLi(m,'w')).join('')}</ul>`;
   const st=T['summary statistics'];
@@ -1458,11 +1519,12 @@ function renderNca(r){
 }
 function ncaToolbar(){return `<div class="toolbar"><button class="btn btn-ghost btn-sm" id="ncaRaw">${t('raw')}</button><button class="btn btn-ghost btn-sm" id="ncaJson">${t('dl_json')}</button><button class="btn btn-ghost btn-sm" id="ncaCsv">${t('dl_params')}</button></div><pre class="json" id="ncaRawBox" style="display:none"></pre>`;}
 function bindNcaToolbar(r,j){
-  const raw=JSON.stringify({argv:['nca.py',...(r.argv||[])],exit_code:r.code,result:j,stderr:r.stderr||undefined},null,2);
+  const raw=JSON.stringify({...provenance(),argv:['nca.py',...(r.argv||[])],exit_code:r.code,result:j,stderr:r.stderr||undefined},null,2);
   $('#ncaRaw').onclick=()=>{const b=$('#ncaRawBox');b.textContent=raw;b.style.display=b.style.display==='none'?'':'none';};
   $('#ncaJson').onclick=()=>download('nca_result.json',raw,'application/json');
   $('#ncaCsv').onclick=()=>{if(!j){download('nca_error.txt',r.stderr,'text/plain');return;}
-    const lines=[];for(const tb of j.tables){lines.push('# '+tb.title,tb.columns.join(','));tb.rows.forEach(row=>lines.push(tb.columns.map(c=>{const v=row[c];return v==null?'':/[",]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v;}).join(',')));lines.push('');}
+    const lines=[...provenanceCsv(),''];for(const tb of j.tables){lines.push('# '+tb.title,csvRow(tb.columns));tb.rows.forEach(row=>lines.push(csvRow(tb.columns.map(c=>row[c]))));lines.push('');}
+    j.findings.forEach(f=>lines.push(csvRow(['finding',f])));j.notes.forEach(n=>lines.push(csvRow(['note',n])));
     download('nca_parameters.csv',lines.join('\n'),'text/csv');};
 }
 
@@ -1493,7 +1555,7 @@ function ncaChart(){
   g+=`<text x="${(pl+W-pr)/2}" y="${H-4}" text-anchor="middle" style="font-size:10px">${esc(t('nc_time'))}</text>`;
   for(const p of list){const pts=log?p.pts.filter(q=>q[1]>0):p.pts;if(pts.length<2)continue;
     g+=`<path d="${pts.map((q,i)=>`${i?'L':'M'}${x(q[0]).toFixed(1)},${y(q[1]).toFixed(1)}`).join('')}" fill="none" stroke="${col(p.trt)}" stroke-width="1.2" opacity=".45"/>`;}
-  trts.forEach((tr,i)=>{if(!tr)return;g+=`<rect x="${W-pr-90}" y="${pt+4+i*18}" width="12" height="3" fill="${col(tr)}"/><text x="${W-pr-72}" y="${pt+9+i*18}" style="fill:${css('--ink')}">${esc(tr==='T'?t('g_test')+' (T)':tr==='R'?t('g_ref')+' (R)':tr)}</text>`;});
+  trts.forEach((tr,i)=>{if(!tr)return;g+=`<rect x="${W-pr-150}" y="${pt+4+i*26}" width="12" height="3" fill="${col(tr)}"/><text x="${W-pr-132}" y="${pt+9+i*26}" style="fill:${css('--ink')}">${esc(tr==='T'?t('g_test')+' (T)':tr==='R'?t('g_ref')+' (R)':tr)}</text>`;});
   return g+`</svg>`;
 }
 
@@ -1501,17 +1563,22 @@ function ncaChart(){
 function ncaToBe(){
   const tb=N.json.tables.find(x=>x.title==='be input'),colName=$('#ncaBeMetric').value,cols=tb.columns;
   const q=v=>{v=v==null?'':String(v);return /[",\r\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;};
-  // subjects without a value for this parameter leave the analysis (the whole subject unless there are more than two products)
+  // without a value for this parameter: 2x2 and parallel lose the subject; replicate and multi-treatment designs
+  // lose only that period (the fixed-effects model uses the other periods, EMA Method A; ICH M13A 2.2.3.1)
   const multi=new Set(tb.rows.map(x=>({TEST:'T',REF:'R',REFERENCE:'R'}[String(x.treatment).toUpperCase()]||String(x.treatment).toUpperCase()))).size>2;
+  const perSub={};tb.rows.forEach(x=>perSub[x.subject]=(perSub[x.subject]||0)+1);const maxRows=Math.max(...Object.values(perSub));
+  const periodwise=multi||maxRows>2;
   const gaps=new Set(tb.rows.filter(x=>x[colName]==null).map(x=>x.subject));
-  const keep=tb.rows.filter(x=>multi?x[colName]!=null:!gaps.has(x.subject));
+  const keep=tb.rows.filter(x=>periodwise?x[colName]!=null:!gaps.has(x.subject));
   const csv=[cols.map(q).join(','),...keep.map(r=>cols.map(c=>q(r[c])).join(','))].join('\n');
   const r=N.last,ss=r.study==='ss',endo=r.endo;
   setData(csv,'nca_'+colName+'.csv');
   const counts={};keep.forEach(x=>counts[x.subject]=(counts[x.subject]||0)+1);
   if(keep.length&&Object.values(counts).every(n=>n===1)){S.design='parallel';setSeg('#designSeg','parallel');}
-  const maxP=Math.max(...Object.values(counts));
-  if(maxP>2&&Object.values(counts).some(n=>n<maxP)&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
+  // incomplete replicate subjects, and stage / group columns, need the fixed-effects model
+  const nested=cols.includes('stage')||cols.includes('group');
+  if(((maxRows>2&&Object.values(counts).some(n=>n<maxRows))||nested)&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
+  if(cols.includes('stage'))$('#ciLevel').value='94.12';
   $('#colValue').value=colName;
   const m=colName==='auc_0_inf'?'aucinf':colName.startsWith('auc')?'auc':'cmax';$('#metric').value=m;
   $('#colPredose').value=!ss&&!endo?'predose':'';
@@ -1521,15 +1588,20 @@ function ncaToBe(){
   if(S.profile!==r.profile){if(r.profile==='sfda')S._roundBefore=$('#emaRound').checked;else $('#emaRound').checked=!!S._roundBefore;S.profile=r.profile;setSeg('#profileSeg',r.profile);}
   syncForm();renderPreview();
   document.querySelector('.tab[data-tab="analysis"]').click();scrollTo({top:0,behavior:'smooth'});
-  toast(gaps.size?`${t('nca_sent')} — ${t('nca_gap')}: ${[...gaps].join(', ')}`:t('nca_sent'));
+  toast(gaps.size?`${t('nca_sent')} — ${t(periodwise?'nca_gap_p':'nca_gap')}: ${[...gaps].join(', ')}`:t('nca_sent'));
 }
 
 /* Latin digits in numeric fields: convert Arabic-Indic / Persian digits and separators as the user types */
 document.addEventListener('input',e=>{const el=e.target;if(!el.classList||!el.classList.contains('numin'))return;
-  const v=el.value.replace(/[٠-٩]/g,d=>d.charCodeAt(0)-0x660).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-0x6F0).replace(/[٫,]/g,'.').replace(/[^0-9.]/g,'');
-  if(v!==el.value)el.value=v;});
+  const v=el.value.replace(/[٠-٩]/g,d=>d.charCodeAt(0)-0x660).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-0x6F0).replace(/٫/g,'.');
+  if(v!==el.value)el.value=v;
+  const bad=v.trim()!==''&&!/^\d*\.?\d+$|^\d+\.$/.test(v.trim());el.classList.toggle('bad',bad);el.title=bad?t('num_bad'):'';});
 /* init */
 $('#colSubject').onchange=()=>S.csv&&renderPreview();
+$('#appVer').textContent='v'+APP_VERSION;
+watchStale('#pane-analysis .side',clearResult);watchStale('#pane-nca .side',clearNca);
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(document.documentElement.dataset.theme)return;
+  if(S.last)renderResult(S.last);if(S.plast)renderPower(S.plast);if(N.last)renderNca(N.last);});}catch(e){}
 syncForm();syncPN();syncNca();applyLang();boot();
 </script>
 </body>

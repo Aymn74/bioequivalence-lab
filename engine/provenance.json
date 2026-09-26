@@ -1,21 +1,29 @@
 {
-  "retrieved_date": "2026-09-25",
-  "upstream_commit": "not resolved; exact downloaded bytes identified by SHA-256",
-  "source": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/main/skills/pkpd-modeling/scripts/bioequivalence.py",
-  "sha256": {
-    "README.md": "29f04fdd0d34de39ab4ff664554cda3e56b0205fc01bf320b0eacf68548194f7",
-    "_common.py": "96085b3245708a69b3597a09508ef75b1732803273fda1c84d3c4522974edce8",
-    "bioequivalence.py": "5afbd8443e2830517071de23a7468c28df6a13b285b775f62d49883aeccd28d0",
-    "changes.patch": "737c3689342007b87b881bc222a96eb45cdffb7d4943ce95d3bb5c7f9a42d3a5",
-    "example_partial.csv": "54a596189d017e213289e0ded39d54bc3968a4574499a94279b0769363730363",
-    "example_results.json": "c7e0701d4ece5b328b72af5911b15f823bc53c5c7dd1cc4c1e6dbdebadbff357",
-    "original_bioequivalence.py": "3396a88391b6369c6c908351307f7c5f9a00fcfdb3666e014a38ed3986fcbf35",
-    "requirements-tested.txt": "1668a3152e33680d94637b13421c15e68bd97cd8701f7f555c691f5bc5c0b9f3",
-    "requirements.txt": "6bd31e587c06276bf231cec25395b5d4a0b1e38c4d2b00813b2dd96aad14f17a",
-    "simulation_results.json": "40e182295d85a8ca1c793b72f0060660b8c69e48bb8e91eb39349314267150a6",
-    "test_bioequivalence.py": "d7098dd91499bbac14823c55381dfeb5b196029e52f983c88d7f56edc7efd5b6",
-    "test_results.txt": "3e9859ddf62a86721db175625179c5bc12ae286cf71034188d4b78eecd5abf46",
-    "validate_simulation.py": "b9d904d6ea5e651b623ada2dd52970bc35ad9d0c160c25f6dd7a181bb6628d5b",
-    "\u0627\u0642\u0631\u0623\u0646\u064a.md": "06c01ad930a6fe4f79e02e675703be31af2df403e9b9e02b8e44c60519e86682"
+  "description": "SHA-256 of the upstream K-Dense files as fetched. The other files of this folder are this repository's own work and are tracked by git.",
+  "upstream": "https://github.com/K-Dense-AI/scientific-agent-skills/tree/main/skills/pkpd-modeling/scripts",
+  "license": "MIT, Copyright (c) 2025 K-Dense Inc.",
+  "files": {
+    "original_bioequivalence.py": {
+      "fetched": "2026-09-25",
+      "upstream_path": "skills/pkpd-modeling/scripts/bioequivalence.py",
+      "upstream_commit": "not resolved; the downloaded bytes are identified by the hash",
+      "sha256": "3396a88391b6369c6c908351307f7c5f9a00fcfdb3666e014a38ed3986fcbf35"
+    },
+    "original_nca.py": {
+      "fetched": "2026-09-26",
+      "upstream_path": "skills/pkpd-modeling/scripts/nca.py",
+      "upstream_commit": "4c90a52",
+      "sha256": "a97bbc4abdfc1a7984105ddbcb76f534b875721d6984d6eff4d8e24d96623b11"
+    },
+    "_common.py": {
+      "fetched": "2026-09-25",
+      "upstream_path": "skills/pkpd-modeling/scripts/_common.py",
+      "sha256_as_fetched": "96085b3245708a69b3597a09508ef75b1732803273fda1c84d3c4522974edce8",
+      "modified": "commit 7f42c0b: parse_float rejects non-finite numbers; see git log -- engine/_common.py"
+    }
+  },
+  "derived": {
+    "bioequivalence.py": "corrected and extended from original_bioequivalence.py; diff in changes.patch",
+    "nca.py": "corrected and extended from original_nca.py; see README.md, NCA module"
   }
 }

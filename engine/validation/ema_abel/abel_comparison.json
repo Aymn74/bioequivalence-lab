@@ -5,9 +5,34 @@
   "n": 77,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 11: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 46.96430715577071,
+   "EL.lo": 71.22697683754538,
+   "EL.hi": 140.39624372669948,
+   "PE": 115.65872777027279,
+   "CL.lo": 107.1056653131981,
+   "CL.hi": 124.89480617408293,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 46.9643071557707,
+   "EL.lo": 71.2269768375454,
+   "EL.hi": 140.3962437267,
+   "PE": 115.658727770273,
+   "CL.lo": 107.105665313198,
+   "CL.hi": 124.894806174083
+  },
+  "max_rel_diff": 3.643906390709083e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass",
+  "ema_published": {
+   "CVwR": 47.0,
+   "PE": 115.66,
+   "CL.lo": 107.11,
+   "CL.hi": 124.89
+  },
+  "ema_match": true
  },
  {
   "set": "rds02",
@@ -98,9 +123,27 @@
   "n": 77,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 11: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 35.15708845196316,
+   "EL.lo": 77.14772483543354,
+   "EL.hi": 129.62145055257744,
+   "PE": 86.4612657668386,
+   "CL.lo": 80.06738075290039,
+   "CL.hi": 93.36574279948702,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 35.1570884519631,
+   "EL.lo": 77.1477248354336,
+   "EL.hi": 129.621450552577,
+   "PE": 86.4612657668385,
+   "CL.lo": 80.0673807529003,
+   "CL.hi": 93.365742799487
+  },
+  "max_rel_diff": 3.5082723495831403e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
  },
  {
   "set": "rds07",
@@ -212,9 +255,27 @@
   "n": 77,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 11: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 221.5472116427086,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 120.15277254561016,
+   "CL.lo": 90.82106752504222,
+   "CL.hi": 158.9574879905093,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 221.547211642709,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 120.15277254561,
+   "CL.lo": 90.8210675250421,
+   "CL.hi": 158.957487990509
+  },
+  "max_rel_diff": 1.7960232000904577e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds13",
@@ -222,9 +283,27 @@
   "n": 222,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 56: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 79.58208778642235,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 78.78094286493167,
+   "CL.lo": 72.71128030413101,
+   "CL.hi": 85.35727789041582,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 79.5820877864226,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 78.7809428649314,
+   "CL.lo": 72.7112803041308,
+   "CL.hi": 85.3572778904155
+  },
+  "max_rel_diff": 3.6627082243159174e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds14",
@@ -232,9 +311,27 @@
   "n": 77,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 2: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 125.99508822910292,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 92.84581356500513,
+   "CL.lo": 69.98855045106616,
+   "CL.hi": 123.16793305463256,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 125.995088229103,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 92.8458135650051,
+   "CL.lo": 69.9885504510661,
+   "CL.hi": 123.167933054632
+  },
+  "max_rel_diff": 4.499737229876615e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
  },
  {
   "set": "rds15",
@@ -242,9 +339,27 @@
   "n": 222,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: value (value) for subject 56 period 4: expected a finite positive number"
+  "status": "compared",
+  "engine": {
+   "CVwR": 79.58208778642235,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 78.78094286493167,
+   "CL.lo": 72.71128030413101,
+   "CL.hi": 85.35727789041582,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 79.5820877864226,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 78.7809428649314,
+   "CL.lo": 72.7112803041308,
+   "CL.hi": 85.3572778904155
+  },
+  "max_rel_diff": 3.6627082243159174e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds16",
@@ -272,9 +387,27 @@
   "n": 77,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 2: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 125.99508822910292,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 73.39240413403688,
+   "CL.lo": 54.158382284038545,
+   "CL.hi": 99.45727249244806,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 125.995088229103,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 73.3924041340369,
+   "CL.lo": 54.1583822840385,
+   "CL.hi": 99.457272492448
+  },
+  "max_rel_diff": 7.87183116401367e-16,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds19",
@@ -282,9 +415,27 @@
   "n": 61,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 2: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 115.23104753125821,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 73.60447694719055,
+   "CL.lo": 54.17604300167967,
+   "CL.hi": 100.00027182682088,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 115.231047531258,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 73.6044769471904,
+   "CL.lo": 54.1760430016796,
+   "CL.hi": 100.000271826821
+  },
+  "max_rel_diff": 1.930705210417836e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds20",
@@ -292,9 +443,27 @@
   "n": 61,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 2: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 135.93159728133315,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 70.36229497631108,
+   "CL.lo": 51.17198242996008,
+   "CL.hi": 96.74928191632448,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 135.931597281333,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 70.3622949763111,
+   "CL.lo": 51.1719824299601,
+   "CL.hi": 96.7492819163244
+  },
+  "max_rel_diff": 1.0454416044115395e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds21",
@@ -302,9 +471,27 @@
   "n": 77,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: value (value) for subject 45 period 3: expected a finite positive number"
+  "status": "compared",
+  "engine": {
+   "CVwR": 32.161960002748486,
+   "EL.lo": 78.7854992598286,
+   "EL.hi": 126.92691033182084,
+   "PE": 119.4651600931455,
+   "CL.lo": 111.72447468178311,
+   "CL.hi": 127.74214885977845,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 32.1619600027486,
+   "EL.lo": 78.7854992598286,
+   "EL.hi": 126.926910331821,
+   "PE": 119.465160093146,
+   "CL.lo": 111.724474681783,
+   "CL.hi": 127.742148859778
+  },
+  "max_rel_diff": 4.163388846122728e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds22",
@@ -334,7 +521,7 @@
   "engine_design": null,
   "status": "rejected by the engine (unsupported design)",
   "exit_code": 2,
-  "message": "error: value (value) for subject 16 period 1: expected a finite positive number"
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
  },
  {
   "set": "rds25",
@@ -370,9 +557,27 @@
   "n": 54,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: value (value) for subject 3 period 3: expected a finite positive number"
+  "status": "compared",
+  "engine": {
+   "CVwR": 60.255841354711535,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 151.28543240768352,
+   "CL.lo": 133.51568337406715,
+   "CL.hi": 171.4201768690882,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 60.2558413547115,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 151.285432407684,
+   "CL.lo": 133.515683374067,
+   "CL.hi": 171.420176869088
+  },
+  "max_rel_diff": 3.1937580018598493e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds27",
@@ -382,7 +587,7 @@
   "engine_design": null,
   "status": "rejected by the engine (unsupported design)",
   "exit_code": 2,
-  "message": "error: value (value) for subject 111 period 2: expected a finite positive number"
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
  },
  {
   "set": "rds28",
@@ -400,9 +605,27 @@
   "n": 12,
   "complete": false,
   "engine_design": "full",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 3: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 20.135796517335926,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 103.48432593513208,
+   "CL.lo": 88.2806377257361,
+   "CL.hi": 121.3063927734484,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 20.1357965173359,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 103.484325935132,
+   "CL.lo": 88.2806377257362,
+   "CL.hi": 121.306392773448
+  },
+  "max_rel_diff": 3.280156329178645e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
  },
  {
   "set": "rds30",
@@ -410,9 +633,27 @@
   "n": 14,
   "complete": false,
   "engine_design": "partial",
-  "status": "rejected by the engine (incomplete data)",
-  "exit_code": 2,
-  "message": "error: 1: incomplete or duplicate records"
+  "status": "compared",
+  "engine": {
+   "CVwR": 25.227699145127424,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 92.73371011829936,
+   "CL.lo": 79.60344568173528,
+   "CL.hi": 108.02975824296396,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 25.2276991451274,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 92.7337101182994,
+   "CL.lo": 79.6034456817354,
+   "CL.hi": 108.029758242964
+  },
+  "max_rel_diff": 1.4281647829184472e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
  },
  {
   "set": "rds01_complete",

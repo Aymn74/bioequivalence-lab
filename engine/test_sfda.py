@@ -122,11 +122,17 @@ class SfdaProfileTests(unittest.TestCase):
         code, p, _ = run_cli(rows, '--design', '2x2', '--metric', 'auc', '--profile', 'sfda', '--cmax-column', 'cmax', extra=('predose', 'cmax'))
         self.assertEqual(p['scalars']['n_subjects'], 19)
 
-    def test_predose_in_replicate_is_explicit_error(self):
+    def test_predose_in_replicate_removes_only_that_period(self):
         rows = fixture('partial', [7, 7, 7])
         for r in rows: r['predose'] = 0.0
         rows[4]['predose'] = rows[4]['value']
-        code, _, err = run_cli(rows, '--design', 'partial', '--profile', 'sfda', extra=('predose',))
+        code, p, err = run_cli(rows, '--design', 'partial', '--profile', 'sfda', extra=('predose',))
+        self.assertIn(code, (0, 1), err)
+        self.assertEqual(len(table(p, 'pre-dose exclusions')), 1)
+        self.assertEqual(p['scalars']['n_subjects'], 21)                  # the subject keeps its other periods
+        self.assertEqual(table(p, 'incomplete subjects')[0]['subject'], rows[4]['subject'])
+        # the complete-data contrast analysis cannot use the remaining periods: explicit error
+        code, _, err = run_cli(rows, '--design', 'partial', '--analysis', 'contrast', extra=('predose',))
         self.assertEqual(code, 2); self.assertIn('incomplete replicate', err)
 
     def test_power_minimum_and_anova_df(self):

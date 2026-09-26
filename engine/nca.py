@@ -163,10 +163,21 @@ def derive_sequences(profiles):
         except ValueError:
             return (1, 0.0, p.period)
 
-    for group in by_subject.values():
+    derived = {}
+    for sid, group in by_subject.items():
         if all(p.sequence for p in group):
             continue
-        seq = "".join(TREATMENT_ALIASES.get(p.treatment, p.treatment) for p in sorted(group, key=order))
+        derived[sid] = "".join(TREATMENT_ALIASES.get(p.treatment, p.treatment) for p in sorted(group, key=order))
+    # A subject with missing periods gets the one full sequence of the study that matches its observed periods.
+    full = max((len(v) for v in by_subject.values()), default=0)
+    complete = {seq for sid, seq in derived.items() if len(by_subject[sid]) == full}
+    for sid, seq in derived.items():
+        group = by_subject[sid]
+        if len(group) < full and all(p.period.isdigit() for p in group):
+            fits = [c for c in complete if all(c[int(p.period) - 1:int(p.period)] == TREATMENT_ALIASES.get(p.treatment, p.treatment)
+                                               for p in group)]
+            if len(fits) == 1:
+                seq = fits[0]
         for p in group:
             p.sequence = p.sequence or seq
 
@@ -485,33 +496,38 @@ def clean(v):
 
 
 def population(rows):
-    """Who is in the BE analysis population. Returns (design info, {subject: reason left out}) or (None, {}).
+    """Who is in the BE analysis and in the summary statistics.
 
-    Crossover and replicate designs: bioequivalence.py needs complete subjects, so a subject with an
-    excluded or missing period is left out (GCC 3.1.8: in a 2-period trial the subject is removed; in
-    replicate designs the guidelines would remove only that period, which this engine cannot analyse).
+    Returns (design info, {subject: reason left out of the BE input}, {subject: reason left out of the
+    summary statistics}), or (None, {}, {}).
+    2x2: a subject with an excluded or missing period is left out of both (GCC 3.1.8: in a 2-period trial
+    the subject is removed). Replicate designs: only the excluded periods leave the BE input, and subjects
+    with missing periods stay in (bioequivalence.py analyses them with the fixed-effects model, EMA Method A;
+    ICH M13A Q&A 2.9); drop-outs are still left out of the summary statistics (GCC 3.1.8).
     Designs with more than two treatments keep the other periods.
     """
     if not rows or not all(r["treatment"] for r in rows):
-        return None, {}
+        return None, {}, {}
     by_subject: dict[str, list[dict]] = {}
     for r in rows:
         by_subject.setdefault(r["subject"], []).append(r)
     parallel = all(len(v) == 1 for v in by_subject.values())
     if not parallel and not all(r["period"] for r in rows):
-        return None, {}
+        return None, {}, {}
     labels = {TREATMENT_ALIASES.get(r["treatment"], r["treatment"]) for r in rows}
     info = {"parallel": parallel, "multi": len(labels) > 2, "periods": max(len(v) for v in by_subject.values())}
     left_out: dict[str, str] = {}
+    summary_out: dict[str, str] = {}
     if not parallel and not info["multi"]:
         for subject, group in by_subject.items():
-            if any(r["status"] != "included" for r in group):
-                left_out[subject] = "a period was excluded"
-            elif len(group) < info["periods"]:
-                left_out[subject] = f"{len(group)} of {info['periods']} periods in the data"
-            elif info["periods"] > 2 and any(r.get("predose_pct_cmax") for r in group):
-                left_out[subject] = "pre-dose > 5% of Cmax in a replicate design (the guidelines remove only that period; incomplete replicate data cannot be analysed here)"
-    return info, left_out
+            short = len(group) < info["periods"]
+            if info["periods"] == 2 and any(r["status"] != "included" for r in group):
+                left_out[subject] = summary_out[subject] = "a period was excluded"
+            elif short:
+                summary_out[subject] = f"{len(group)} of {info['periods']} periods in the data"
+                if info["periods"] == 2:
+                    left_out[subject] = summary_out[subject]
+    return info, left_out, summary_out
 
 
 def be_input(rows, a, report, notes):
@@ -523,7 +539,7 @@ def be_input(rows, a, report, notes):
     Designs with more than two treatments keep the other periods: each comparison is analysed without
     the other arms, and bioequivalence.py keeps subjects that have both products compared.
     """
-    info, left_out = population(rows)
+    info, left_out, _ = population(rows)
     if info is None:
         return
     parallel, multi = info["parallel"], info["multi"]
@@ -543,6 +559,11 @@ def be_input(rows, a, report, notes):
     if multi and any(r["status"] != "included" for r in rows):
         notes.append("BE input keeps the other periods of subjects with an excluded period: with more than two products, "
                      "each comparison uses only the subjects that have both products")
+    if info["periods"] > 2 and not multi and not parallel and (
+            any(r["status"] != "included" for r in rows) or
+            any(len([x for x in rows if x["subject"] == s]) < info["periods"] for s in {r["subject"] for r in rows})):
+        notes.append("BE input (replicate design) keeps the available periods of subjects with an excluded or missing period; "
+                     "analyse it with the fixed-effects model (EMA Method A), which uses all available observations")
     for k in keys:
         gaps = sorted({x["subject"] for x in table if x.get(k) is None})
         if gaps:
@@ -649,10 +670,10 @@ def run(argv=None):
     coverage_rule(rows, a, report)
 
     keys = [k for k in SUMMARY_KEYS if any(k in r for r in rows)] + [f"auc_{s:g}_{e:g}" for s, e in a.partial_auc]
-    _, left_out = population(rows)
-    stats = summary(rows, keys, left_out)
-    if left_out:
-        notes.append("summary statistics leave out subject(s) " + ", ".join(sorted(left_out)) +
+    _, _, summary_out = population(rows)
+    stats = summary(rows, keys, summary_out)
+    if summary_out:
+        notes.append("summary statistics leave out subject(s) " + ", ".join(sorted(summary_out)) +
                      ": drop-outs and excluded subjects are listed individually but not summarised (GCC 3.1.8)")
     report.table("per-profile parameters", [{k: clean(v) for k, v in r.items()} for r in rows])
     report.table("lambda_z diagnostics", [{k: clean(v) for k, v in d.items()} for d in diag])

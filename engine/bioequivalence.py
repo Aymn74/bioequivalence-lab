@@ -15,6 +15,7 @@ from scipy.stats import chi2, f as f_dist, norm, t
 from _common import InputError, Report, read_table, require_columns, add_format_argument, main_wrapper
 
 DESIGNS = {'2x2': ('TR', 'RT'), 'partial': ('TRR', 'RTR', 'RRT'), 'full': ('TRTR', 'RTRT')}
+MISSING_VALUES = {'', '.', 'na', 'n/a', 'nan', 'missing'}
 THETA_FDA = (math.log(1.25)/0.25)**2
 THETA_FDA_NTI = (math.log(1/0.9)/0.10)**2   # FDA Statistical Approaches (2026), Appendix F
 NTI_SD_RATIO_LIMIT = 2.5
@@ -54,8 +55,12 @@ def positive(value, label):
     if not math.isfinite(x) or x <= 0: raise InputError(f'{label}: expected a finite positive number')
     return x
 
-def validate(records, design):
-    """No silent exclusion, imputation, sequence guessing or duplicate averaging."""
+def validate(records, design, incomplete=False):
+    """No silent exclusion, imputation, sequence guessing or duplicate averaging.
+
+    incomplete=True (fixed-effects analyses only) accepts subjects observed in a subset of the
+    periods of their sequence, as EMA Method A does; everything else stays strict.
+    """
     groups = defaultdict(list)
     for r in records:
         if not r.get('subject'): raise InputError('empty subject ID')
@@ -90,16 +95,38 @@ def validate(records, design):
         seq = g[0]['sequence']
         if any(r['sequence']!=seq for r in g): raise InputError(f'{sid}: inconsistent sequence')
         if len({nest(r) for r in g})!=1: raise InputError(f'{sid}: inconsistent stage')
-        if len(g)!=len(seq): raise InputError(f'{sid}: incomplete or duplicate records')
         try: periods = [int(str(r['period'])) for r in g]
         except (ValueError,KeyError): raise InputError(f'{sid}: integer period required')
-        if sorted(periods)!=list(range(1,len(seq)+1)): raise InputError(f'{sid}: missing/duplicate/invalid period')
+        if len(set(periods))!=len(periods) or len(g)>len(seq) or not all(1<=p<=len(seq) for p in periods):
+            raise InputError(f'{sid}: missing/duplicate/invalid period')
+        if len(g)<len(seq) and not incomplete:
+            raise InputError(f'{sid}: incomplete or duplicate records; incomplete subjects are analysed only by the fixed-effects (EMA Method A) analysis without RSABE or the FDA NTI method: use --analysis ema (always on with --profile sfda)')
         for r,p in zip(g,periods):
             if seq[p-1]!=r['treatment']: raise InputError(f'{sid}: treatment conflicts with sequence/period')
         g.sort(key=lambda r:int(r['period']))
     counts = [sum(g[0]['sequence']==s for g in groups.values()) for s in DESIGNS[design]]
-    if min(counts)<2: raise InputError('at least two complete subjects in every sequence required')
+    if min(counts)<2: raise InputError('at least two subjects in every sequence required')
     return design, groups
+
+def evaluable(records):
+    """Subjects with at least one test and one reference observation."""
+    have=defaultdict(set)
+    for r in records: have[r['subject']].add(r['treatment'])
+    return sum({'T','R'}<=v for v in have.values())
+
+def incomplete_subjects(records, design):
+    """Subjects observed in fewer periods than their sequence has (crossover designs)."""
+    if design not in DESIGNS: return []
+    g=defaultdict(list)
+    for r in records: g[r['subject']].append(r)
+    out=[]
+    for sid,rs in g.items():
+        seq=rs[0]['sequence']
+        if len(rs)<len(seq):
+            seen={int(str(r['period'])) for r in rs}
+            out.append(dict(subject=sid,sequence=seq,periods_observed=len(rs),missing_periods=' '.join(str(p) for p in range(1,len(seq)+1) if p not in seen),
+                            test=sum(r['treatment']=='T' for r in rs),reference=sum(r['treatment']=='R' for r in rs)))
+    return out
 
 def contrast_analysis(records, design='2x2'):
     design,groups = validate(records,design)
@@ -148,7 +175,7 @@ def fixed_fit(records, treatment=True):
     """OLS subject + period (+ treatment); sequence is absorbed by subject effects.
     With a stage column, periods are fitted within stage and the stage main
     effect is absorbed by the (stage-nested) subject effects.
-    Reduced QR avoids forming the inverse of X'X. Complete designs only.
+    Reduced QR avoids forming the inverse of X'X. Missing periods need no special handling (EMA Method A).
     """
     subjects=sorted({r['subject'] for r in records}); keys=sorted({period_key(r) for r in records})
     # One reference period per stage: the stage main effect lies in the subject space.
@@ -171,10 +198,10 @@ def fixed_fit(records, treatment=True):
     z=np.linalg.solve(r.T,np.eye(len(beta))[:,-1])
     return float(beta[-1]), math.sqrt(mse*float(z@z)), df, mse
 
-def ema_analysis(records, design, ci_level=90.0):
-    _,groups=validate(records,design)
+def ema_analysis(records, design, ci_level=90.0, incomplete=False):
+    validate(records,design,incomplete)
     e,se,df,_=fixed_fit(records)
-    return AverageBE(e,se,df,len(groups),'fixed subject + period + treatment; common residual variance (EMA Method A structure)',ci_level)
+    return AverageBE(e,se,df,evaluable(records),'fixed subject + period + treatment; common residual variance (EMA Method A structure)',ci_level)
 
 def _rss(cols, y):
     x=np.column_stack(cols); beta,_,rank,_=np.linalg.lstsq(x,y,rcond=None)
@@ -183,7 +210,7 @@ def _rss(cols, y):
 def _dummies(keys, values):
     return [np.array([float(v==k) for v in values]) for k in keys[1:]]
 
-def anova_table(records, design):
+def anova_table(records, design, incomplete=False):
     """Fixed-effects ANOVA of log values: sequence, subject(sequence), period, formulation.
 
     Sequence and subject(sequence) partition the between-subject sum of squares
@@ -194,7 +221,7 @@ def anova_table(records, design):
     stage, sequence, sequence x stage and subject(sequence x stage), and periods
     are nested within stage; the formulation estimate equals that of fixed_fit.
     """
-    design,groups=validate(records,design)
+    design,groups=validate(records,design,incomplete)
     y=np.array([r['logvalue'] for r in records]); n=len(y); one=np.ones(n)
     frm=np.array([float(r['treatment']=='T') for r in records])
     rows=[]
@@ -258,15 +285,17 @@ def low_auc(records, treatments=('R',)):
             if r['value']<0.05*gm: out.append(dict(subject=r['subject'],period=r['period'],treatment=tr,auc=r['value'],product_gm=gm,pct_of_gm=100*r['value']/gm))
     return out
 
-def predose_screen(records, design):
+def predose_screen(records, design, incomplete=False):
     """GCC/SFDA BE guideline: exclude a subject-period whose pre-dose concentration
     exceeds 5% of that period's Cmax. Returns (kept_records, excluded_rows)."""
     flagged=[r for r in records if r.get('predose') is not None and r['predose']>0.05*r['cmax_ref']]
     if not flagged: return records,[]
     info=[dict(subject=r['subject'],period=r['period'],predose=r['predose'],cmax=r['cmax_ref'],ratio_pct=100*r['predose']/r['cmax_ref']) for r in flagged]
     if design not in ('2x2','parallel','multi'):
+        if incomplete:   # replicate design, fixed-effects analysis: only that period leaves the analysis
+            return [r for r in records if r not in flagged],info
         raise InputError('pre-dose > 5% of Cmax in '+', '.join(f"{i['subject']} period {i['period']}" for i in info)+
-                         ': the guideline excludes only that period, which leaves an incomplete replicate design; incomplete designs are not supported')
+                         ': the guideline excludes only that period, which leaves an incomplete replicate design; incomplete subjects are analysed only by the fixed-effects (EMA Method A) analysis without RSABE or the FDA NTI method: use --analysis ema (always on with --profile sfda)')
     if design=='multi':
         kept=[r for r in records if r not in flagged]
         have=defaultdict(set)
@@ -275,10 +304,11 @@ def predose_screen(records, design):
     drop={r['subject'] for r in flagged}
     return [r for r in records if r['subject'] not in drop],info
 
-def reference_variability(records, method='contrast', design='replicate'):
-    design,groups=validate(records,design)
+def reference_variability(records, method='contrast', design='replicate', incomplete=False):
+    design,groups=validate(records,design,incomplete and method=='ema')
     if design not in ('partial','full'): raise InputError('replicated reference required')
     if method=='ema':
+        # Reference-only fixed-effects model (EMA Method A); subjects with a single R contribute no df
         _,_,df,mse=fixed_fit([r for r in records if r['treatment']=='R'],False)
         return ReferenceVariability(mse,df,len(groups))
     ds=defaultdict(list)
@@ -437,8 +467,12 @@ def load_records(args):
     require_columns(rows,cols,str(args.input))
     if args.design!='parallel': require_columns(rows,['sequence','period'],str(args.input))
     plan=baseline_plan(args,rows); args.baseline_method=plan[0] if plan else None; args.baseline_rows=[]
-    out=[]; nonpositive=[]
+    out=[]; nonpositive=[]; args.missing_values=[]
     for row in rows:
+        if getattr(args,'allow_missing',False) and row[args.value_column].strip().lower() in MISSING_VALUES:
+            # an explicitly missing observation (blank / NA): listed, not imputed (fixed-effects analysis only)
+            args.missing_values.append(dict(subject=row[args.subject_column].strip(),period=row.get('period',''),treatment=row[args.treatment_column].strip()))
+            continue
         tr=row[args.treatment_column].strip().upper()
         if args.design=='multi':
             if tr not in (args.test_label.upper(),args.reference_label.upper()): continue   # other treatment arms are excluded
@@ -529,16 +563,19 @@ def run(argv=None):
         report.note('Numerical integration of fixed-limit TOST power; balanced complete design, normal log data, equal T/R within-subject variance, no subject-by-treatment interaction. Parallel CV is between-subject. No dropout allowance.')
         return report.emit(a.format)
     if not a.input: raise InputError('provide --input or --power')
-    records=load_records(a); design,_=validate(records,a.design)
+    fixed_only=a.analysis=='ema' and a.scaling in ('none','abel') and a.design!='parallel'
+    a.allow_missing=fixed_only
+    records=load_records(a)
+    design,_=validate(records,a.design,fixed_only)
     if any(nest(r) for r in records) and a.analysis!='ema' and design!='parallel':
         raise InputError('a stage or group column requires the fixed-effects model (--analysis ema or --profile sfda)')
     if a.scaling=='fda-nti' and design!='full': raise InputError('the FDA NTI method requires a full replicate design (TRTR/RTRT)')
     excluded=[]
     if a.predose_check:
-        records,excluded=predose_screen(records,design)
-        if excluded: design,_=validate(records,design)
+        records,excluded=predose_screen(records,design,fixed_only)
+        if excluded: design,_=validate(records,design,fixed_only)
     if design=='parallel': result=parallel_design(records,a.welch)
-    else: result=ema_analysis(records,design,a.ci_level) if a.analysis=='ema' else contrast_analysis(records,design)
+    else: result=ema_analysis(records,design,a.ci_level,fixed_only) if a.analysis=='ema' else contrast_analysis(records,design)
     result.ci_level=a.ci_level
     report.scalar('design',design); report.scalar('metric',a.metric or a.value_column)
     for key,val in asdict(result).items(): report.scalar(key,val)
@@ -560,7 +597,10 @@ def run(argv=None):
     if a.ci_level!=90: report.note(f'{a.ci_level:g}% confidence interval (the ci90_* fields hold this interval). Adjusted levels are for a pre-specified two-stage design.')
     if excluded:
         report.table('pre-dose exclusions',excluded)
-        report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (ICH M13A 2.2.3.3; EMA and GCC/SFDA guidelines, carry-over).')
+        if design in ('partial','full'):
+            report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} period(s) removed from the analysis; the other periods of those subjects stay in (ICH M13A 2.2.3.3 and Q&A 2.9; EMA and GCC/SFDA guidelines, carry-over).')
+        else:
+            report.note(f'Pre-dose concentration > 5% of Cmax: {len(excluded)} subject(s) removed from the analysis (ICH M13A 2.2.3.3; EMA and GCC/SFDA guidelines, carry-over).')
     if a.predose_check and any('predose' in r for r in records):
         report.note('Pre-dose rule applied as for single-dose studies. For steady-state (multiple-dose) studies use --multiple-dose, because pre-dose concentrations are expected there.')
     if design=='multi':
@@ -570,8 +610,16 @@ def run(argv=None):
         if gi:
             report.table('group interaction',[gi])
             report.note('Multi-group study: groups modelled as in ICH M13A 2.2.3.5 (group, sequence×group, subject(sequence×group), period(group), formulation); group×formulation is tested only as a supportive analysis.')
+    if a.missing_values:
+        report.table('missing values',a.missing_values)
+        report.note(f'{len(a.missing_values)} observation(s) marked missing in the input (blank or NA) were left out; nothing was imputed.')
+    inc=incomplete_subjects(records,design)
+    if inc:
+        report.scalar('n_incomplete_subjects',len(inc)); report.table('incomplete subjects',inc)
+        report.note(f'Incomplete data: {len(inc)} subject(s) with missing periods; the fixed-effects model (EMA Method A) uses all available observations. '
+                    f'{result.n_subjects} subject(s) have both products; subjects with one product contribute to the period effects (and, with two reference observations, to CVwR) only.')
     if a.anova:
-        at=anova_table(records,design); report.table('anova',at)
+        at=anova_table(records,design,fixed_only); report.table('anova',at)
         res=next(r for r in at if r['source']=='residual')
         if design!='parallel': report.scalar('cv_intra_pct',100*math.sqrt(math.expm1(res['ms'])))
     if 'auc' in (a.metric or '').lower():
@@ -591,7 +639,7 @@ def run(argv=None):
     if a.scaling in ('abel','both'):
         if a.metric.lower()!='cmax': raise InputError('ABEL is restricted to --metric cmax')
         if not a.abel_justified: raise InputError('ABEL requires --abel-justified: clinical justification and prospective protocol specification must exist')
-        ema=ema_analysis(records,design,a.ci_level); rv=reference_variability(records,'ema',design); low,high,widened=abel_limits(rv)
+        ema=ema_analysis(records,design,a.ci_level,fixed_only); rv=reference_variability(records,'ema',design,fixed_only); low,high,widened=abel_limits(rv)
         met=passes_ci(ema,(low,high),True) and .8<=ema.gmr<=1.25
         rows.append(dict(criterion='EMA ABEL (fixed-effects model)',met=bool(met),gmr=ema.gmr,ci_low=ema.ci_low,ci_high=ema.ci_high,df=ema.df,cvwr=rv.cvwr,s2wr=rv.s2wr,df_wr=rv.df,low=low,high=high,widened=widened))
     if a.scaling=='fda-nti':
@@ -609,7 +657,7 @@ def run(argv=None):
             if not row['met']:report.finding(row['criterion']+': criterion not met')
     elif not passed: report.finding('Fixed-limit average BE criterion not met')
     if design=='multi' and a.scaling!='none': raise InputError('scaled criteria are not available for multi-treatment designs')
-    report.note('Research implementation, not regulatory certification. Complete canonical designs only; see README for assumptions, unsupported cases and references.')
+    report.note('Research implementation, not regulatory certification. Canonical designs; incomplete subjects only in the fixed-effects (EMA) analysis. See README for assumptions, unsupported cases and references.')
     return report.emit(a.format)
 
 if __name__=='__main__': raise SystemExit(main_wrapper(run))

@@ -266,7 +266,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:12px;text-align:center}
     <p data-i18n="hero_p">ارفع بيانات دراسة تبادلية (2×2، مكرّرة جزئيًا أو كليًا، أو متوازية) لحساب نسبة المتوسط الهندسي وفترة الثقة 90%، مع معايير EMA ABEL وFDA RSABE للأدوية عالية التباين، وحساب القوة وحجم العينة.</p>
     <div class="disclaimer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-      <span data-i18n="disc">تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.</span>
+      <span data-i18n="disc">تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم القياسية (والبيانات الناقصة في تحليل التأثيرات الثابتة فقط)، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.</span>
     </div>
   </section>
 
@@ -590,7 +590,7 @@ ar:{
  eng_loading:"المحرك قيد التحميل",eng_ready:"المحرك جاهز",eng_err:"خطأ في المحرك",eng_busy:"جارٍ الحساب…",
  eyebrow:"تحليل إحصائي للتكافؤ الحيوي",hero_t:"من بيانات الدراسة إلى قرار التكافؤ — بشفافية كاملة",
  hero_p:"ارفع بيانات دراسة تبادلية (2×2، مكرّرة جزئيًا أو كليًا، أو متوازية) لحساب نسبة المتوسط الهندسي وفترة الثقة 90%، مع معايير EMA ABEL وFDA RSABE للأدوية عالية التباين، وحساب القوة وحجم العينة.",
- disc:"تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.",
+ disc:"تنفيذ بحثي وليس برنامجًا معتمدًا لملف تنظيمي. يقبل التصاميم القياسية (والبيانات الناقصة في تحليل التأثيرات الثابتة فقط)، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج.",
  tab_analysis:"تحليل البيانات",tab_power:"القوة وحجم العينة",tab_methods:"المنهجية والحدود",
  s_data:"البيانات",drop_t:"اسحب ملف CSV هنا أو اضغط للاختيار",drop_s:"الأعمدة: subject, sequence, period, treatment, value",or:"أو",
  load_ex:"تحميل مثال: تصميم جزئي TRR/RTR/RRT (مُحاكى)",
@@ -650,6 +650,7 @@ ar:{
  nc_be_h:"يُنقل جدول (مشارك، تسلسل، فترة، مستحضر، المعيار، ما قبل الجرعة) إلى تبويب التحليل مع ضبط الأعمدة والإطار التنظيمي.",
  nca_medt:"وسيط tmax المتوقع من البروتوكول (ساعات)",nca_medt_h:"لقاعدة القيء: قيمة واحدة أو لكل مستحضر (T=1.5,R=2). بدونها يُستخدم وسيط الدراسة نفسها مع تنبيه، لأن قرار الاستبعاد يُتخذ قبل التحليل الحيوي (الدليل الخليجي 3.1.8).",nk_noeval:"بلا kel",
  nca_sent:"نُقلت المعايير إلى تحليل التكافؤ",nca_gap:"استُبعد لعدم توفر القيمة",nc_addl:"معيار إضافي",nc_find:"ملاحظات للمراجعة",dl_params:"تنزيل المعايير CSV",g_test:"الاختبار",g_ref:"المرجع",nc_ratio:"النسبة وفترة الثقة: من تحليل التكافؤ",
+ inc_t:"مشاركون ببيانات ناقصة (يستخدم نموذج التأثيرات الثابتة كل المشاهدات المتاحة)",inc_missing:"الفترات الناقصة",mv_t:"قيم مسجّلة مفقودة في الملف (لم تُعوَّض)",
  k_ci_lvl:"فترة الثقة",sfda_badge:"SFDA",err_read:"تعذّرت قراءة الملف",ex_loaded:"تم تحميل بيانات المثال",
 },
 en:{
@@ -659,7 +660,7 @@ en:{
  eng_loading:"Engine loading",eng_ready:"Engine ready",eng_err:"Engine error",eng_busy:"Computing…",
  eyebrow:"Statistical bioequivalence analysis",hero_t:"From study data to a BE decision — fully auditable",
  hero_p:"Upload a crossover study (2×2, partial or full replicate) or a parallel study to compute the geometric mean ratio and 90% CI, apply EMA ABEL and FDA RSABE for highly variable drugs, and plan power and sample size.",
- disc:"Research implementation, not regulatory certification. Complete canonical designs only; it does not replace your statistical analysis plan or product-specific guidance.",
+ disc:"Research implementation, not regulatory certification. Canonical designs (incomplete subjects in the fixed-effects analysis only); it does not replace your statistical analysis plan or product-specific guidance.",
  tab_analysis:"Data analysis",tab_power:"Power & sample size",tab_methods:"Methods & limits",
  s_data:"Data",drop_t:"Drop a CSV here or click to browse",drop_s:"Columns: subject, sequence, period, treatment, value",or:"or",
  load_ex:"Load example: partial replicate TRR/RTR/RRT (simulated)",
@@ -719,6 +720,7 @@ en:{
  nc_be_h:"Moves one table (subject, sequence, period, treatment, the parameter, pre-dose) to the analysis tab and sets the columns and the framework.",
  nca_medt:"Expected median tmax from the protocol (h)",nca_medt_h:"For the emesis rule: one value or per product (T=1.5,R=2). Without it the study's own median is used and flagged, because exclusion is decided before bioanalysis (GCC 3.1.8).",nk_noeval:"without kel",
  nca_sent:"Parameters sent to the BE analysis",nca_gap:"left out, value not available",nc_addl:"additional parameter",nc_find:"Findings to review",dl_params:"Download parameters CSV",g_test:"Test",g_ref:"Reference",nc_ratio:"Ratio and CI: from the BE analysis",
+ inc_t:"Subjects with missing periods (the fixed-effects model uses all available observations)",inc_missing:"missing periods",mv_t:"Values marked missing in the file (not imputed)",
  k_ci_lvl:"confidence interval",sfda_badge:"SFDA",err_read:"Could not read file",ex_loaded:"Example data loaded",
 }};
 /* Arabic translations of known engine messages (English original is always shown too) */
@@ -733,10 +735,11 @@ const MSG_AR=[
  [/all canonical sequences required/,"يجب وجود جميع التسلسلات القياسية للتصميم المختار؛ وُجد تسلسل ناقص أو غير معروف."],
  [/replicate requires all/,"التصميم المكرّر يتطلب جميع تسلسلات TRR/RTR/RRT أو TRTR/RTRT."],
  [/inconsistent sequence/,"تسلسل غير متسق لنفس المشارك."],
+ [/incomplete or duplicate records; incomplete subjects are analysed only/,"مشارك تنقصه فترات: البيانات الناقصة تُحلَّل بنموذج التأثيرات الثابتة (طريقة EMA A) وحده، دون RSABE وطريقة FDA للأدوية ضيقة المؤشر. اختر «ANOVA بتأثيرات ثابتة» (يُختار تلقائيًا في إطار SFDA)."],
  [/incomplete or duplicate records/,"سجلات ناقصة أو مكررة لمشارك."],
  [/missing\/duplicate\/invalid period/,"فترة مفقودة أو مكررة أو غير صالحة."],
  [/treatment conflicts with sequence\/period/,"المعالجة لا تطابق التسلسل والفترة."],
- [/at least two complete subjects in every sequence/,"يلزم مشاركان مكتملان على الأقل في كل تسلسل."],
+ [/at least two (complete )?subjects in every sequence/,"يلزم مشاركان على الأقل في كل تسلسل."],
  [/treatment must be T or R/,"يجب أن تكون المعالجة T أو R."],
  [/expected a finite positive number/,"قيمة غير صالحة: يجب أن تكون رقمًا موجبًا محددًا."],
  [/missing required column/,"عمود مطلوب مفقود."],
@@ -759,8 +762,11 @@ const MSG_AR=[
  [/SFDA profile \(GCC BE guideline/,"إطار SFDA (الدليل الخليجي DS-G-010 V3.1): ANOVA بتأثيرات ثابتة، تقريب حدود فترة الثقة لمنزلتين، ABEL لـ Cmax فقط، بدون RSABE، حد أدنى 18 مشاركًا، واستبعاد ما قبل الجرعة > 5% من Cmax."],
  [/SFDA profile: fixed-effects ANOVA degrees of freedom/,"إطار SFDA: درجات حرية نموذج ANOVA، والحد الأدنى 18 مشاركًا قابلًا للتقييم (يوصى عادة بـ 24). خطّط للانسحابات بشكل منفصل."],
  [/SFDA: widened limits apply to Cmax only/,"SFDA: توسيع الحدود لـ Cmax فقط، ويجب تحديده مسبقًا في البروتوكول مع مبرر سريري."],
+ [/^Pre-dose concentration > 5% of Cmax: (\d+) period\(s\) removed/,m=>`تركيز ما قبل الجرعة أعلى من 5% من Cmax: استُبعدت ${m[1]} فترة من التحليل، وبقيت الفترات الأخرى لأولئك المشاركين (ICH M13A 2.2.3.3 وسؤال وجواب 2.9؛ الأثر المتبقي).`],
+ [/^Incomplete data: (\d+) subject\(s\) with missing periods.*?(\d+) subject\(s\) have both products/,m=>`بيانات ناقصة: ${m[1]} مشارك/مشاركين تنقصهم فترات؛ يستخدم نموذج التأثيرات الثابتة (طريقة EMA A) كل المشاهدات المتاحة. لدى ${m[2]} مشاركًا المستحضران معًا؛ ومن لديه مستحضر واحد يسهم في أثر الفترة فقط (وفي CVwR إن كانت له مشاهدتان للمرجع).`],
+ [/^(\d+) observation\(s\) marked missing in the input/,m=>`${m[1]} مشاهدة مسجّلة مفقودة في الملف (خانة فارغة أو NA) تُركت خارج التحليل؛ لم يُعوَّض شيء.`],
  [/Pre-dose concentration > 5% of Cmax/,"تركيز ما قبل الجرعة أعلى من 5% من Cmax: استُبعد مشارك أو أكثر من التحليل (الدليل الخليجي، الأثر المتبقي)."],
- [/pre-dose > 5% of Cmax in .*incomplete replicate/,"تركيز ما قبل الجرعة > 5% من Cmax في تصميم مكرّر: الدليل يستبعد تلك الفترة فقط، فيصبح التصميم غير مكتمل، والتصاميم غير المكتملة غير مدعومة."],
+ [/pre-dose > 5% of Cmax in .*incomplete replicate/,"تركيز ما قبل الجرعة > 5% من Cmax في تصميم مكرّر: الأدلة تستبعد تلك الفترة وحدها، والبيانات الناقصة تُحلَّل بنموذج التأثيرات الثابتة وحده. اختر «ANOVA بتأثيرات ثابتة»."],
  [/a stage column requires the fixed-effects model/,"عمود المرحلة (stage) يتطلب نموذج التأثيرات الثابتة (EMA أو إطار SFDA)."],
  [/confidence interval \(the ci90_\* fields hold this interval\)/,"فترة ثقة بمستوى معدّل؛ المستويات المعدّلة مخصصة للتصميم على مرحلتين المحدد مسبقًا."],
  [/Pre-dose rule applied as for single-dose studies/,"طُبّقت قاعدة ما قبل الجرعة كما في الدراسات أحادية الجرعة. لا تُدخل عمود ما قبل الجرعة لدراسات الحالة المستقرة (متعددة الجرعات)، حيث يُتوقع وجود تركيز قبل الجرعة."],
@@ -820,7 +826,7 @@ const MSG_AR=[
  [/Multi-group study: groups modelled as in ICH M13A/,"دراسة متعددة المجموعات: نُمذجت المجموعات كما في ICH M13A 2.2.3.5 (المجموعة، التسلسل×المجموعة، المشارك داخلهما، الفترة داخل المجموعة، المستحضر)؛ تفاعل المجموعة × المستحضر يُختبر كتحليل داعم فقط."],
  [/FDA NTI method \(Statistical Approaches/,"طريقة FDA للأدوية ضيقة المؤشر (الملحق F): يجب تحقق الشروط الثلاثة معًا — الحد الأعلى للمعيار المتدرج ≤ 0، وABE غير متدرج 80.00–125.00%، والحد الأعلى 90% لـ sWT/sWR ≤ 2.5. تطلب FDA اختبار AUC وCmax كليهما."],
  [/FDA NTI \(reference-scaled, full replicate\): criterion not met/,"لم يتحقق معيار FDA للأدوية ضيقة المؤشر."],
- [/Research implementation, not regulatory certification/,"تنفيذ بحثي وليس اعتمادًا تنظيميًا. تصاميم قياسية كاملة فقط؛ راجع README للافتراضات والحالات غير المدعومة والمراجع."],
+ [/Research implementation, not regulatory certification/,"تنفيذ بحثي وليس اعتمادًا تنظيميًا. تصاميم قياسية، والبيانات الناقصة في تحليل التأثيرات الثابتة فقط؛ راجع README للافتراضات والحالات غير المدعومة والمراجع."],
  [/NTI flag changes fixed limits only/,"خيار NTI يغيّر الحدود الثابتة فقط، ولا ينفّذ منهجية FDA للأدوية ضيقة المؤشر العلاجي."],
  [/^(subject .+?): missed sample\(s\) at (.+) h dropped/,m=>`${subAr(m[1])}: عينة مفقودة عند ${m[2]} ساعة حُذفت ولم تُحسب صفرًا؛ تُوثَّق انحرافًا عن البروتوكول.`],
  [/^(subject .+?): BLQ between quantifiable samples at (.+) h set to zero/,m=>`${subAr(m[1])}: قيمة تحت حد القياس بين قيم مقاسة عند ${m[2]} ساعة عوملت صفرًا (ICH M13A)؛ راجع سجل التحليل الحيوي.`],
@@ -851,6 +857,7 @@ const MSG_AR=[
  [/^GCC 3\.1\.8 \(immediate release\)/,"الدليل الخليجي 3.1.8 (فوري التحرر): تُستبعد الفترة إذا حدث القيء عند ضعف وسيط tmax أو قبله."],
  [/^GCC Annex 1 section 5/,"ملحق الدليل الخليجي 1، البند 5: نسبة المتوسطات الهندسية وفترة الثقة تأتيان من تحليل التكافؤ الحيوي."],
  [/^BE input leaves out (.+)$/,m=>`لا يدخل تحليل التكافؤ: ${m[1].replace(/subject (\S+): a period was excluded/g,'المشارك $1 (استُبعدت إحدى فتراته)').replace(/subject (\S+): (\d+) of (\d+) periods in the data/g,'المشارك $1 (له $2 من $3 فترات)').replace(/subject (\S+): pre-dose > 5% of Cmax in a replicate design.*?here\)/g,'المشارك $1 (ما قبل الجرعة أعلى من 5% من Cmax في تصميم مكرّر؛ الأدلة تستبعد تلك الفترة وحدها، والبيانات المكرّرة الناقصة لا تُحلَّل هنا)')}. تحليل التكافؤ يتطلب مشاركين مكتملين.`],
+ [/^BE input \(replicate design\) keeps the available periods/,"مدخلات التكافؤ (تصميم مكرّر) تحتفظ بالفترات المتاحة لمن استُبعدت إحدى فتراته أو نقصت؛ حلّلها بنموذج التأثيرات الثابتة (طريقة EMA A) الذي يستخدم كل المشاهدات المتاحة."],
  [/^BE input keeps the other periods of subjects with an excluded period/,"مع أكثر من مستحضرين تبقى الفترات الأخرى لمن استُبعدت إحدى فتراته: كل مقارنة تستخدم المشاركين الذين لديهم المستحضران المقارنان."],
  [/^BE input: (\S+) is not available for subject\(s\) (.+); they are left out/,m=>`مدخلات التكافؤ: ${m[1]} غير متاح للمشارك/المشاركين ${m[2]}؛ يُستبعدون عند تحليل هذا المعيار.`],
  [/^row \d+: empty (\S+) for subject (.+)$/,m=>`خانة ${m[1]} فارغة للمشارك ${m[2]}؛ كل صف يحتاج قيمة في هذا العمود.`],
@@ -883,7 +890,7 @@ ar:`<div class="card"><div class="card-b"><h4>ABE — فروق الأفراد (�
 <div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax فقط، مع إقرار بالمبرر السريري.</li><li>التوسيع إذا CVwR &gt; 30%، بحد أقصى CV = 50%.</li><li>قيد التقدير النقطي 80.00–125.00%.</li><li>مقارنة بنسب مئوية مقربة لمنزلتين.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
 <div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>تقدير تباين المرجع من فروق R المرتبة داخل التسلسل، ثم حد أعلى 95% بطريقة Howe:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>يُرفض القرار إذا sWR &lt; 0.294 لأن المسار البديل غير منفّذ.</p></div></div>
 <div class="card"><div class="card-b"><h4>القوة وحجم العينة</h4><p>تكامل عددي على توزيع χ² لقوة TOST بحدود ثابتة. عوامل التباين: 2/N (2×2)، 1.5/N (جزئي)، 1/N (كامل)، 4/N (متوازي).</p></div></div>
-<div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>الدراسات غير المكتملة أو تسلسلات أخرى.</li><li>نماذج الأثر المتبقي (carryover).</li><li>منهجية FDA لـ NTI.</li><li>قوة ABEL/RSABE وقوة Welch.</li><li>تحقق تنظيمي مستقل مع SAS/R.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>خارج النطاق</h4><ul><li>البيانات الناقصة في تحليل فروق الأفراد وRSABE وطريقة FDA للأدوية ضيقة المؤشر (مدعومة في نموذج التأثيرات الثابتة وABEL).</li><li>تسلسلات غير قياسية (مثل TRT/RTR وTRRT/RTTR).</li><li>نماذج الأثر المتبقي (carryover)، وطريقة EMA B (النموذج المختلط).</li><li>قوة ABEL/RSABE وقوة Welch.</li></ul><p>تحقق: ABEL مطابق لنتائج EMA المنشورة لمجموعتيها المرجعيتين ولحزمة replicateBE على 31 مجموعة.</p></div></div>
 <div class="card"><div class="card-b"><h4>تنسيق البيانات</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>القيم موجبة، لا حذف أو تعويض صامت. يُقبل Test/Ref/Reference للمعالجة.</p></div></div>
 <div class="card"><div class="card-b"><h4>إطار SFDA / الدليل الخليجي V3.1</h4><ul><li>ANOVA بتأثيرات ثابتة: التسلسل، المشارك داخل التسلسل، الفترة، المستحضر.</li><li>حدود فترة الثقة تُقرّب لمنزلتين: ≥ 80.00% و ≤ 125.00%.</li><li>ABEL لـ Cmax فقط (k = 0.760، حتى 69.84–143.19%)، ولا توسيع لـ AUC.</li><li>لا RSABE. حد أدنى 18 مشاركًا قابلًا للتقييم.</li><li>استبعاد فترة يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عدا المواد داخلية المنشأ).</li><li>المواد داخلية المنشأ: طرح خط الأساس (تركيز لـ Cmax، أو مساحة/تركيز × ساعات لـ AUC)، أو تأكيد صريح بأن القيم مصححة.</li><li>المرحلتان: فترة ثقة معدّلة (مثل 94.12%) وحدّ للمرحلة في النموذج.</li><li>جداول ANOVA مرفقة بالنتائج.</li></ul><p>يُعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. خارج النطاق: تصحيح المحتوى، وf2 للذوبان.</p></div></div>
 <div class="card"><div class="card-b"><h4>FDA — الأدوية ضيقة المؤشر</h4><p>تصميم مكرّر كامل (TRTR/RTRT)، ويجب تحقق ثلاثة شروط معًا (الملحق F، 2026):</p><ul><li>معيار متدرج: (μT−μR)² − θ·s²wR ≤ 0، حيث θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>ABE غير متدرج ضمن 80.00–125.00%.</li><li>الحد الأعلى لفترة ثقة 90% لـ sWT/sWR ≤ 2.5.</li></ul></div></div>
@@ -895,7 +902,7 @@ en:`<div class="card"><div class="card-b"><h4>ABE — within-subject differences
 <div class="card"><div class="card-b"><h4>EMA ABEL</h4><ul><li>Cmax only, with acknowledged clinical justification.</li><li>Widening when CVwR &gt; 30%, capped at CV = 50%.</li><li>80.00–125.00% point-estimate constraint.</li><li>CI compared as percentages rounded to 2 decimals.</li></ul><div class="formula">limits = exp(± 0.760 · min(sWR, 0.4724))</div></div></div>
 <div class="card"><div class="card-b"><h4>FDA RSABE</h4><p>Reference variance from ordered R differences centred within sequence, then Howe's 95% upper bound:</p><div class="formula">(μT−μR)² − θ·s²wR ≤ 0 ,  θ = (ln 1.25 / 0.25)²</div><p>Rejected when sWR &lt; 0.294, because the unscaled fallback is not implemented.</p></div></div>
 <div class="card"><div class="card-b"><h4>Power & sample size</h4><p>Numerical integration over χ² for fixed-limit TOST power. Variance factors: 2/N (2×2), 1.5/N (partial), 1/N (full), 4/N (parallel).</p></div></div>
-<div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete studies or other sequence sets.</li><li>Carryover models.</li><li>FDA NTI methodology.</li><li>ABEL/RSABE power and Welch power.</li><li>Independent regulatory validation against SAS/R.</li></ul></div></div>
+<div class="card"><div class="card-b"><h4>Out of scope</h4><ul><li>Incomplete data in the subject-contrast analysis, RSABE and the FDA NTI method (supported in the fixed-effects model and ABEL).</li><li>Non-canonical sequences (e.g. TRT/RTR, TRRT/RTTR).</li><li>Carryover models and EMA Method B (mixed model).</li><li>ABEL/RSABE power and Welch power.</li></ul><p>Verification: ABEL matches the EMA-published results for both EMA reference datasets and replicateBE on 31 datasets.</p></div></div>
 <div class="card"><div class="card-b"><h4>Data format</h4><div class="formula">subject,sequence,period,treatment,value<br>S01,TRR,1,T,48.9<br>S01,TRR,2,R,92.8<br>S01,TRR,3,R,43.7</div><p>Positive values only; no silent dropping or imputation. Test/Ref/Reference are accepted as treatment labels.</p></div></div>
 <div class="card"><div class="card-b"><h4>SFDA / GCC guideline V3.1 profile</h4><ul><li>Fixed-effects ANOVA: sequence, subject(sequence), period, formulation.</li><li>CI bounds rounded to two decimals: ≥ 80.00% and ≤ 125.00%.</li><li>ABEL for Cmax only (k = 0.760, up to 69.84–143.19%); no widening for AUC.</li><li>No RSABE. Minimum 18 evaluable subjects.</li><li>Exclude a period whose pre-dose concentration exceeds 5% of Cmax (not for endogenous substances).</li><li>Endogenous substances: baseline subtraction (concentration for Cmax; baseline AUC or concentration × hours for AUC), or an explicit confirmation that values are already corrected.</li><li>Two-stage: adjusted CI (e.g. 94.12%) and a stage term in the model.</li><li>ANOVA tables included in the output.</li></ul><p>Reference AUCs below 5% of the geometric mean are listed (not excluded). Emesis exclusion and the 80% AUC(0-t) coverage check are in the NCA tab. Out of scope: content correction and dissolution f2.</p></div></div>
 <div class="card"><div class="card-b"><h4>FDA — narrow therapeutic index</h4><p>Full replicate design (TRTR/RTRT); all three conditions must hold (Appendix F, 2026):</p><ul><li>Scaled criterion: (μT−μR)² − θ·s²wR ≤ 0, θ = (ln(1/0.9)/0.10)² ≈ 1.110.</li><li>Unscaled ABE within 80.00–125.00%.</li><li>Upper 90% confidence limit of sWT/sWR ≤ 2.5.</li></ul></div></div>
@@ -1212,6 +1219,9 @@ function renderResult(r){
   if(bc){const mn=Math.min(...bc.rows.map(x=>x.pct_remaining));h+=`<div class="section-t">${t('base_t')}</div><div class="hint" style="margin-bottom:6px">${esc(s.baseline_correction||'')} · ${t('base_min')}: <span class="num">${mn.toFixed(1)}%</span></div><details><summary class="hint" style="cursor:pointer">${t('base_rows')} (${bc.rows.length})</summary><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>before</th><th>baseline</th><th>after</th><th>%</th></tr></thead><tbody>${bc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.uncorrected)}</td><td>${fmtN(x.subtracted)}</td><td>${fmtN(x.corrected)}</td><td>${x.pct_remaining.toFixed(1)}</td></tr>`).join('')}</tbody></table></div></details>`;}
   const gi=(j.tables||[]).find(x=>x.title==='group interaction');
   if(gi){const g=gi.rows[0];h+=`<div class="section-t">${t('gi_t')}</div><div class="hint" style="margin-bottom:8px"><span class="num">F(${g.df}, ${g.df_residual}) = ${g.f.toFixed(3)} · p = ${fmtP(g.p)}</span></div>`;}
+  const inc=(j.tables||[]).find(x=>x.title==='incomplete subjects'),mv=(j.tables||[]).find(x=>x.title==='missing values');
+  if(inc)h+=`<div class="section-t">${t('inc_t')} (${inc.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>sequence</th><th>${t('inc_missing')}</th><th>T</th><th>R</th></tr></thead><tbody>${inc.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.sequence)}</td><td>${esc(x.missing_periods)}</td><td>${x.test}</td><td>${x.reference}</td></tr>`).join('')}</tbody></table></div>`;
+  if(mv)h+=`<div class="section-t">${t('mv_t')} (${mv.rows.length})</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>treatment</th></tr></thead><tbody>${mv.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td></tr>`).join('')}</tbody></table></div>`;
   const la=(j.tables||[]).find(x=>x.title==='low AUC');
   if(la)h+=`<div class="section-t">${t('lowauc_t')}</div><div class="tbl-wrap"><table class="anova"><thead><tr><th>subject</th><th>period</th><th>T/R</th><th>AUC</th><th>GM</th><th>% GM</th></tr></thead><tbody>${la.rows.map(x=>`<tr><td>${esc(x.subject)}</td><td>${esc(x.period)}</td><td>${esc(x.treatment)}</td><td>${fmtN(x.auc)}</td><td>${fmtN(x.product_gm)}</td><td>${x.pct_of_gm.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`;
   const an=(j.tables||[]).find(x=>x.title==='anova');
@@ -1478,6 +1488,8 @@ function ncaToBe(){
   setData(csv,'nca_'+colName+'.csv');
   const counts={};keep.forEach(x=>counts[x.subject]=(counts[x.subject]||0)+1);
   if(keep.length&&Object.values(counts).every(n=>n===1)){S.design='parallel';setSeg('#designSeg','parallel');}
+  const maxP=Math.max(...Object.values(counts));
+  if(maxP>2&&Object.values(counts).some(n=>n<maxP)&&S.analysis!=='ema'){S.analysis='ema';setSeg('#analysisSeg','ema');}
   $('#colValue').value=colName;
   const m=colName==='auc_0_inf'?'aucinf':colName.startsWith('auc')?'auc':'cmax';$('#metric').value=m;
   $('#colPredose').value=!ss&&!endo?'predose':'';

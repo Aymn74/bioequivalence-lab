@@ -413,17 +413,32 @@ class ReviewFixes(unittest.TestCase):
         self.assertEqual(first(p)["n_blq"], 2)
         self.assertTrue(any("BLQ between quantifiable" in f for f in p["findings"]))
 
-    def test_replicate_predose_drops_the_subject_so_the_be_analysis_runs(self):
+    def test_replicate_predose_keeps_the_subject_and_ema_removes_only_that_period(self):
         rows = crossover(12, seqs=("TRR", "RTR", "RRT"))
         for r in rows:
             if r[0] == "S01" and r[1] == 3 and r[3] == 0:
                 r[4] = 0.08 * conc(2)
         code, p, _ = run(rows, cols=COLS)
         bi = table(p, "be input")
-        self.assertNotIn("S01", {r["subject"] for r in bi})
-        code, res, err = be_run(bi, "--design", "partial", "--value-column", "auc_0_t", "--metric", "auc",
-                                "--predose-column", "predose", "--cmax-column", "cmax")
+        self.assertEqual(sum(r["subject"] == "S01" for r in bi), 3)
+        argv = ("--design", "partial", "--value-column", "auc_0_t", "--metric", "auc", "--predose-column", "predose", "--cmax-column", "cmax")
+        code, res, err = be_run(bi, *argv, "--analysis", "ema")
         self.assertIn(code, (0, 1), err)
+        self.assertEqual(len(table(res, "pre-dose exclusions")), 1)
+        self.assertEqual(res["scalars"]["n_subjects"], 12)
+        code, res, err = be_run(bi, *argv)                     # complete-data contrast analysis: explicit error
+        self.assertEqual(code, 2)
+        self.assertIn("--analysis ema", err)
+
+    def test_replicate_drop_out_stays_in_be_input_but_not_in_summary(self):
+        rows = [r for r in crossover(12, seqs=("TRTR", "RTRT")) if not (r[0] == "S02" and r[1] == 4)]
+        code, p, _ = run(rows, cols=COLS)
+        bi = table(p, "be input")
+        self.assertEqual(sum(r["subject"] == "S02" for r in bi), 3)
+        self.assertTrue(any("summary statistics leave out subject(s) S02" in m for m in p["notes"]))
+        code, res, err = be_run(bi, "--design", "full", "--value-column", "cmax", "--metric", "cmax", "--analysis", "ema")
+        self.assertIn(code, (0, 1), err)
+        self.assertEqual(res["scalars"]["n_incomplete_subjects"], 1)
 
     def test_multi_treatment_keeps_subject_with_excluded_unrelated_period(self):
         rows = [r + [""] for r in crossover(18, seqs=("TAB", "ABT", "BTA", "TBA", "ATB", "BAT"), labels={"A": "R1", "B": "R2"})]

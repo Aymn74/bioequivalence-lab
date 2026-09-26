@@ -54,10 +54,9 @@ def main():
     for name, r in ref.items():
         design, complete, seqs = inspect(HERE / f"{name}.csv")
         entry = {"set": name, "sequences": seqs, "n": int(r["n"]), "complete": complete, "engine_design": design}
-        if design is None or not complete:
-            code, vals, msg = engine(HERE / f"{name}.csv", design or "full")
-            entry.update(status="rejected by the engine (unsupported design)" if design is None else "rejected by the engine (incomplete data)",
-                         exit_code=code, message=msg)
+        if design is None:
+            code, vals, msg = engine(HERE / f"{name}.csv", "full")
+            entry.update(status="rejected by the engine (unsupported design)", exit_code=code, message=msg)
             if code != 2:
                 problems.append(f"{name}: expected a rejection (exit 2), got exit {code}")
             report.append(entry)
@@ -87,6 +86,7 @@ def main():
     for e in report:
         if e["status"] == "compared":
             ema = "" if "ema_match" not in e else ("  EMA published: match" if e["ema_match"] else "  EMA published: MISMATCH")
+            ema += "" if e["complete"] else "  (incomplete)"
             print(f"{e['set']:16s} {e['sequences']:22s} n={e['n']:3d}  CVwR {e['engine']['CVwR']:7.3f}%  "
                   f"PE {e['engine']['PE']:7.3f}%  CI {e['engine']['CL.lo']:.3f}-{e['engine']['CL.hi']:.3f}%  "
                   f"limits {e['engine']['EL.lo']:.2f}-{e['engine']['EL.hi']:.2f}%  {e['engine']['BE']:4s}  max rel diff {e['max_rel_diff']:.1e}{ema}")
@@ -95,7 +95,8 @@ def main():
     for p in problems:
         print("PROBLEM:", p)
     n = sum(e["status"] == "compared" for e in report)
-    print(f"{n} datasets compared, {len(report) - n} rejected as expected" if not problems else f"FAILED: {len(problems)} problem(s)")
+    inc = sum(e["status"] == "compared" and not e["complete"] for e in report)
+    print(f"{n} datasets compared ({inc} incomplete), {len(report) - n} rejected as expected (unsupported designs)" if not problems else f"FAILED: {len(problems)} problem(s)")
     return 1 if problems else 0
 
 

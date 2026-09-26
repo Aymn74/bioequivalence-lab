@@ -13,7 +13,7 @@
 A bilingual (Arabic / English) web interface for bioequivalence studies — non-compartmental analysis (NCA) of concentration-time data, average BE (ABE, EMA ABEL, FDA RSABE), and power / sample size.
 The page runs the Python engines (`engine/nca.py`, `engine/bioequivalence.py`) **in the browser** via [Pyodide](https://pyodide.org). No data leaves the user's device.
 
-> ⚠️ **Research implementation, not regulatory certification.** Complete canonical designs only. It does not replace a statistical analysis plan or product-specific guidance. See [`engine/README.md`](engine/README.md) for model assumptions, unsupported cases and references.
+> ⚠️ **Research implementation, not regulatory certification.** Canonical designs; incomplete subjects only in the fixed-effects (EMA Method A) analysis. It does not replace a statistical analysis plan or product-specific guidance. See [`engine/README.md`](engine/README.md) for model assumptions, unsupported cases and references.
 
 **Live app:** https://bioequivalence-lab.vercel.app
 
@@ -119,7 +119,7 @@ Selecting **SFDA / GCC** in the UI (CLI: `--profile sfda`) applies the GCC bioeq
 | Widening (ABEL, k = 0.760, max 69.84–143.19%) for **Cmax only**; AUC stays 80.00–125.00% | ABEL allowed for Cmax only, with prospective justification |
 | No reference-scaled (RSABE) approach | RSABE / "both" rejected |
 | Minimum **18 evaluable subjects** | Fewer than 18 → finding, exit code 1; power solver starts at 18 |
-| Pre-dose concentration **> 5% of Cmax** → exclude that subject-period (single-dose studies; not for endogenous substances) | Optional `predose` column; 2×2 / parallel: subject removed and listed; replicate: explicit error (incomplete design unsupported); `--endogenous` skips the rule. Do not supply it for steady-state studies |
+| Pre-dose concentration **> 5% of Cmax** → exclude that subject-period (single-dose studies; not for endogenous substances) | Optional `predose` column; 2×2 / parallel: subject removed and listed; replicate: only that period is removed and the fixed-effects model analyses the remaining data (with `--analysis contrast` an explicit error); `--endogenous` skips the rule. Do not supply it for steady-state studies |
 | Reference AUC **< 5% of the reference geometric mean** may be excluded only in exceptional, pre-specified cases | Listed in a table (AUC metrics), never excluded automatically |
 | Endogenous substances: parameters computed after pre-specified baseline correction; subtractive method preferred | `--endogenous` **requires** either a `baseline` column (mean pre-dose concentration, subtracted from Cmax; for AUC use a `baseline_auc` column or `--auc-hours`) or `--baseline-corrected` (explicit confirmation). Otherwise the analysis is refused. Values that become ≤ 0 are an explicit error. Before/after table in the output |
 | Two-stage design: adjusted CI (e.g. 94.12%) and a term for stage in the ANOVA model | `--ci-level 94.12`; an optional `stage` column adds stage, sequence×stage, subject(sequence×stage) and period(stage) terms |
@@ -155,7 +155,7 @@ S01,TR,1,T,933.70
 S01,TR,2,R,1079.54
 ```
 
-Column names are case-insensitive. `subject`, `treatment` and `value` can be remapped in the UI; `sequence` and `period` must use these names. Treatment labels `T`/`R`, `Test`/`Ref`/`Reference` are accepted. Values must be positive; the engine never silently drops, imputes or averages records.
+Column names are case-insensitive. `subject`, `treatment` and `value` can be remapped in the UI; `sequence` and `period` must use these names. Treatment labels `T`/`R`, `Test`/`Ref`/`Reference` are accepted. Values must be positive; the engine never silently drops, imputes or averages records. In the fixed-effects analysis (`--analysis ema`, ABEL, SFDA profile) subjects with missing periods — absent rows, or a blank / `NA` value — are analysed with all their available observations and listed in the output; the contrast analysis, RSABE and the FDA NTI method require complete subjects.
 
 Sample files: [`test_data/`](test_data) (two simulated studies) and [`test_cases/`](test_cases) (edge cases; files prefixed `ERR_` must be rejected). All data are simulated — no real clinical study.
 
@@ -179,7 +179,7 @@ python validate_simulation.py
 
 `python -m unittest test_nca -v` runs the 36 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
 
-**ABEL against the EMA reference datasets:** EMA dataset II (partial replicate) reproduces the EMA-published result (CVwR 11.2%, PE 102.26%, CI 97.32–107.46%); 17 complete datasets in supported designs match replicateBE 1.1.3 (Method A) to 7.5 × 10⁻¹⁵ with identical decisions. EMA dataset I is incomplete and is rejected, because incomplete replicate data are not supported yet. Details: [`engine/validation/ema_abel/`](engine/validation/ema_abel/README.md).
+**ABEL against the EMA reference datasets:** both EMA datasets reproduce the EMA-published results — dataset I (full replicate, 77 subjects, incomplete: CVwR 47.0%, PE 115.66%, CI 107.11–124.89%) and dataset II (partial replicate: CVwR 11.2%, PE 102.26%, CI 97.32–107.46%); 31 datasets in supported designs (13 incomplete) match replicateBE 1.1.3 (Method A) to 7.5 × 10⁻¹⁵ with identical decisions. Details: [`engine/validation/ema_abel/`](engine/validation/ema_abel/README.md).
 
 **NCA against PKNCA 0.12.1 (R):** 348 single-dose and 60 steady-state profiles, both trapezoidal rules — all core parameters (Cmax, tmax, AUC(0-t), kel, t½, AUC(0-∞), AUC(0-τ), Cav,ss, Cτ,ss, Cmin,ss, swing, fluctuation) match to 4 × 10⁻¹⁴; the few partial-AUC differences after Clast are explained PKNCA conventions. PKNCA's default BLQ rule differs from ICH M13A and changed AUC(0-t) by up to 21.1%. `compare_pknca.py` exits non-zero on any undocumented difference. Scripts, data and results: [`engine/validation/`](engine/validation/README.md).
 
@@ -191,7 +191,7 @@ The web UI was checked against the engine's reference output (`engine/example_re
 
 واجهة ويب ثنائية اللغة لدراسات التكافؤ الحيوي: التحليل غير الحجيري (NCA) لبيانات التركيز والزمن، وABE وEMA ABEL وFDA RSABE، وحساب القوة وحجم العينة. تشغّل الواجهة الملفين `engine/nca.py` و`engine/bioequivalence.py` داخل المتصفح عبر Pyodide، ولا تُرسل البيانات إلى أي خادم.
 
-> ⚠️ **تنفيذ بحثي وليس اعتمادًا تنظيميًا.** يقبل التصاميم الكاملة القياسية فقط، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. راجع [`engine/اقرأني.md`](engine/اقرأني.md).
+> ⚠️ **تنفيذ بحثي وليس اعتمادًا تنظيميًا.** يقبل التصاميم القياسية (والبيانات الناقصة في تحليل التأثيرات الثابتة فقط)، ولا يغني عن خطة التحليل الإحصائي أو الإرشادات الخاصة بالمنتج. راجع [`engine/اقرأني.md`](engine/اقرأني.md).
 
 **الرابط المباشر:** https://bioequivalence-lab.vercel.app — لقطات الشاشة في الأعلى محدَّثة للنسخة الحالية (ومنها تبويب NCA)، وجميعها ببيانات مُحاكاة؛ يعيد السكربت `docs/capture_screenshots.mjs` توليدها.
 
@@ -199,7 +199,7 @@ The web UI was checked against the engine's reference output (`engine/example_re
 
 **التحليل غير الحجيري (NCA):** التبويب الأول يحسب من ملف التركيزات (`subject, time, conc` واختياريًا `period, treatment, emesis_time`) المعايير الدوائية وفق ICH M13A: القيم تحت حد القياس = صفر وتُستبعد من kel، والخانة الفارغة عينة مفقودة تُوثَّق ولا تصبح صفرًا، واختيار نافذة kel بقاعدة PKNCA، وطريقة شبه المنحرف محددة مسبقًا ومُبلَّغ عنها، وقاعدة التغطية 80/20، وAUC(0-72h)، ومعايير الحالة المستقرة. ومع إطار SFDA تُضاف قاعدة القيء وجدول الملحق 1. زر «إرسال» ينقل المعايير إلى تحليل التكافؤ مع ضبط الأعمدة. التفاصيل والمراجع في [`engine/README.md`](engine/README.md#nca-module-ncapy).
 
-**التحقق من ABEL على بيانات EMA المرجعية:** المجموعة الثانية لـ EMA تطابق النتيجة المنشورة تمامًا، و17 مجموعة مكتملة تطابق حزمة replicateBE حتى 7.5 × 10⁻¹⁵ بالقرار نفسه. المجموعة الأولى لـ EMA ناقصة البيانات فيرفضها المحرك، لأن البيانات المكرّرة الناقصة غير مدعومة بعد.
+**التحقق من ABEL على بيانات EMA المرجعية:** مجموعتا EMA تطابقان النتائج المنشورة تمامًا، ومنهما المجموعة الأولى ذات البيانات الناقصة (77 مشاركًا). و31 مجموعة (13 منها ناقصة) تطابق حزمة replicateBE حتى 7.5 × 10⁻¹⁵ بالقرار نفسه. البيانات الناقصة مدعومة في تحليل التأثيرات الثابتة (طريقة EMA A) وABEL وإطار SFDA، وتُدرج في النتائج مشاركًا مشاركًا.
 
 **المقارنة مع PKNCA 0.12.1 (R):** على 348 منحنى جرعة مفردة و60 منحنى حالة مستقرة، وبطريقتي شبه المنحرف، تطابقت كل المعايير الأساسية حتى 4 × 10⁻¹⁴. الفروق القليلة في المساحات الجزئية بعد آخر تركيز مقاس مفسَّرة بأعراف PKNCA. تنبيه: إعداد PKNCA الافتراضي للقيم تحت حد القياس يخالف ICH M13A، وغيّر AUC(0-t) بما يصل إلى 21.1%. السكربتات والبيانات والنتائج في [`engine/validation/`](engine/validation/README.md).
 

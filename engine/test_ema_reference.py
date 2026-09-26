@@ -36,11 +36,27 @@ class EmaReference(unittest.TestCase):
         self.assertAlmostEqual(100 * r["ci_low"], 97.3155468707817, places=9)
         self.assertAlmostEqual(100 * r["ci_high"], 107.464919793407, places=9)
 
-    def test_dataset_i_is_incomplete_and_rejected(self):
-        # EMA Annex II has subjects with missing periods; the engine analyses complete designs only
-        code, r, err = abel("rds01.csv", "full")
+    def test_dataset_i_incomplete_full_replicate_matches_ema(self):
+        # EMA Annex II (77 subjects, some with missing periods): CVwR 47.0%, PE 115.66%, 90% CI 107.11-124.89%
+        code, r, _ = abel("rds01.csv", "full")
+        self.assertEqual(round(100 * r["cvwr"], 1), 47.0)
+        self.assertEqual(round(100 * r["gmr"], 2), 115.66)
+        self.assertEqual((round(100 * r["ci_low"], 2), round(100 * r["ci_high"], 2)), (107.11, 124.89))
+        self.assertTrue(r["widened"])
+        self.assertTrue(r["met"])
+        # replicateBE 1.1.3 method.A, unrounded (widened limits 71.23-140.40%)
+        self.assertAlmostEqual(100 * r["cvwr"], 46.9643071557707, places=9)
+        self.assertAlmostEqual(100 * r["gmr"], 115.658727770273, places=9)
+        self.assertAlmostEqual(100 * r["low"], 71.2269768375454, places=9)
+        self.assertAlmostEqual(100 * r["high"], 140.3962437267, places=9)
+
+    def test_incomplete_data_rejected_outside_the_fixed_effects_analysis(self):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = be.main_wrapper(be.run, ["-i", os.path.join(HERE, "rds01.csv"), "--design", "full", "--scaling", "rsabe",
+                                            "--metric", "cmax", "--format", "json"])
         self.assertEqual(code, 2)
-        self.assertIsNone(r)
+        self.assertIn("--analysis ema", err.getvalue())
 
 
 if __name__ == "__main__":

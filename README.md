@@ -173,6 +173,8 @@ python validate_simulation.py
 
 `python -m unittest test_nca -v` runs the 19 NCA tests (independent scipy reference, closed-form profiles, guideline rules). The browser NCA engine reproduces the local Python output for `engine/example_nca.csv` exactly.
 
+**NCA against PKNCA 0.12.1 (R):** 348 single-dose and 60 steady-state profiles, both trapezoidal rules — all core parameters (Cmax, tmax, AUC(0-t), kel, t½, AUC(0-∞), AUC(0-τ), Cmin,ss) match to 4 × 10⁻¹⁴; the few partial-AUC differences after Clast are explained PKNCA conventions. PKNCA's default BLQ rule differs from ICH M13A and changed AUC(0-t) by up to 21.1%. Scripts, data and results: [`engine/validation/`](engine/validation/README.md).
+
 The web UI was checked against the engine's reference output (`engine/example_results.json`) and against an independent 2×2 computation (identical to 4 decimals).
 
 ---
@@ -188,6 +190,8 @@ The web UI was checked against the engine's reference output (`engine/example_re
 **إطار SFDA / الخليجي:** اختيار «SFDA / الخليجي» في الواجهة (أو `--profile sfda`) يطبّق دليل التكافؤ الحيوي الخليجي DS-G-010 V3.1: تحليل ANOVA بتأثيرات ثابتة، وتقريب حدود فترة الثقة لمنزلتين، وتوسيع الحدود (ABEL) لـ Cmax فقط، وعدم استخدام RSABE، وحد أدنى 18 مشاركًا قابلًا للتقييم، واستبعاد الفترة التي يتجاوز فيها تركيز ما قبل الجرعة 5% من Cmax (عمود `predose` اختياري)، وفترة ثقة معدّلة للتصميم على مرحلتين (مثل 94.12%) مع عمود `stage`، وإخراج جدول ANOVA كاملًا يتضمن حدّ المرحلة، وعرض (دون استبعاد) كل مرجع مساحته أقل من 5% من المتوسط الهندسي. قاعدة ما قبل الجرعة للدراسات أحادية الجرعة فقط. وللمواد داخلية المنشأ يطرح البرنامج خط الأساس (عمود `baseline`) أو يشترط تأكيدًا صريحًا بأن القيم مصححة، وإلا يرفض التحليل. استبعاد القيء وفحص تغطية AUC(0-t) لـ 80% في تبويب NCA. غير منفّذ: تصحيح المحتوى، ومعامل f2، وقاعدة بيانات الأدلة الخاصة بالمنتجات.
 
 **التحليل غير الحجيري (NCA):** التبويب الأول يحسب من ملف التركيزات (`subject, time, conc` واختياريًا `period, treatment, emesis_time`) المعايير الدوائية وفق ICH M13A: القيم تحت حد القياس = صفر وتُستبعد من kel، والخانة الفارغة عينة مفقودة تُوثَّق ولا تصبح صفرًا، واختيار نافذة kel بقاعدة PKNCA، وطريقة شبه المنحرف محددة مسبقًا ومُبلَّغ عنها، وقاعدة التغطية 80/20، وAUC(0-72h)، ومعايير الحالة المستقرة. ومع إطار SFDA تُضاف قاعدة القيء وجدول الملحق 1. زر «إرسال» ينقل المعايير إلى تحليل التكافؤ مع ضبط الأعمدة. التفاصيل والمراجع في [`engine/README.md`](engine/README.md#nca-module-ncapy).
+
+**المقارنة مع PKNCA 0.12.1 (R):** على 348 منحنى جرعة مفردة و60 منحنى حالة مستقرة، وبطريقتي شبه المنحرف، تطابقت كل المعايير الأساسية حتى 4 × 10⁻¹⁴. الفروق القليلة في المساحات الجزئية بعد آخر تركيز مقاس مفسَّرة بأعراف PKNCA. تنبيه: إعداد PKNCA الافتراضي للقيم تحت حد القياس يخالف ICH M13A، وغيّر AUC(0-t) بما يصل إلى 21.1%. السكربتات والبيانات والنتائج في [`engine/validation/`](engine/validation/README.md).
 
 **التشغيل:** انشر المجلد كموقع ثابت (Vercel أو GitHub Pages)، أو شغّل `run.bat` محليًا وافتح http://localhost:8765. أول زيارة تحمّل Python وNumPy وSciPy (نحو 20 ميغابايت).
 

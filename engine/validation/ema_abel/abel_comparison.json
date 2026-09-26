@@ -1,0 +1,793 @@
+[
+ {
+  "set": "rds01",
+  "sequences": "RTRT|TRTR",
+  "n": 77,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 11: incomplete or duplicate records"
+ },
+ {
+  "set": "rds02",
+  "sequences": "RRT|RTR|TRR",
+  "n": 24,
+  "complete": true,
+  "engine_design": "partial",
+  "status": "compared",
+  "engine": {
+   "CVwR": 11.17076117767413,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 102.26439966635579,
+   "CL.lo": 97.31554687078189,
+   "CL.hi": 107.46491979340735,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 11.1707611776742,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 102.264399666356,
+   "CL.lo": 97.3155468707817,
+   "CL.hi": 107.464919793407
+  },
+  "max_rel_diff": 6.201718543143515e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass",
+  "ema_published": {
+   "CVwR": 11.2,
+   "PE": 102.26,
+   "CL.lo": 97.32,
+   "CL.hi": 107.46
+  },
+  "ema_match": true
+ },
+ {
+  "set": "rds03",
+  "sequences": "RTR|TRT",
+  "n": 77,
+  "complete": false,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds04",
+  "sequences": "RRT|RTR|TRR",
+  "n": 51,
+  "complete": true,
+  "engine_design": "partial",
+  "status": "compared",
+  "engine": {
+   "CVwR": 61.21664304598609,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 137.21381120050765,
+   "CL.lo": 117.90163937109908,
+   "CL.hi": 159.68929766029808,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 61.2166430459861,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 137.213811200508,
+   "CL.lo": 117.901639371099,
+   "CL.hi": 159.689297660298
+  },
+  "max_rel_diff": 2.4856135849653117e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds05",
+  "sequences": "RTTR|TRRT",
+  "n": 26,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds06",
+  "sequences": "RTRT|TRTR",
+  "n": 77,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 11: incomplete or duplicate records"
+ },
+ {
+  "set": "rds07",
+  "sequences": "RRT|RTR|TRR",
+  "n": 360,
+  "complete": true,
+  "engine_design": "partial",
+  "status": "compared",
+  "engine": {
+   "CVwR": 34.18815411571934,
+   "EL.lo": 77.6713720564507,
+   "EL.hi": 128.7475647106132,
+   "PE": 89.5768109510481,
+   "CL.lo": 86.45598080166143,
+   "CL.hi": 92.81029473909587,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 34.1881541157194,
+   "EL.lo": 77.6713720564507,
+   "EL.hi": 128.747564710613,
+   "PE": 89.5768109510479,
+   "CL.lo": 86.4559808016612,
+   "CL.hi": 92.8102947390956
+  },
+  "max_rel_diff": 2.9092272613492746e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
+ },
+ {
+  "set": "rds08",
+  "sequences": "RTRT|TRTR",
+  "n": 222,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 77.61893937578752,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 81.42822694702934,
+   "CL.lo": 75.6915330196726,
+   "CL.hi": 87.59970738092466,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 77.6189393757875,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 81.4282269470293,
+   "CL.lo": 75.6915330196726,
+   "CL.hi": 87.5997073809246
+  },
+  "max_rel_diff": 6.488996431646304e-16,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
+ },
+ {
+  "set": "rds09",
+  "sequences": "RTRT|TRTR",
+  "n": 222,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 77.61893937578753,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 81.42822694702942,
+   "CL.lo": 75.69153301967266,
+   "CL.hi": 87.59970738092471,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 77.6189393757874,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 81.4282269470288,
+   "CL.lo": 75.6915330196721,
+   "CL.hi": 87.5997073809241
+  },
+  "max_rel_diff": 7.509878132080442e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
+ },
+ {
+  "set": "rds10",
+  "sequences": "RTT|TRR",
+  "n": 18,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds11",
+  "sequences": "RTTR|TRRT",
+  "n": 37,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds12",
+  "sequences": "RTRT|TRTR",
+  "n": 77,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 11: incomplete or duplicate records"
+ },
+ {
+  "set": "rds13",
+  "sequences": "RTRT|TRTR",
+  "n": 222,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 56: incomplete or duplicate records"
+ },
+ {
+  "set": "rds14",
+  "sequences": "RTRT|TRTR",
+  "n": 77,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 2: incomplete or duplicate records"
+ },
+ {
+  "set": "rds15",
+  "sequences": "RTRT|TRTR",
+  "n": 222,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: value (value) for subject 56 period 4: expected a finite positive number"
+ },
+ {
+  "set": "rds16",
+  "sequences": "RTTR|TRRT",
+  "n": 38,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds17",
+  "sequences": "RTR|TRT",
+  "n": 19,
+  "complete": false,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds18",
+  "sequences": "RTRT|TRTR",
+  "n": 77,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 2: incomplete or duplicate records"
+ },
+ {
+  "set": "rds19",
+  "sequences": "RTRT|TRTR",
+  "n": 61,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 2: incomplete or duplicate records"
+ },
+ {
+  "set": "rds20",
+  "sequences": "RTRT|TRTR",
+  "n": 61,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 2: incomplete or duplicate records"
+ },
+ {
+  "set": "rds21",
+  "sequences": "RTRT|TRTR",
+  "n": 77,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: value (value) for subject 45 period 3: expected a finite positive number"
+ },
+ {
+  "set": "rds22",
+  "sequences": "RTR|TRR",
+  "n": 42,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds23",
+  "sequences": "RTRT|RTTR|TRRT|TRTR",
+  "n": 22,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds24",
+  "sequences": "RRTT|RTTR|TRRT|TTRR",
+  "n": 39,
+  "complete": false,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: value (value) for subject 16 period 1: expected a finite positive number"
+ },
+ {
+  "set": "rds25",
+  "sequences": "RTRT|TRTR",
+  "n": 70,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 82.80518270002999,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 87.43493302011703,
+   "CL.lo": 77.92804507360273,
+   "CL.hi": 98.10162060413298,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 82.80518270003,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 87.4349330201173,
+   "CL.lo": 77.928045073603,
+   "CL.hi": 98.1016206041333
+  },
+  "max_rel_diff": 3.464814744599551e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
+ },
+ {
+  "set": "rds26",
+  "sequences": "RTRT|TRTR",
+  "n": 54,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: value (value) for subject 3 period 3: expected a finite positive number"
+ },
+ {
+  "set": "rds27",
+  "sequences": "RR|RT|TR|TT",
+  "n": 312,
+  "complete": false,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: value (value) for subject 111 period 2: expected a finite positive number"
+ },
+ {
+  "set": "rds28",
+  "sequences": "RRTT|TTRR",
+  "n": 64,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds29",
+  "sequences": "RTRT|TRTR",
+  "n": 12,
+  "complete": false,
+  "engine_design": "full",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 3: incomplete or duplicate records"
+ },
+ {
+  "set": "rds30",
+  "sequences": "RRT|RTR|TRR",
+  "n": 14,
+  "complete": false,
+  "engine_design": "partial",
+  "status": "rejected by the engine (incomplete data)",
+  "exit_code": 2,
+  "message": "error: 1: incomplete or duplicate records"
+ },
+ {
+  "set": "rds01_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 69,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 47.57253611535677,
+   "EL.lo": 70.94426436570164,
+   "EL.hi": 140.95572192351253,
+   "PE": 115.4613074468941,
+   "CL.lo": 106.48720509746819,
+   "CL.hi": 125.19169326628486,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 47.5725361153568,
+   "EL.lo": 70.9442643657016,
+   "EL.hi": 140.955721923513,
+   "PE": 115.461307446894,
+   "CL.lo": 106.487205097468,
+   "CL.hi": 125.191693266285
+  },
+  "max_rel_diff": 3.427807354844742e-15,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
+ },
+ {
+  "set": "rds03_complete",
+  "sequences": "RTR|TRT",
+  "n": 69,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds06_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 69,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 35.4910627710243,
+   "EL.lo": 76.96859430217954,
+   "EL.hi": 129.9231211205429,
+   "PE": 86.60910066863269,
+   "CL.lo": 79.87750416259513,
+   "CL.hi": 93.90799571504348,
+   "BE": "pass"
+  },
+  "replicatebe": {
+   "CVwR": 35.4910627710243,
+   "EL.lo": 76.9685943021795,
+   "EL.hi": 129.923121120543,
+   "PE": 86.6091006686327,
+   "CL.lo": 79.8775041625951,
+   "CL.hi": 93.9079957150435
+  },
+  "max_rel_diff": 6.562737067569584e-16,
+  "decision_engine": "pass",
+  "decision_replicatebe": "pass"
+ },
+ {
+  "set": "rds12_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 69,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 231.31694159460645,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 131.39925589340584,
+   "CL.lo": 98.1808808441698,
+   "CL.hi": 175.8566871766463,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 231.316941594606,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 131.399255893406,
+   "CL.lo": 98.1808808441697,
+   "CL.hi": 175.856687176646
+  },
+  "max_rel_diff": 1.9659059459787886e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds13_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 110,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 79.98253349743429,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 76.65514606447731,
+   "CL.lo": 69.34070254237598,
+   "CL.hi": 84.74115782970848,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 79.9825334974343,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 76.6551460644773,
+   "CL.lo": 69.340702542376,
+   "CL.hi": 84.7411578297085
+  },
+  "max_rel_diff": 2.0494246804778714e-16,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds14_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 49,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 122.83881053780725,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 88.99699753219834,
+   "CL.lo": 63.76189663900785,
+   "CL.hi": 124.21941609717715,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 122.838810537807,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 88.9969975321983,
+   "CL.lo": 63.7618966390078,
+   "CL.hi": 124.219416097177
+  },
+  "max_rel_diff": 1.966679171678236e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds15_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 110,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 79.98253349743429,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 76.65514606447731,
+   "CL.lo": 69.34070254237598,
+   "CL.hi": 84.74115782970848,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 79.9825334974343,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 76.6551460644773,
+   "CL.lo": 69.340702542376,
+   "CL.hi": 84.7411578297085
+  },
+  "max_rel_diff": 2.0494246804778714e-16,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds17_complete",
+  "sequences": "RTR|TRT",
+  "n": 18,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds18_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 38,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 106.74793236345812,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 68.13113829417324,
+   "CL.lo": 47.384023649086636,
+   "CL.hi": 97.96238579560212,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 106.747932363458,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 68.1311382941733,
+   "CL.lo": 47.3840236490867,
+   "CL.hi": 97.962385795602
+  },
+  "max_rel_diff": 1.3495866600944851e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds19_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 38,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 106.74793236345812,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 68.13113829417324,
+   "CL.lo": 47.384023649086636,
+   "CL.hi": 97.96238579560212,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 106.747932363458,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 68.1311382941733,
+   "CL.lo": 47.3840236490867,
+   "CL.hi": 97.962385795602
+  },
+  "max_rel_diff": 1.3495866600944851e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds20_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 38,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 134.88055003297092,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 63.90986014176156,
+   "CL.lo": 43.569036672735436,
+   "CL.hi": 93.74708589541751,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 134.880550032971,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 63.9098601417616,
+   "CL.lo": 43.5690366727355,
+   "CL.hi": 93.7470858954174
+  },
+  "max_rel_diff": 1.4677590119504921e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds21_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 67,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 31.927342906675822,
+   "EL.lo": 78.91618462349288,
+   "EL.hi": 126.71671910787055,
+   "PE": 118.65985875588012,
+   "CL.lo": 110.68662473944215,
+   "CL.hi": 127.2074391382908,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 31.9273429066757,
+   "EL.lo": 78.916184623493,
+   "EL.hi": 126.71671910787,
+   "PE": 118.65985875588,
+   "CL.lo": 110.686624739442,
+   "CL.hi": 127.207439138291
+  },
+  "max_rel_diff": 4.261572450577578e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds26_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 52,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 60.25584135471153,
+   "EL.lo": 69.83678197809269,
+   "EL.hi": 143.19101935620301,
+   "PE": 153.3254923851316,
+   "CL.lo": 135.1717893808444,
+   "CL.hi": 173.91725538904902,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 60.2558413547115,
+   "EL.lo": 69.8367819780927,
+   "EL.hi": 143.191019356203,
+   "PE": 153.325492385132,
+   "CL.lo": 135.171789380845,
+   "CL.hi": 173.917255389049
+  },
+  "max_rel_diff": 4.625799586829286e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds27_complete",
+  "sequences": "RR|RT|TR|TT",
+  "n": 311,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ },
+ {
+  "set": "rds29_complete",
+  "sequences": "RTRT|TRTR",
+  "n": 7,
+  "complete": true,
+  "engine_design": "full",
+  "status": "compared",
+  "engine": {
+   "CVwR": 23.060231400350695,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 103.71569190972443,
+   "CL.lo": 82.5578387794106,
+   "CL.hi": 130.29586175402147,
+   "BE": "fail"
+  },
+  "replicatebe": {
+   "CVwR": 23.0602314003507,
+   "EL.lo": 80.0,
+   "EL.hi": 125.0,
+   "PE": 103.715691909724,
+   "CL.lo": 82.5578387794105,
+   "CL.hi": 130.295861754021
+  },
+  "max_rel_diff": 4.110522078251588e-15,
+  "decision_engine": "fail",
+  "decision_replicatebe": "fail"
+ },
+ {
+  "set": "rds30_complete",
+  "sequences": "RTR|TRR",
+  "n": 7,
+  "complete": true,
+  "engine_design": null,
+  "status": "rejected by the engine (unsupported design)",
+  "exit_code": 2,
+  "message": "error: full: all canonical sequences required; missing/unknown sequence found"
+ }
+]

@@ -73,6 +73,8 @@ This copy of the engine extends the corrected package above (the `provenance.jso
 - `--predose-column`, `--cmax-column`, `--endogenous`: pre-dose screening inputs.
 - `sample_size(..., min_n=)`: minimum total N (18 under the SFDA profile).
 
+ABEL is checked against the EMA reference datasets and replicateBE in [`validation/ema_abel/`](validation/ema_abel/README.md) (`test_ema_reference.py`).
+
 Default behaviour without these options is unchanged (reference output in `example_results.json` reproduced to floating-point precision). New tests: `test_sfda.py`.
 
 ## NCA module (`nca.py`)

@@ -11,6 +11,14 @@ abstract: >-
 type: software
 version: 1.0.0
 date-released: 2026-09-26
+doi: "10.5281/zenodo.22977016"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.22977016"
+    description: "Concept DOI: all versions, resolves to the latest"
+  - type: doi
+    value: "10.5281/zenodo.22977017"
+    description: "Version 1.0.0"
 license: MIT
 url: "https://bioequivalence-lab.vercel.app"
 repository-code: "https://github.com/Aymn74/bioequivalence-lab"

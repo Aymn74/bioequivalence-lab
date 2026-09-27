@@ -1,6 +1,7 @@
 # Bioequivalence Lab · مختبر التكافؤ الحيوي
 
 [![Live demo](https://img.shields.io/badge/demo-live-0f766e?style=flat-square&logo=vercel&logoColor=white)](https://bioequivalence-lab.vercel.app)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22977016.svg)](https://doi.org/10.5281/zenodo.22977016)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Pyodide](https://img.shields.io/badge/runs%20in%20browser-Pyodide%200.25-654FF0?style=flat-square&logo=webassembly&logoColor=white)
@@ -236,7 +237,7 @@ A review of 26 September 2026 (engines, regulatory citations, UI, NCA → BE int
 
 ## Citation
 
-See [`CITATION.cff`](CITATION.cff). Suggested: *ALQasem, Ayman Mohammed. Bioequivalence Lab (version 1.0.0) [software]. 2026. https://bioequivalence-lab.vercel.app*. Please also cite the methods it reproduces (ICH M13A; EMA CPMP/EWP/QWP/1401/98 Rev.1; FDA Statistical Approaches to Establishing Bioequivalence; SFDA DS-G-010 V3.1) and the validation references (PKNCA; replicateBE).
+Archived on Zenodo: [doi:10.5281/zenodo.22977016](https://doi.org/10.5281/zenodo.22977016) (all versions, resolves to the latest); version 1.0.0 is [doi:10.5281/zenodo.22977017](https://doi.org/10.5281/zenodo.22977017). See [`CITATION.cff`](CITATION.cff). Suggested: *ALQasem, Ayman Mohammed. Bioequivalence Lab (version 1.0.0) [software]. Zenodo; 2026. https://doi.org/10.5281/zenodo.22977017*. Cite the version DOI when reporting results, so the exact code is identifiable. Please also cite the methods it reproduces (ICH M13A; EMA CPMP/EWP/QWP/1401/98 Rev.1; FDA Statistical Approaches to Establishing Bioequivalence; SFDA DS-G-010 V3.1) and the validation references (PKNCA; replicateBE).
 
 ## License
 
